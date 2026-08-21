@@ -1,0 +1,4 @@
+{
+  "$schema": "https://json.schemastore.org/extensions.json",
+  "recommendations": ["bradlc.vscode-tailwindcss", "dbaeumer.vscode-eslint"]
+}

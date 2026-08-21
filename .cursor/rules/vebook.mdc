@@ -1,0 +1,15 @@
+---
+description: Contexto do produto VEBOOK para edições no Cursor
+alwaysApply: true
+---
+
+# VEBOOK
+
+Plataforma nacional de Diário Veicular. A oficina registra, o cliente valida, a VEBOOK preserva.
+
+- UI em pt-BR, tom institucional.
+- Navegação atual: estado `AppView` em `src/App.tsx`.
+- Dados mock: `src/data/mockData.ts` e `src/data/governanceData.ts`.
+- Tipos: `src/types.ts`.
+- Layout: `src/components/layout/`.
+- Telas: `src/components/views/`.
