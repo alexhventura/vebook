@@ -1,5 +1,7 @@
 # VEBOOK
 
+Repositório: [alexhventura/vebook](https://github.com/alexhventura/vebook)
+
 **A oficina registra. O cliente valida. A VEBOOK preserva.**
 
 Plataforma nacional de Diário Veicular e emissão de Certidão de Histórico. Este repositório é o protótipo institucional importado do AI Studio, estruturado para edição no Cursor.

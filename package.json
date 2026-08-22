@@ -4,6 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "description": "VEBOOK — Diário Veicular e Certidão de Histórico",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexhventura/vebook.git"
+  },
+  "homepage": "https://github.com/alexhventura/vebook",
   "scripts": {
     "dev": "vite --port 3000 --host",
     "build": "tsc --noEmit && vite build",
