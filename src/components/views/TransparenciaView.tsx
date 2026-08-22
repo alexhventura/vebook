@@ -33,6 +33,7 @@ interface TransparenciaViewProps {
   onOpenPrivacidadeModal: () => void;
   onNavigateToDiario: () => void;
   onNavigateToCertidao: () => void;
+  onSectionChange?: (section: TransparenciaSection) => void;
 }
 
 export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
@@ -42,6 +43,7 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
   onOpenPrivacidadeModal,
   onNavigateToDiario,
   onNavigateToCertidao,
+  onSectionChange,
 }) => {
   const [activeSection, setActiveSection] = useState<TransparenciaSection>(initialSection);
   const [faqCategoryFilter, setFaqCategoryFilter] = useState<string>('todos');
@@ -140,6 +142,7 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
                       key={item.id}
                       onClick={() => {
                         setActiveSection(item.id);
+                        onSectionChange?.(item.id);
                         window.scrollTo({ top: 180, behavior: 'smooth' });
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${

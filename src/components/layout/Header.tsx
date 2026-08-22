@@ -1,28 +1,26 @@
 import React, { useEffect, useId, useState } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import { AppView } from '../../types';
 import { Logo } from './Logo';
 import { Button } from '../ui/Button';
+import { PATHS } from '../../lib/paths';
 
 interface HeaderProps {
-  currentView: AppView;
-  onNavigate: (view: AppView) => void;
-  onFocusConsulta: () => void;
   onOpenEntrar: () => void;
 }
 
-const NAV_ITEMS: { view: AppView; label: string }[] = [
-  { view: 'diario', label: 'Consultar veículo' },
-  { view: 'oficinas', label: 'Para oficinas' },
-  { view: 'como-funciona', label: 'Como funciona' },
+const NAV_ITEMS = [
+  { to: PATHS.consultar, label: 'Consultar veículo', prefixes: ['/consultar', '/historico'] },
+  { to: PATHS.oficinas, label: 'Para oficinas', prefixes: ['/oficinas', '/oficina'] },
+  { to: PATHS.comoFunciona, label: 'Como funciona', prefixes: ['/como-funciona'] },
 ];
 
-export const Header: React.FC<HeaderProps> = ({
-  currentView,
-  onNavigate,
-  onFocusConsulta,
-  onOpenEntrar,
-}) => {
+function pathMatches(pathname: string, prefix: string) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+export const Header: React.FC<HeaderProps> = ({ onOpenEntrar }) => {
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuId = useId();
 
@@ -35,49 +33,29 @@ export const Header: React.FC<HeaderProps> = ({
     return () => document.removeEventListener('keydown', onKey);
   }, [mobileMenuOpen]);
 
-  const handleNavClick = (view: AppView) => {
-    setMobileMenuOpen(false);
-    if (view === 'diario') {
-      onFocusConsulta();
-      return;
-    }
-    onNavigate(view);
-  };
+  const close = () => setMobileMenuOpen(false);
 
-  const isActive = (view: AppView) => {
-    if (view === 'diario') return currentView === 'diario' || currentView === 'certidao';
-    if (view === 'oficinas') return currentView === 'oficinas' || currentView === 'site-oficina';
-    return currentView === view;
-  };
+  const linkClass = (active: boolean) =>
+    `rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+      active ? 'bg-slate-100 text-[#0B1E36]' : 'text-slate-600 hover:bg-slate-50 hover:text-[#0B1E36]'
+    }`;
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
       <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <button
-          type="button"
-          onClick={() => handleNavClick('home')}
-          className="rounded-lg text-left"
-          aria-label="VEBOOK, ir para o início"
-        >
+        <Link to={PATHS.home} className="rounded-lg" aria-label="VEBOOK, ir para o início" onClick={close}>
           <Logo size="md" variant="dark" />
-        </button>
+        </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.view}
-              type="button"
-              onClick={() => handleNavClick(item.view)}
-              aria-current={isActive(item.view) ? 'page' : undefined}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                isActive(item.view)
-                  ? 'bg-slate-100 text-[#0B1E36]'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-[#0B1E36]'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const active = item.prefixes.some((prefix) => pathMatches(location.pathname, prefix));
+            return (
+              <NavLink key={item.to} to={item.to} className={linkClass(active)}>
+                {item.label}
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div className="hidden lg:block">
@@ -99,39 +77,48 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {mobileMenuOpen && (
-        <div
-          id={menuId}
-          className="border-t border-slate-200 bg-white px-4 py-4 lg:hidden"
-        >
+        <div id={menuId} className="border-t border-slate-200 bg-white px-4 py-4 lg:hidden">
           <nav className="space-y-1" aria-label="Principal">
-            <button
-              type="button"
-              onClick={() => handleNavClick('home')}
-              className={`block w-full rounded-lg px-3 py-3 text-left text-base font-semibold ${
-                currentView === 'home' ? 'bg-slate-100 text-[#0B1E36]' : 'text-slate-700'
-              }`}
+            <NavLink
+              to={PATHS.home}
+              onClick={close}
+              end
+              className={({ isActive }) =>
+                `block w-full rounded-lg px-3 py-3 text-left text-base font-semibold ${
+                  isActive ? 'bg-slate-100 text-[#0B1E36]' : 'text-slate-700'
+                }`
+              }
             >
               Início
-            </button>
-            {NAV_ITEMS.filter((item) => item.view !== 'diario').map((item) => (
-              <button
-                key={item.view}
-                type="button"
-                onClick={() => handleNavClick(item.view)}
-                aria-current={isActive(item.view) ? 'page' : undefined}
-                className={`block w-full rounded-lg px-3 py-3 text-left text-base font-semibold ${
-                  isActive(item.view) ? 'bg-slate-100 text-[#0B1E36]' : 'text-slate-700'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+            </NavLink>
+            {NAV_ITEMS.filter((item) => item.to !== PATHS.consultar).map((item) => {
+              const active = item.prefixes.some((prefix) => pathMatches(location.pathname, prefix));
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={close}
+                  className={`block w-full rounded-lg px-3 py-3 text-left text-base font-semibold ${
+                    active ? 'bg-slate-100 text-[#0B1E36]' : 'text-slate-700'
+                  }`}
+                >
+                  {item.label}
+                </NavLink>
+              );
+            })}
           </nav>
           <div className="mt-4 space-y-2 border-t border-slate-100 pt-4">
-            <Button fullWidth onClick={() => handleNavClick('diario')}>
-              Consultar veículo
-            </Button>
-            <Button fullWidth variant="secondary" onClick={() => { setMobileMenuOpen(false); onOpenEntrar(); }}>
+            <Link to={PATHS.consultar} onClick={close}>
+              <Button fullWidth>Consultar veículo</Button>
+            </Link>
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => {
+                close();
+                onOpenEntrar();
+              }}
+            >
               Entrar
             </Button>
           </div>

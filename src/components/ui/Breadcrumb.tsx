@@ -1,8 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export interface BreadcrumbItem {
   label: string;
   onClick?: () => void;
+  to?: string;
 }
 
 export const Breadcrumb: React.FC<{ items: BreadcrumbItem[] }> = ({ items }) => (
@@ -17,14 +19,20 @@ export const Breadcrumb: React.FC<{ items: BreadcrumbItem[] }> = ({ items }) => 
                 /
               </span>
             )}
-            {isLast || !item.onClick ? (
-              <span className={isLast ? 'font-semibold text-[#0B1E36]' : ''} aria-current={isLast ? 'page' : undefined}>
+            {isLast ? (
+              <span className="font-semibold text-[#0B1E36]" aria-current="page">
                 {item.label}
               </span>
-            ) : (
+            ) : item.to ? (
+              <Link to={item.to} className="hover:text-[#0B1E36] hover:underline">
+                {item.label}
+              </Link>
+            ) : item.onClick ? (
               <button type="button" onClick={item.onClick} className="hover:text-[#0B1E36] hover:underline">
                 {item.label}
               </button>
+            ) : (
+              <span>{item.label}</span>
             )}
           </li>
         );

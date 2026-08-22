@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FileCheck2, Printer, Download, Search, User, Clock, QrCode } from 'lucide-react';
+import { FileCheck2, Printer, Download, Search, QrCode } from 'lucide-react';
 import { Logo } from '../layout/Logo';
 import { VEHICLES_MOCK, SERVICES_MOCK } from '../../data/mockData';
 import { AppView } from '../../types';
+import { PATHS } from '../../lib/paths';
 import { PageHeader } from '../ui/PageHeader';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -17,21 +18,26 @@ interface CertidaoViewProps {
   onNavigate: (view: AppView) => void;
 }
 
-export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2E19', onNavigate }) => {
-  const [plate, setPlate] = useState<string>(VEHICLES_MOCK[initialPlate] ? initialPlate : 'BRA2E19');
+export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate }) => {
+  const knownPlate = initialPlate && VEHICLES_MOCK[initialPlate] ? initialPlate : '';
+  const [plate, setPlate] = useState<string>(knownPlate || 'BRA2E19');
   const [requesterName, setRequesterName] = useState('João Carlos da Silva');
   const [requesterCpf, setRequesterCpf] = useState('352.***.***-80');
-  const [isGenerated, setIsGenerated] = useState(true);
+  const [isGenerated, setIsGenerated] = useState(Boolean(knownPlate));
+  const [issuedAt, setIssuedAt] = useState(() => new Date());
+  const [pdfNote, setPdfNote] = useState(false);
   const [validationCodeInput, setValidationCodeInput] = useState('');
   const [validationResult, setValidationResult] = useState<'idle' | 'success' | 'error'>('idle');
 
   const vehicle = VEHICLES_MOCK[plate] || VEHICLES_MOCK['BRA2E19'];
   const services = SERVICES_MOCK[plate] || SERVICES_MOCK['BRA2E19'];
-  const emissionDate = new Date().toLocaleDateString('pt-BR');
+  const emissionDate = issuedAt.toLocaleDateString('pt-BR');
+  const emissionTime = issuedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   const certificateCode = `VBK-2026-${plate}-98412`;
 
   const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
+    setIssuedAt(new Date());
     setIsGenerated(true);
   };
 
@@ -46,34 +52,17 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
       <div className="mx-auto max-w-5xl space-y-8">
         <Breadcrumb
           items={[
-            { label: 'VEBOOK', onClick: () => onNavigate('home') },
-            { label: 'Consultar veículo', onClick: () => onNavigate('diario') },
+            { label: 'VEBOOK', to: PATHS.home },
+            { label: 'Consultar veículo', to: PATHS.consultar },
+            ...(isGenerated ? [{ label: plate, to: PATHS.historico(plate) }] : []),
             { label: 'Certidão' },
           ]}
         />
 
         <PageHeader
           title="Certidão de histórico"
-          description="Documento emitido pela VEBOOK com o retrato dos registros de manutenção disponíveis até a data e a hora da emissão. Qualquer pessoa pode solicitar. A emissão não comprova propriedade."
+          description="Documento emitido pela VEBOOK com os registros de manutenção disponíveis até a data e a hora da emissão. A emissão não comprova propriedade e não substitui documentos de trânsito."
         />
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <User className="h-5 w-5 text-slate-500" aria-hidden />
-            <h2 className="mt-3 font-semibold text-[#0B1E36]">Nominal ao solicitante</h2>
-            <p className="mt-1 text-sm text-slate-600">A certidão identifica quem pediu o documento. Não é necessário ser o proprietário.</p>
-          </Card>
-          <Card>
-            <Clock className="h-5 w-5 text-slate-500" aria-hidden />
-            <h2 className="mt-3 font-semibold text-[#0B1E36]">Retrato na data da emissão</h2>
-            <p className="mt-1 text-sm text-slate-600">Registros, validações e contestações existentes até o momento da emissão.</p>
-          </Card>
-          <Card>
-            <QrCode className="h-5 w-5 text-slate-500" aria-hidden />
-            <h2 className="mt-3 font-semibold text-[#0B1E36]">Código de verificação</h2>
-            <p className="mt-1 text-sm text-slate-600">O destinatário confere a autenticidade pelo código impresso no documento.</p>
-          </Card>
-        </div>
 
         <Card>
           <h2 className="text-lg font-bold text-[#0B1E36]">Emitir certidão</h2>
@@ -105,7 +94,7 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
             <div className="sm:col-span-3 flex justify-end">
               <Button type="submit">
                 <FileCheck2 className="h-4 w-4" aria-hidden />
-                Atualizar certidão
+                {isGenerated ? 'Atualizar certidão' : 'Emitir certidão'}
               </Button>
             </div>
           </form>
@@ -122,13 +111,18 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
                 </Button>
                 <Button
                   size="sm"
-                  onClick={() => window.alert('O download em PDF estará disponível quando a emissão estiver integrada.')}
+                  onClick={() => setPdfNote(true)}
                 >
                   <Download className="h-4 w-4" aria-hidden />
                   Baixar PDF
                 </Button>
               </div>
             </div>
+            {pdfNote && (
+              <p className="text-sm text-slate-500" data-print-hide>
+                O arquivo PDF estará disponível quando a emissão estiver integrada.
+              </p>
+            )}
 
             <div className="space-y-8 rounded-2xl border border-slate-300 bg-white p-6 sm:p-10">
               <div className="flex flex-col gap-4 border-b border-[#0B1E36] pb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -139,7 +133,7 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm">
                   <p className="text-xs uppercase tracking-wide text-slate-500">Código</p>
                   <p className="font-mono font-semibold text-[#0B1E36]">{certificateCode}</p>
-                  <p className="text-slate-500">Emitida em {emissionDate}</p>
+                  <p className="text-slate-500">Emitida em {emissionDate} às {emissionTime}</p>
                 </div>
               </div>
 
@@ -183,13 +177,14 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-[#0B1E36]">Histórico</h3>
                 <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200">
-                  <table className="w-full min-w-[640px] text-left text-sm">
+                  <table className="w-full min-w-[720px] text-left text-sm">
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50 text-slate-700">
                         <th className="p-3 font-semibold">Data / km</th>
                         <th className="p-3 font-semibold">Serviço</th>
                         <th className="p-3 font-semibold">Oficina</th>
                         <th className="p-3 font-semibold">Situação</th>
+                        <th className="p-3 font-semibold">Origem</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -210,6 +205,7 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
                           <td className="p-3 align-top">
                             <StatusBadge status={s.validationStatus} />
                           </td>
+                          <td className="p-3 align-top text-slate-500">Registro da oficina</td>
                         </tr>
                       ))}
                     </tbody>
@@ -217,10 +213,21 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
                 </div>
               </div>
 
-              <Alert>
-                Esta certidão reproduz os registros inseridos por oficinas na VEBOOK até a emissão.
-                Não substitui CRLV, não é laudo cautelar e não atesta o estado atual do veículo.
-              </Alert>
+              <div className="grid gap-6 border-t border-slate-200 pt-6 sm:grid-cols-[8rem_1fr] sm:items-start">
+                <div className="flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
+                  <QrCode className="h-20 w-20 text-[#0B1E36]" aria-hidden />
+                  <p className="text-xs font-semibold text-slate-600">Verificação</p>
+                  <p className="break-all font-mono text-[10px] text-slate-500">{certificateCode}</p>
+                </div>
+                <div className="space-y-2 text-sm leading-relaxed text-slate-600">
+                  <p>
+                    <strong className="text-[#0B1E36]">Origem:</strong> registros lançados por oficinas na plataforma VEBOOK, com a situação informada pelo cliente quando houver validação ou contestação.
+                  </p>
+                  <p>
+                    Esta certidão é um documento da VEBOOK. Não substitui CRLV, não é laudo cautelar e não atesta o estado atual do veículo. Reproduz apenas o que estava disponível na plataforma em {emissionDate} às {emissionTime}.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}

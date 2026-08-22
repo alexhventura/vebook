@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Search,
   AlertTriangle,
@@ -14,8 +15,9 @@ import {
   ExternalLink,
   SearchX,
 } from 'lucide-react';
-import { VEHICLES_MOCK, SERVICES_MOCK } from '../../data/mockData';
+import { VEHICLES_MOCK, SERVICES_MOCK, WORKSHOPS_MOCK } from '../../data/mockData';
 import { AppView, ServiceRecord, TransparenciaSection, ValidationStatus } from '../../types';
+import { PATHS } from '../../lib/paths';
 import { SAMPLE_PLATES } from '../../lib/copy';
 import { useConsulta } from '../../hooks/useConsulta';
 import { Button } from '../ui/Button';
@@ -34,6 +36,7 @@ interface DiarioVeicularViewProps {
   onNavigateTransparencia?: (section: TransparenciaSection) => void;
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
   initialPlate?: string;
+  onPlateFound?: (plate: string) => void;
 }
 
 export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
@@ -42,6 +45,7 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
   onOpenContestacaoModalForRecord,
   searchInputRef,
   initialPlate,
+  onPlateFound,
 }) => {
   const consulta = useConsulta(initialPlate ?? '');
   const [selectedPlate, setSelectedPlate] = useState<string | null>(null);
@@ -53,6 +57,7 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
       consulta.runLookup(initialPlate, (clean) => {
         setSelectedPlate(clean);
         setFilterStatus('all');
+        onPlateFound?.(clean);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- consulta inicial apenas quando a placa de origem muda
@@ -80,8 +85,9 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
       <div className="mx-auto max-w-6xl space-y-8">
         <Breadcrumb
           items={[
-            { label: 'VEBOOK', onClick: () => onNavigate('home') },
-            { label: 'Consultar veículo' },
+            { label: 'VEBOOK', to: PATHS.home },
+            { label: 'Consultar veículo', to: PATHS.consultar },
+            ...(selectedPlate ? [{ label: selectedPlate }] : []),
           ]}
         />
 
@@ -100,6 +106,7 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
               consulta.handleSubmit(e, (clean) => {
                 setSelectedPlate(clean);
                 setFilterStatus('all');
+                onPlateFound?.(clean);
               })
             }
             className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end"
@@ -136,6 +143,7 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
                   consulta.runLookup(item.plate, (clean) => {
                     setSelectedPlate(clean);
                     setFilterStatus('all');
+                    onPlateFound?.(clean);
                   });
                 }}
                 className={`rounded-md border px-2.5 py-1 font-medium ${
@@ -239,7 +247,7 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
                 <div>
                   <h3 className="text-lg font-bold text-[#0B1E36]">Histórico</h3>
                   <p className="text-sm text-slate-500">
-                    Data, serviço, quilometragem, oficina e situação.
+                    Data, serviço, quilometragem, oficina, situação e origem.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filtrar por situação">
@@ -299,9 +307,9 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
                           aria-hidden
                         />
                         <article className="rounded-xl border border-slate-200 bg-white">
-                          <header className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-                            <div className="space-y-1">
-                              <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                          <header className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
+                            <div className="min-w-0 space-y-2">
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600">
                                 <span className="inline-flex items-center gap-1 font-medium text-[#0B1E36]">
                                   <Calendar className="h-3.5 w-3.5 text-slate-400" aria-hidden />
                                   {new Date(record.serviceDate).toLocaleDateString('pt-BR')}
@@ -313,32 +321,25 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
                                 <span>{record.serviceType}</span>
                               </div>
                               <h4 className="text-base font-semibold text-[#0B1E36]">{record.description}</h4>
+                              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600">
+                                <Building2 className="h-4 w-4 text-slate-400" aria-hidden />
+                                <WorkshopName workshopId={record.workshopId} name={record.workshopName} />
+                                <span className="text-slate-400">
+                                  {record.workshopCity} — {record.workshopState}
+                                </span>
+                                {record.internalOsNumber && (
+                                  <span className="font-mono text-xs text-slate-500">{record.internalOsNumber}</span>
+                                )}
+                              </p>
+                              <p className="text-sm text-slate-500">
+                                Origem: registro da oficina
+                                {record.maskedValidatorName ? ` · validado por ${record.maskedValidatorName}` : ''}
+                              </p>
                             </div>
                             <StatusBadge status={record.validationStatus} />
                           </header>
 
                           <div className="space-y-4 p-4 sm:p-5">
-                            <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                              <div className="flex items-center gap-2 text-slate-600">
-                                <Building2 className="h-4 w-4 text-slate-400" aria-hidden />
-                                <span>Oficina:</span>
-                                <button
-                                  type="button"
-                                  onClick={() => onNavigate('site-oficina')}
-                                  className="inline-flex items-center gap-1 font-semibold text-[#0B1E36] hover:underline"
-                                >
-                                  {record.workshopName}
-                                  <ExternalLink className="h-3 w-3" aria-hidden />
-                                </button>
-                                <span className="text-slate-400">
-                                  {record.workshopCity} — {record.workshopState}
-                                </span>
-                              </div>
-                              {record.internalOsNumber && (
-                                <span className="font-mono text-xs text-slate-500">{record.internalOsNumber}</span>
-                              )}
-                            </div>
-
                             {record.contestation && (
                               <Alert tone="warning" title={record.contestation.reasonLabel}>
                                 <p>“{record.contestation.comment}”</p>
@@ -350,10 +351,10 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
                             )}
 
                             <div>
-                              <div className="mb-2 flex items-center justify-between">
-                                <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0B1E36]">
+                              <div className="mb-2 flex items-center justify-between gap-3">
+                                <p className="inline-flex items-center gap-1.5 text-sm text-slate-600">
                                   <Package className="h-4 w-4 text-slate-400" aria-hidden />
-                                  Produtos aplicados ({record.products.length})
+                                  {record.products.length} produto{record.products.length === 1 ? '' : 's'} aplicado{record.products.length === 1 ? '' : 's'}
                                 </p>
                                 <button
                                   type="button"
@@ -365,25 +366,27 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
                                   {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                                 </button>
                               </div>
-                              <ul className="grid gap-2 md:grid-cols-2">
-                                {record.products.map((prod) => (
-                                  <li key={prod.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="font-semibold text-[#0B1E36]">{prod.brand}</span>
-                                      <span className="text-slate-500">
-                                        {prod.quantity} {prod.unit}
-                                      </span>
-                                    </div>
-                                    <p className="mt-1 font-medium">{prod.commercialName}</p>
-                                    {isExpanded && prod.specification && (
-                                      <p className="mt-1 text-slate-600">{prod.specification}</p>
-                                    )}
-                                    {isExpanded && prod.productCode && (
-                                      <p className="mt-1 font-mono text-xs text-slate-500">{prod.productCode}</p>
-                                    )}
-                                  </li>
-                                ))}
-                              </ul>
+                              {isExpanded && (
+                                <ul className="grid gap-2 md:grid-cols-2">
+                                  {record.products.map((prod) => (
+                                    <li key={prod.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="font-semibold text-[#0B1E36]">{prod.brand}</span>
+                                        <span className="text-slate-500">
+                                          {prod.quantity} {prod.unit}
+                                        </span>
+                                      </div>
+                                      <p className="mt-1 font-medium">{prod.commercialName}</p>
+                                      {prod.specification && (
+                                        <p className="mt-1 text-slate-600">{prod.specification}</p>
+                                      )}
+                                      {prod.productCode && (
+                                        <p className="mt-1 font-mono text-xs text-slate-500">{prod.productCode}</p>
+                                      )}
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
                             </div>
 
                             {record.observations && (
@@ -393,11 +396,7 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
                               </p>
                             )}
 
-                            <div className="flex flex-col gap-3 border-t border-slate-100 pt-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-                              <span>
-                                Origem: registro da oficina
-                                {record.maskedValidatorName ? ` · validado por ${record.maskedValidatorName}` : ''}
-                              </span>
+                            <div className="flex justify-end border-t border-slate-100 pt-3">
                               <Button
                                 variant="secondary"
                                 size="sm"
@@ -437,3 +436,22 @@ const SummaryStat: React.FC<{ label: string; value: number }> = ({ label, value 
     <p className="text-2xl font-bold text-[#0B1E36]">{value}</p>
   </div>
 );
+
+function workshopHref(workshopId: string): string | null {
+  const workshop = WORKSHOPS_MOCK.find((item) => item.id === workshopId);
+  if (!workshop) return null;
+  return PATHS.oficina(workshop.subdomain.split('.')[0]);
+}
+
+const WorkshopName: React.FC<{ workshopId: string; name: string }> = ({ workshopId, name }) => {
+  const href = workshopHref(workshopId);
+  if (!href) {
+    return <span className="font-semibold text-[#0B1E36]">{name}</span>;
+  }
+  return (
+    <Link to={href} className="inline-flex items-center gap-1 font-semibold text-[#0B1E36] hover:underline">
+      {name}
+      <ExternalLink className="h-3 w-3" aria-hidden />
+    </Link>
+  );
+};
