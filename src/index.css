@@ -1,6 +1,78 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-navy: #0b1e36;
+  --color-navy-deep: #071526;
+  --color-ink: #071a33;
+  --color-surface: #f8fafc;
+  --color-line: #e2e8f0;
+}
+
+:root {
+  --vebook-navy: #0b1e36;
+  --vebook-navy-deep: #071526;
+  --vebook-ink: #071a33;
+  --vebook-muted: #475569;
+  --vebook-line: #e2e8f0;
+  --vebook-surface: #f8fafc;
+  --vebook-radius: 0.75rem;
+  --vebook-shadow: 0 1px 2px rgb(7 26 51 / 0.06);
+  --header-offset: 4.5rem;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
+body {
+  font-family: var(--font-sans);
+  color: var(--vebook-ink);
+  background: var(--vebook-surface);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3.5rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  background: #0b1e36;
+  color: #fff;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 0.75rem;
+}
+
+:focus-visible {
+  outline: 2px solid #0b1e36;
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media print {
+  header,
+  footer,
+  .skip-link,
+  [data-print-hide] {
+    display: none !important;
+  }
+}
