@@ -1,69 +1,83 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { formatPlate, isValidPlateFormat, getPlateStandard } from '../lib/utils';
+import { VEHICLES_MOCK } from '../data/mockData';
 
-export function useConsulta() {
-  const [plate, setPlate] = useState('');
+export type ConsultaOutcome = 'idle' | 'loading' | 'found' | 'not_found' | 'invalid';
+
+export function useConsulta(initialPlate = '') {
+  const [plate, setPlate] = useState(formatPlate(initialPlate));
   const [searchedPlate, setSearchedPlate] = useState<string | null>(null);
-  const [hasError, setHasError] = useState(false);
+  const [outcome, setOutcome] = useState<ConsultaOutcome>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePlateChange = useCallback((value: string) => {
     const formatted = formatPlate(value);
     setPlate(formatted);
-    if (hasError) {
-      setHasError(false);
-      setErrorMessage('');
-    }
-    if (searchedPlate) {
+    setErrorMessage('');
+    if (outcome !== 'idle' && outcome !== 'loading') {
+      setOutcome('idle');
       setSearchedPlate(null);
     }
-  }, [hasError, searchedPlate]);
+  }, [outcome]);
 
-  const handleSubmit = useCallback((e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const runLookup = useCallback((rawPlate: string, onFound?: (clean: string) => void) => {
+    const clean = formatPlate(rawPlate);
 
-    const clean = plate.trim();
     if (!clean) {
-      setHasError(true);
-      setErrorMessage('Por favor, informe a placa do veículo para consultar.');
+      setOutcome('invalid');
+      setErrorMessage('Informe a placa do veículo para consultar.');
+      setSearchedPlate(null);
       return;
     }
 
     if (!isValidPlateFormat(clean)) {
-      setHasError(true);
-      setErrorMessage('Formato de placa inválido. Digite no padrão Mercosul (ex: ABC1D23) ou Tradicional (ex: ABC1234).');
+      setOutcome('invalid');
+      setErrorMessage('Formato de placa inválido. Use Mercosul (ABC1D23) ou tradicional (ABC1234).');
+      setSearchedPlate(null);
       return;
     }
 
     setIsLoading(true);
-    setHasError(false);
+    setOutcome('loading');
     setErrorMessage('');
 
-    setTimeout(() => {
+    window.setTimeout(() => {
       setIsLoading(false);
       setSearchedPlate(clean);
-    }, 250);
-  }, [plate]);
+      if (VEHICLES_MOCK[clean]) {
+        setOutcome('found');
+        onFound?.(clean);
+      } else {
+        setOutcome('not_found');
+      }
+    }, 450);
+  }, []);
+
+  const handleSubmit = useCallback((e?: React.FormEvent, onFound?: (clean: string) => void) => {
+    if (e) e.preventDefault();
+    runLookup(plate, onFound);
+  }, [plate, runLookup]);
 
   const resetConsulta = useCallback(() => {
     setPlate('');
     setSearchedPlate(null);
-    setHasError(false);
+    setOutcome('idle');
     setErrorMessage('');
+    setIsLoading(false);
   }, []);
-
-  const plateStandard = getPlateStandard(plate);
 
   return {
     plate,
     searchedPlate,
-    hasError,
+    outcome,
+    hasError: outcome === 'invalid',
     errorMessage,
     isLoading,
-    plateStandard,
+    plateStandard: getPlateStandard(plate),
     handlePlateChange,
     handleSubmit,
+    runLookup,
     resetConsulta,
   };
 }

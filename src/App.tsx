@@ -1,8 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
-
-// Views
 import { HomeView } from './components/views/HomeView';
 import { DiarioVeicularView } from './components/views/DiarioVeicularView';
 import { ComoFuncionaView } from './components/views/ComoFuncionaView';
@@ -11,29 +9,30 @@ import { ParaOficinasView } from './components/views/ParaOficinasView';
 import { ValidacaoSimuladorView } from './components/views/ValidacaoSimuladorView';
 import { WorkshopSiteView } from './components/workshop/WorkshopSiteView';
 import { TransparenciaView } from './components/views/TransparenciaView';
-
-// Modals
 import { CredenciamentoModal } from './components/modals/CredenciamentoModal';
 import { LegalModal } from './components/modals/LegalModal';
 import { CookieBanner } from './components/cookies/CookieBanner';
 import { MinhaPrivacidadeModal } from './components/privacy/MinhaPrivacidadeModal';
 import { ContestacaoModal } from './components/contestation/ContestacaoModal';
 import { AppView, TransparenciaSection, ServiceRecord } from './types';
+import { PAGE_TITLES } from './lib/copy';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('home');
   const [transparenciaSection, setTransparenciaSection] = useState<TransparenciaSection>('como-tratamos');
-  const [selectedPlateForCertidao, setSelectedPlateForCertidao] = useState<string>('BRA2E19');
+  const [selectedPlate, setSelectedPlate] = useState<string | undefined>(undefined);
   const [credenciamentoMode, setCredenciamentoMode] = useState<'cadastro' | 'login' | null>(null);
   const [legalModalType, setLegalModalType] = useState<'termos' | 'privacidade' | 'contato' | null>(null);
-  
-  // Modais de Governança e Transparência
   const [isCookieConfigModalOpen, setIsCookieConfigModalOpen] = useState(false);
   const [isPrivacidadeModalOpen, setIsPrivacidadeModalOpen] = useState(false);
   const [isContestacaoModalOpen, setIsContestacaoModalOpen] = useState(false);
   const [targetContestationRecord, setTargetContestationRecord] = useState<ServiceRecord | null>(null);
 
   const consultaInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    document.title = PAGE_TITLES[currentView] ?? PAGE_TITLES.home;
+  }, [currentView]);
 
   const handleNavigate = (view: AppView) => {
     setCurrentView(view);
@@ -47,7 +46,7 @@ export default function App() {
   };
 
   const handleSearchPlateFromHome = (plate: string) => {
-    setSelectedPlateForCertidao(plate);
+    setSelectedPlate(plate || undefined);
     setCurrentView('diario');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -56,7 +55,7 @@ export default function App() {
     if (currentView !== 'diario') {
       setCurrentView('diario');
     }
-    setTimeout(() => {
+    window.setTimeout(() => {
       const input = consultaInputRef.current;
       if (input) {
         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -66,7 +65,7 @@ export default function App() {
   };
 
   const handleEmitirCertidaoForPlate = (plate: string) => {
-    setSelectedPlateForCertidao(plate);
+    setSelectedPlate(plate);
     setCurrentView('certidao');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -82,23 +81,26 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#071A33] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#0B1E36] selection:text-white">
-      
-      {/* HEADER INSTITUCIONAL COM NAVEGAÇÃO ENTRE VISÕES */}
+    <div className="flex min-h-screen flex-col bg-[#F8FAFC] text-[#071A33]">
+      <a href="#conteudo-principal" className="skip-link">
+        Ir para o conteúdo
+      </a>
+
       <Header
         currentView={currentView}
         onNavigate={handleNavigate}
         onFocusConsulta={handleFocusConsulta}
+        onOpenEntrar={() => setCredenciamentoMode('login')}
       />
 
-      {/* CONTEÚDO DINÂMICO CONFORME A VISÃO SELECIONADA */}
-      <main className="flex-1">
+      <main id="conteudo-principal" className="flex-1" tabIndex={-1}>
         {currentView === 'home' && (
           <HomeView
             onNavigate={handleNavigate}
             onSearchPlate={handleSearchPlateFromHome}
             onOpenCredenciamento={() => setCredenciamentoMode('cadastro')}
             onOpenJaCredenciado={() => setCredenciamentoMode('login')}
+            onNavigateTransparencia={handleNavigateTransparencia}
           />
         )}
 
@@ -109,20 +111,16 @@ export default function App() {
             onOpenContestacaoModalForRecord={handleOpenContestacaoForRecord}
             onNavigateTransparencia={handleNavigateTransparencia}
             searchInputRef={consultaInputRef}
+            initialPlate={selectedPlate}
           />
         )}
 
         {currentView === 'como-funciona' && (
-          <ComoFuncionaView
-            onNavigate={handleNavigate}
-          />
+          <ComoFuncionaView onNavigate={handleNavigate} />
         )}
 
         {currentView === 'certidao' && (
-          <CertidaoView
-            initialPlate={selectedPlateForCertidao}
-            onNavigate={handleNavigate}
-          />
+          <CertidaoView initialPlate={selectedPlate ?? 'BRA2E19'} onNavigate={handleNavigate} />
         )}
 
         {currentView === 'oficinas' && (
@@ -142,9 +140,7 @@ export default function App() {
         )}
 
         {currentView === 'validacao' && (
-          <ValidacaoSimuladorView
-            onNavigate={handleNavigate}
-          />
+          <ValidacaoSimuladorView onNavigate={handleNavigate} />
         )}
 
         {currentView === 'transparencia' && (
@@ -159,7 +155,6 @@ export default function App() {
         )}
       </main>
 
-      {/* RODAPÉ INSTITUCIONAL */}
       <Footer
         onNavigate={handleNavigate}
         onNavigateTransparencia={handleNavigateTransparencia}
@@ -169,13 +164,11 @@ export default function App() {
         onOpenContato={() => setLegalModalType('contato')}
       />
 
-      {/* BANNER E MODAL DE PREFERÊNCIAS DE COOKIES */}
       <CookieBanner
         isOpenModalExternally={isCookieConfigModalOpen}
         onCloseExternalModal={() => setIsCookieConfigModalOpen(false)}
       />
 
-      {/* PAINEL MINHA PRIVACIDADE (LGPD ART. 18) */}
       <MinhaPrivacidadeModal
         isOpen={isPrivacidadeModalOpen}
         onClose={() => setIsPrivacidadeModalOpen(false)}
@@ -185,7 +178,6 @@ export default function App() {
         }}
       />
 
-      {/* MODAL FORMAL DE CONTESTAÇÃO DE REGISTRO */}
       <ContestacaoModal
         isOpen={isContestacaoModalOpen}
         onClose={() => {
@@ -195,7 +187,6 @@ export default function App() {
         targetRecord={targetContestationRecord}
       />
 
-      {/* MODAL DE CREDENCIAMENTO / ACESSO DA OFICINA */}
       {credenciamentoMode && (
         <CredenciamentoModal
           mode={credenciamentoMode}
@@ -203,15 +194,12 @@ export default function App() {
         />
       )}
 
-      {/* MODAIS LEGAIS E INSTITUCIONAIS RESUMIDOS */}
       {legalModalType && (
         <LegalModal
           type={legalModalType}
           onClose={() => setLegalModalType(null)}
         />
       )}
-
     </div>
   );
 }
-
