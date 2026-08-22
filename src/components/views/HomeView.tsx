@@ -189,7 +189,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
             { label: 'Termos de Uso', action: () => onNavigateTransparencia('termos') },
             { label: 'Cookies', action: () => onNavigateTransparencia('cookies') },
             { label: 'Direitos do titular', action: () => onNavigateTransparencia('direitos-titular') },
-            { label: 'Central de Ajuda', action: () => onNavigateTransparencia('faq') },
           ].map((item) => (
             <li key={item.label}>
               <button

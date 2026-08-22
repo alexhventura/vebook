@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useState } from 'react';
-import { Menu, Search, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { AppView } from '../../types';
 import { Logo } from './Logo';
 import { Button } from '../ui/Button';
@@ -80,18 +80,9 @@ export const Header: React.FC<HeaderProps> = ({
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 sm:flex">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onOpenEntrar}
-            className="hidden lg:inline-flex"
-          >
+        <div className="hidden lg:block">
+          <Button variant="secondary" size="sm" onClick={onOpenEntrar}>
             Entrar
-          </Button>
-          <Button size="sm" onClick={() => handleNavClick('diario')}>
-            <Search className="h-4 w-4" aria-hidden />
-            Consultar veículo
           </Button>
         </div>
 
@@ -122,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               Início
             </button>
-            {NAV_ITEMS.map((item) => (
+            {NAV_ITEMS.filter((item) => item.view !== 'diario').map((item) => (
               <button
                 key={item.view}
                 type="button"
@@ -138,7 +129,6 @@ export const Header: React.FC<HeaderProps> = ({
           </nav>
           <div className="mt-4 space-y-2 border-t border-slate-100 pt-4">
             <Button fullWidth onClick={() => handleNavClick('diario')}>
-              <Search className="h-4 w-4" aria-hidden />
               Consultar veículo
             </Button>
             <Button fullWidth variant="secondary" onClick={() => { setMobileMenuOpen(false); onOpenEntrar(); }}>
