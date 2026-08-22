@@ -15,7 +15,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 }) => (
   <header className="space-y-4">
     {eyebrow && (
-      <p className="text-sm font-semibold uppercase tracking-wide text-sky-800">{eyebrow}</p>
+      <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">{eyebrow}</p>
     )}
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="max-w-3xl space-y-2">

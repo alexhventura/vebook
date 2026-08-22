@@ -2,6 +2,7 @@ import React from 'react';
 import { Check } from 'lucide-react';
 import { AppView } from '../../types';
 import { WORKSHOPS_MOCK } from '../../data/mockData';
+import { PATHS } from '../../lib/paths';
 import { PageHeader } from '../ui/PageHeader';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -25,7 +26,7 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
       <div className="mx-auto max-w-5xl space-y-12">
         <Breadcrumb
           items={[
-            { label: 'VEBOOK', onClick: () => onNavigate('home') },
+            { label: 'VEBOOK', to: PATHS.home },
             { label: 'Para oficinas' },
           ]}
         />
@@ -52,7 +53,7 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
           <Card>
             <h2 className="text-lg font-bold text-[#0B1E36]">Relacionamento com o cliente</h2>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              O cliente recebe o resumo para validar ou apontar divergência. Menos retrabalho e menos discussão depois da entrega.
+              O cliente recebe o resumo para validar ou apontar divergência. A situação fica visível no histórico do veículo.
             </p>
           </Card>
           <Card>
@@ -113,8 +114,12 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
             Envie os dados do estabelecimento. O acesso à área da oficina será liberado nas próximas etapas da plataforma.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Button onClick={onOpenCredenciamentoModal}>Cadastrar oficina</Button>
-            <Button variant="secondary" onClick={onOpenJaCredenciadoModal}>Entrar</Button>
+            <Button variant="inverse" onClick={onOpenCredenciamentoModal}>
+              Cadastrar oficina
+            </Button>
+            <Button variant="onDark" onClick={onOpenJaCredenciadoModal}>
+              Entrar
+            </Button>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle2, AlertTriangle, RotateCcw, Check, Lock } from 'lucide-react';
 import { AppView } from '../../types';
+import { PATHS } from '../../lib/paths';
 import { PageHeader } from '../ui/PageHeader';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
@@ -30,8 +31,8 @@ export const ValidacaoSimuladorView: React.FC<ValidacaoSimuladorViewProps> = ({ 
       <div className="mx-auto max-w-3xl space-y-8">
         <Breadcrumb
           items={[
-            { label: 'VEBOOK', onClick: () => onNavigate('home') },
-            { label: 'Como funciona', onClick: () => onNavigate('como-funciona') },
+            { label: 'VEBOOK', to: PATHS.home },
+            { label: 'Como funciona', to: PATHS.comoFunciona },
             { label: 'Validar registro' },
           ]}
         />

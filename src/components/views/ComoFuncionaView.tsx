@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, CheckCircle2, Clock, AlertTriangle, MinusCircle, X } from 'lucide-react';
 import { AppView } from '../../types';
+import { PATHS } from '../../lib/paths';
 import { PageHeader } from '../ui/PageHeader';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -16,7 +17,7 @@ export const ComoFuncionaView: React.FC<ComoFuncionaViewProps> = ({ onNavigate }
       <div className="mx-auto max-w-5xl space-y-12">
         <Breadcrumb
           items={[
-            { label: 'VEBOOK', onClick: () => onNavigate('home') },
+            { label: 'VEBOOK', to: PATHS.home },
             { label: 'Como funciona' },
           ]}
         />
@@ -124,8 +125,10 @@ export const ComoFuncionaView: React.FC<ComoFuncionaViewProps> = ({ onNavigate }
             Nomes e documentos, quando necessários, são apresentados de forma mascarada.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button onClick={() => onNavigate('diario')}>Consultar veículo</Button>
-            <Button variant="secondary" onClick={() => onNavigate('validacao')}>
+            <Button variant="inverse" onClick={() => onNavigate('diario')}>
+              Consultar veículo
+            </Button>
+            <Button variant="onDark" onClick={() => onNavigate('validacao')}>
               Ver validação do cliente
             </Button>
           </div>
