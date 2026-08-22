@@ -90,14 +90,11 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
                 <Cookie className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  <span>Sua privacidade e governança de dados importam</span>
-                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-sky-900/60 text-sky-300 border border-sky-700/50">
-                    LGPD & Marco Civil
-                  </span>
+                <h4 className="text-sm font-bold text-white">
+                  Cookies e privacidade
                 </h4>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  O <strong>VEBOOK</strong> utiliza cookies e tecnologias estritamente necessárias para garantir segurança, autenticação de registros e funcionamento da plataforma. Cookies opcionais para estatísticas anônimas de desempenho e personalização dependem da sua escolha livre e informada.
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  Usamos cookies essenciais para o funcionamento do site. Cookies opcionais de desempenho e preferências só são usados se você autorizar.
                 </p>
               </div>
             </div>
@@ -123,7 +120,7 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
               <button
                 id="btn-cookie-aceitar"
                 onClick={handleAcceptAll}
-                className="px-4 py-2 rounded-lg text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 transition-all shadow-md cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 rounded-lg text-xs font-bold text-[#0B1E36] bg-white hover:bg-slate-100 transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Check className="w-3.5 h-3.5 text-slate-950" />
                 <span>Aceitar Todos</span>
@@ -275,7 +272,7 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleSavePreferences(preferences)}
-                  className="px-4 py-2 rounded-lg text-xs font-bold text-slate-900 bg-amber-500 hover:bg-amber-400 transition-all shadow-xs cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-[#0B1E36] hover:bg-[#132c4d] transition-all cursor-pointer"
                 >
                   Salvar Minhas Escolhas
                 </button>

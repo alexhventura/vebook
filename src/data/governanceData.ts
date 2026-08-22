@@ -62,8 +62,8 @@ export const FAQ_DATA: FaqItem[] = [
     id: 'faq-g1',
     category: 'geral',
     categoryLabel: 'Geral',
-    question: 'O que é o VEBOOK e qual é o seu papel no mercado automotivo?',
-    answer: 'O VEBOOK é uma infraestrutura tecnológica nacional para registro, organização, armazenamento, consulta e disponibilização legítima de informações de manutenção veicular. O VEBOOK não é proprietário dos veículos nem das informações inseridas por terceiros; atua como plataforma neutra para conectar o trabalho técnico das oficinas à valorização da procedência do veículo.',
+    question: 'O que é o VEBOOK?',
+    answer: 'O VEBOOK é uma plataforma para registrar, organizar e consultar o histórico de manutenção de veículos. A oficina lança o serviço, o cliente valida e a plataforma preserva o registro no veículo. A VEBOOK não é dona dos veículos nem das informações inseridas pelas oficinas.',
   },
   {
     id: 'faq-g2',
@@ -86,7 +86,7 @@ export const FAQ_DATA: FaqItem[] = [
     category: 'proprietarios',
     categoryLabel: 'Para Proprietários',
     question: 'Como um serviço realizado no meu carro vai parar no VEBOOK?',
-    answer: 'Quando você leva seu veículo a uma oficina credenciada VEBOOK, a oficina registra a ordem de serviço com as peças e insumos aplicados. Em seguida, você recebe um resumo por WhatsApp ou SMS com link seguro para conferir e validar os dados informados.',
+    answer: 'Quando o serviço é feito em uma oficina cadastrada, a oficina registra a ordem de serviço com os produtos aplicados. Em seguida, você recebe um resumo para conferir e validar os dados.'
   },
   {
     id: 'faq-p2',
@@ -116,14 +116,14 @@ export const FAQ_DATA: FaqItem[] = [
     category: 'oficinas',
     categoryLabel: 'Para Oficinas',
     question: 'A oficina pode alterar ou excluir um registro após a validação do cliente?',
-    answer: 'Por segurança e integridade histórica, um registro validado não é simplesmente apagado. Caso haja erro material (como digitação de KM ou especificação de peça), é aberto um procedimento de retificação que preserva o histórico de alterações para auditoria mútua.',
+    answer: 'Um registro validado não é apagado. Se houver erro material, como quilometragem ou peça, abre-se uma contestação ou retificação que preserva o histórico das alterações.',
   },
   {
     id: 'faq-o3',
     category: 'oficinas',
     categoryLabel: 'Para Oficinas',
-    question: 'Como a oficina é posicionada nos termos da LGPD perante seus clientes?',
-    answer: 'A oficina atua como Controladora dos dados pessoais que coleta diretamente de seus clientes no momento do atendimento. O VEBOOK atua como Operador para o processamento e organização do histórico, e como Controlador independente nas operações próprias de segurança e infraestrutura da plataforma.',
+    question: 'Como a oficina se posiciona na LGPD perante seus clientes?',
+    answer: 'A oficina é responsável pelos dados pessoais que coleta no atendimento. A VEBOOK organiza o histórico de manutenção e trata dados operacionais necessários ao funcionamento da plataforma. Os papéis exatos constam na Política de Privacidade.',
   },
 
   // PRIVACIDADE & LGPD
@@ -171,14 +171,14 @@ export const FAQ_DATA: FaqItem[] = [
     category: 'seguranca',
     categoryLabel: 'Segurança da Informação',
     question: 'Quais medidas de segurança protegem os dados no VEBOOK?',
-    answer: 'Adotamos segregação lógica de ambientes, controle estrito de acessos com autenticação multifator para oficinas, criptografia em trânsito (TLS 1.3), mascaramento de documentos pessoais, rotinas automáticas de backup e monitoramento contínuo de logs de auditoria.',
+    answer: 'A plataforma prevê controle de acesso para oficinas, mascaramento de documentos pessoais na consulta pública e registro das operações relevantes. Medidas técnicas específicas serão descritas na Política de Segurança à medida que a operação for implantada.',
   },
   {
     id: 'faq-s2',
     category: 'seguranca',
     categoryLabel: 'Segurança da Informação',
     question: 'Como funciona o plano de resposta a incidentes de segurança?',
-    answer: 'Mantemos protocolo interno de contenção, análise forense, mitigação e, caso constatado risco ou dano relevante a titulares de dados, comunicação tempestiva à ANPD e aos usuários afetados conforme a Resolução CD/ANPD nº 15/2024.',
+    answer: 'Havendo incidente com risco relevante a titulares, a VEBOOK seguirá o dever de comunicar a ANPD e os afetados, conforme a legislação aplicável. O detalhamento operacional constará da Política de Segurança.',
   },
 
   // COOKIES & CONTESTAÇÕES

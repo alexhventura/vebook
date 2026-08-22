@@ -76,13 +76,10 @@ export const CredenciamentoModal: React.FC<CredenciamentoModalProps> = ({ mode, 
               </div>
               <div className="space-y-1.5">
                 <h4 className="text-base font-bold text-[#0B1E36]">
-                  Manifestação de Interesse Registrada
+                  Solicitação registrada
                 </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Interface de demonstração do processo de credenciamento de oficinas ao VEBOOK.
-                </p>
-                <p className="text-[11px] text-slate-400 font-medium pt-1">
-                  Cadastro de credenciamento — em desenvolvimento
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Recebemos os dados da oficina. O cadastro e o acesso à área restrita serão tratados nas próximas etapas da plataforma.
                 </p>
               </div>
               <button
@@ -95,9 +92,9 @@ export const CredenciamentoModal: React.FC<CredenciamentoModalProps> = ({ mode, 
           ) : (
             /* Formulário Provisório de Interesse */
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
-              <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-[11px] text-slate-500">
-                Cadastro de credenciamento — em desenvolvimento
-              </div>
+              <p className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-sm text-slate-600">
+                Preencha os dados da oficina. Esta solicitação não cria acesso imediato.
+              </p>
 
               <div className="space-y-1">
                 <label className="font-bold text-slate-700 block">Nome do Estabelecimento / Oficina:</label>
@@ -152,7 +149,7 @@ export const CredenciamentoModal: React.FC<CredenciamentoModalProps> = ({ mode, 
                   type="submit"
                   className="w-full py-3 rounded-lg bg-[#0B1E36] hover:bg-[#132c4d] text-white font-bold transition-colors cursor-pointer"
                 >
-                  Registrar Interesse de Credenciamento
+                  Enviar solicitação
                 </button>
               </div>
             </form>

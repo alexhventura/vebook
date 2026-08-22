@@ -205,91 +205,47 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
   return (
     <div className="min-h-screen bg-[#F1F5F9] text-slate-800 font-['Plus_Jakarta_Sans',sans-serif]">
       
-      {/* 0. TOPO DE SIMULAÇÃO DO ECOSSISTEMA VEBOOK (DEMONSTRAÇÃO DE DOMÍNIO E CONTROLE) */}
-      <div className="bg-[#0B1E36] text-white text-xs px-4 py-2 border-b border-slate-700 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          
-          {/* Subdomínio e Status Oficial */}
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-mono font-bold text-sky-300">
-              https://{workshop.subdomain}
-            </span>
-            <span className="hidden sm:inline text-slate-400 font-light">
-              — Segunda Camada do Ecossistema VEBOOK
-            </span>
-          </div>
-
-          {/* Controles de Demonstração: Trocar de Oficina e Trocar Paleta */}
-          <div className="flex items-center gap-3">
-            {/* Seletor de Oficinas */}
-            <div className="flex items-center gap-1.5 bg-slate-800/80 px-2 py-1 rounded-md border border-slate-700">
-              <span className="text-[11px] text-slate-300 hidden md:inline">Oficina Demo:</span>
-              <select
-                value={currentWorkshopId}
-                onChange={(e) => handleWorkshopChange(e.target.value)}
-                className="bg-transparent text-white font-bold text-xs focus:outline-none cursor-pointer"
-              >
-                {WORKSHOPS_MOCK.map((w) => (
-                  <option key={w.id} value={w.id} className="bg-[#0B1E36] text-white">
-                    {w.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Paleta de Cores */}
-            <div className="flex items-center gap-1 bg-slate-800/80 px-2 py-1 rounded-md border border-slate-700">
-              <span className="text-[11px] text-slate-400 hidden lg:inline mr-1">Cor:</span>
-              <button
-                onClick={() => setCustomColor('amber')}
-                title="Laranja / Âmbar"
-                className={`w-3.5 h-3.5 rounded-full bg-amber-500 cursor-pointer transition-transform ${customColor === 'amber' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
-              />
-              <button
-                onClick={() => setCustomColor('blue')}
-                title="Azul Técnico"
-                className={`w-3.5 h-3.5 rounded-full bg-sky-500 cursor-pointer transition-transform ${customColor === 'blue' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
-              />
-              <button
-                onClick={() => setCustomColor('emerald')}
-                title="Verde Sustentável"
-                className={`w-3.5 h-3.5 rounded-full bg-emerald-500 cursor-pointer transition-transform ${customColor === 'emerald' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
-              />
-              <button
-                onClick={() => setCustomColor('rose')}
-                title="Vermelho Esportivo"
-                className={`w-3.5 h-3.5 rounded-full bg-rose-500 cursor-pointer transition-transform ${customColor === 'rose' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
-              />
-              <button
-                onClick={() => setCustomColor('indigo')}
-                title="Índigo Corporativo"
-                className={`w-3.5 h-3.5 rounded-full bg-indigo-500 cursor-pointer transition-transform ${customColor === 'indigo' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
-              />
-            </div>
-
-            {/* Voltar à Plataforma VEBOOK */}
-            <button
-              onClick={() => onNavigate('home')}
-              className="text-[11px] font-bold text-sky-300 hover:text-white flex items-center gap-1 bg-sky-950/80 hover:bg-sky-900 px-2.5 py-1 rounded border border-sky-800 transition-colors cursor-pointer"
+      <div className="sticky top-[4.5rem] z-40 border-b border-slate-200 bg-white text-sm text-slate-700">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5">
+          <p>
+            Página da oficina <span className="font-semibold text-[#0B1E36]">{workshop.name}</span>
+            <span className="hidden sm:inline text-slate-400"> · {workshop.subdomain}</span>
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="sr-only" htmlFor="workshop-preview-select">
+              Selecionar oficina
+            </label>
+            <select
+              id="workshop-preview-select"
+              value={currentWorkshopId}
+              onChange={(e) => handleWorkshopChange(e.target.value)}
+              className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm"
             >
-              <span>Portal VEBOOK</span>
-              <ChevronRight className="w-3 h-3" />
+              {WORKSHOPS_MOCK.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => onNavigate('oficinas')}
+              className="rounded-lg px-3 py-1.5 font-semibold text-[#0B1E36] hover:bg-slate-100"
+            >
+              Voltar para oficinas
             </button>
           </div>
-
         </div>
       </div>
 
-      {/* TOAST DE AGENDAMENTO SIMULADO */}
       {scheduleSuccessToast && (
         <div className="fixed bottom-6 right-6 z-50 bg-[#0B1E36] text-white p-4 rounded-2xl shadow-2xl border border-emerald-500/50 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
           <div className="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
             <Check className="w-5 h-5" />
           </div>
           <div className="space-y-0.5 text-xs">
-            <strong className="block text-white font-bold text-sm">Solicitação de Agendamento Enviada!</strong>
-            <p className="text-slate-300">A equipe da <strong>{workshop.name}</strong> entrará em contato via WhatsApp para confirmar seu horário.</p>
+            <strong className="block text-white font-bold text-sm">Solicitação registrada</strong>
+            <p className="text-slate-300">A equipe da <strong>{workshop.name}</strong> receberá o pedido de agendamento.</p>
           </div>
           <button 
             onClick={() => setScheduleSuccessToast(false)}
@@ -308,7 +264,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
         {/* ---------------------------------------------------- */}
         {/* LATERAL ESQUERDA (DESKTOP): ESPAÇO PARA PARCEIROS VEBOOK */}
         {/* ---------------------------------------------------- */}
-        <aside className="hidden xl:block w-56 shrink-0 space-y-4 pt-20">
+        <aside className="hidden w-56 shrink-0 space-y-4 pt-20" aria-hidden="true">
           
           <div className="sticky top-24 space-y-4">
             
@@ -363,10 +319,10 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
         {/* ---------------------------------------------------- */}
         {/* CONTEÚDO PRINCIPAL: SITE OFICIAL DA OFICINA PARCEIRA */}
         {/* ---------------------------------------------------- */}
-        <main className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden transition-all">
+        <div className="w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           
           {/* 1. CABEÇALHO DO SITE DA OFICINA */}
-          <header className="bg-white border-b border-slate-100 sticky top-10 z-40 px-6 sm:px-8 py-4 backdrop-blur-md bg-white/95">
+          <header className="sticky top-[7.75rem] z-30 border-b border-slate-100 bg-white/95 px-6 py-4 sm:px-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               
               {/* Identidade da Oficina + Endosso VEBOOK */}
@@ -653,7 +609,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                     className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors"
                   >
                     <Globe className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Site Oficial</span>
+                    <span>Site da oficina</span>
                   </a>
                 </div>
               </div>
@@ -876,7 +832,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                     onNavigate('diario');
                   }
                 }}
-                className="px-6 py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-[#0B1E36] font-black text-xs sm:text-sm transition-all shadow-md shrink-0 flex items-center justify-center gap-2 cursor-pointer"
+                className="px-6 py-3.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-semibold text-sm transition-all shrink-0 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Conhecer o Diário Veicular</span>
                 <ChevronRight className="w-4 h-4" />
@@ -954,17 +910,17 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               <div className="flex items-center gap-2">
                 <span>Powered by</span>
                 <span className="text-white font-bold tracking-wider">VEBOOK</span>
-                <span className="text-slate-600">· Infraestrutura Nacional de Histórico Veicular</span>
+                <span className="text-slate-600">· Histórico de manutenção veicular</span>
               </div>
             </div>
           </footer>
 
-        </main>
+        </div>
 
         {/* ---------------------------------------------------- */}
         {/* LATERAL DIREITA (DESKTOP): ESPAÇO PARA PARCEIROS VEBOOK */}
         {/* ---------------------------------------------------- */}
-        <aside className="hidden xl:block w-56 shrink-0 space-y-4 pt-20">
+        <aside className="hidden w-56 shrink-0 space-y-4 pt-20" aria-hidden="true">
           
           <div className="sticky top-24 space-y-4">
             
@@ -1277,7 +1233,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                   3
                 </div>
                 <div className="space-y-0.5">
-                  <strong className="text-slate-900 font-bold text-sm block">Registro Oficial no Diário VEBOOK</strong>
+                  <strong className="text-slate-900 font-bold text-sm block">Registro no histórico VEBOOK</strong>
                   <p className="text-slate-600 leading-relaxed">
                     Você recebe o comprovante digital no WhatsApp. O serviço passa a integrar o histórico permanente do chassi do seu veículo para sempre.
                   </p>

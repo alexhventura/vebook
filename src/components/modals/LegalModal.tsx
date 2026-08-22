@@ -39,12 +39,12 @@ export const LegalModal: React.FC<LegalModalProps> = ({ type, onClose }) => {
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
                 <h3 className="text-lg font-bold text-[#0B1E36]">Termos de Uso da Plataforma VEBOOK</h3>
-                <span className="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                  Documento institucional em desenvolvimento
+                <span className="text-xs font-semibold text-slate-500">
+                  Versão preliminar
                 </span>
               </div>
-              <p className="text-xs text-slate-500 italic">
-                Versão preliminar — sujeito à revisão jurídica.
+              <p className="text-sm text-slate-500">
+                Texto sujeito a revisão jurídica antes do lançamento.
               </p>
               <p>
                 O VEBOOK é uma plataforma tecnológica destinada à organização, registro e consulta de informações relacionadas ao histórico de manutenção e serviços em veículos.
@@ -68,12 +68,12 @@ export const LegalModal: React.FC<LegalModalProps> = ({ type, onClose }) => {
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
                 <h3 className="text-lg font-bold text-[#0B1E36]">Política de Privacidade e Proteção de Dados</h3>
-                <span className="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                  Documento institucional em desenvolvimento
+                <span className="text-xs font-semibold text-slate-500">
+                  Versão preliminar
                 </span>
               </div>
-              <p className="text-xs text-slate-500 italic">
-                Versão preliminar — sujeito à revisão jurídica.
+              <p className="text-sm text-slate-500">
+                Texto sujeito a revisão jurídica antes do lançamento.
               </p>
               <p>
                 O VEBOOK preza pela privacidade e segurança no tratamento de dados relacionados a veículos e estabelecimentos cadastrados.

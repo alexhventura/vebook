@@ -65,7 +65,7 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
     { id: 'certidoes', label: 'Certidões VEBOOK', icon: FileCheck2 },
     { id: 'regras-oficinas', label: 'Regras para Oficinas', icon: Building2 },
     { id: 'contestações', label: 'Política de Contestações', icon: AlertTriangle },
-    { id: 'faq', label: 'FAQ Institucional', icon: HelpCircle },
+    { id: 'faq', label: 'FAQ', icon: HelpCircle },
     { id: 'minha-privacidade', label: 'Minha Privacidade (Painel)', icon: ShieldCheck },
   ];
 
@@ -83,45 +83,42 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* CABEÇALHO INSTITUCIONAL DE AUTORIDADE */}
-        <div className="bg-[#0B1E36] text-white rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-xl space-y-4">
+        <div className="bg-[#0B1E36] text-white rounded-2xl p-6 sm:p-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-2 max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-sky-950/90 border border-sky-800 text-sky-300 text-xs font-mono">
-                <Scale className="w-3.5 h-3.5" />
-                <span>Arquitetura de Transparência, Governança & Segurança Jurídica</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                Centro de Governança e Transparência VEBOOK
+              <p className="text-sm font-semibold uppercase tracking-wide text-sky-300">
+                Transparência
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                Informações institucionais
               </h1>
-              <p className="text-sm text-slate-300 leading-relaxed">
-                "O VEBOOK é uma plataforma tecnológica destinada a organizar, registrar, preservar e disponibilizar informações relacionadas à manutenção e ao histórico veicular, respeitando a legislação aplicável, os direitos dos titulares e as responsabilidades de cada participante da plataforma."
+              <p className="text-sm leading-relaxed text-slate-300 sm:text-base">
+                Termos, privacidade, segurança e regras da plataforma. O VEBOOK organiza o histórico de manutenção registrado pelas oficinas, com respeito à LGPD e aos direitos do titular.
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
               <button
                 onClick={onOpenPrivacidadeModal}
-                className="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-[#0B1E36] hover:bg-slate-100"
               >
                 <ShieldCheck className="w-4 h-4" />
-                <span>Painel Minha Privacidade</span>
+                Minha privacidade
               </button>
 
               <button
                 onClick={onOpenCookiesConfig}
-                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-600 bg-transparent px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
               >
-                <Sliders className="w-4 h-4 text-slate-400" />
-                <span>Preferências de Cookies</span>
+                <Sliders className="w-4 h-4" />
+                Preferências de cookies
               </button>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-y-2 gap-x-6 text-[11px] text-slate-400">
-            <span><strong>Versão Documental:</strong> 2026.2 (Homologada)</span>
-            <span><strong>Última Atualização:</strong> 21 de Agosto de 2026</span>
-            <span><strong>Encarregado de Dados (DPO):</strong> dpo@vebook.com.br</span>
-            <span><strong>Conformidade:</strong> LGPD (Lei 13.709/18) · Marco Civil (Lei 12.965/14) · CDC (Lei 8.078/90)</span>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-700 pt-3 text-sm text-slate-400">
+            <span>Última atualização: 21 de agosto de 2026</span>
+            <span>Solicitações do titular: painel Minha privacidade</span>
           </div>
         </div>
 
@@ -130,7 +127,7 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
           
           {/* MENU LATERAL DE NAVEGAÇÃO JURÍDICA */}
           <div className="lg:col-span-1 space-y-2">
-            <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs sticky top-6 space-y-1">
+            <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs sticky top-24 space-y-1">
               <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
                 Documentos & Políticas
               </div>
@@ -375,7 +372,7 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
 
                   <h4 className="font-bold text-slate-900 text-sm">4. Encarregado pelo Tratamento de Dados (DPO)</h4>
                   <p>
-                    Para esclarecimentos, dúvidas ou requisições formais, nosso Encarregado pode ser acionado diretamente pelo e-mail: <strong className="text-sky-700">dpo@vebook.com.br</strong> ou pelo painel <button onClick={onOpenPrivacidadeModal} className="text-sky-700 underline font-bold cursor-pointer">Minha Privacidade</button>.
+                    Para esclarecimentos ou requisições formais, use o painel <button type="button" onClick={onOpenPrivacidadeModal} className="text-sky-800 underline font-semibold cursor-pointer">Minha privacidade</button>.
                   </p>
                 </div>
               </div>
@@ -770,7 +767,7 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
 
                 <div className="space-y-4">
                   <p>
-                    Para garantir a confiabilidade nacional do histórico, o VEBOOK não apaga registros de forma sumária ou arbitrária. Quando um usuário identifica erro (ex: erro de digitação de quilometragem ou peça divergente), é instaurado o fluxo de contestação:
+                    O VEBOOK não apaga registros de forma sumária. Quando um usuário identifica erro (por exemplo, quilometragem ou peça divergente), segue o fluxo de contestação:
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
