@@ -6,37 +6,110 @@ import { Input } from '../ui/Input';
 import { Alert } from '../ui/Alert';
 import { PATHS } from '../../lib/paths';
 import { displayOfficeHost } from '../../office/constants';
-import { DEMO_LOGIN_HINT } from '../../office/seed';
-import { attemptDemoLogin, getOfficeByHostname, listPublicOffices } from '../../office/repository';
+import { DEMO_LOGIN_HINT, DEMO_USERS } from '../../office/seed';
+import {
+  attemptDemoLogin,
+  getOfficeByHostname,
+  listOfficesForUser,
+  switchOfficeContext,
+} from '../../office/repository';
 import { formatCpf } from '../../office/validation';
+import { Office } from '../../office/types';
 import { DemoBanner } from './shared';
 
 export const AdminLogin: React.FC<{ hostname?: string; tenantMode?: boolean }> = ({ hostname, tenantMode = false }) => {
   const params = useParams();
   const navigate = useNavigate();
   const slug = hostname || params.slug;
-  const offices = listPublicOffices();
-  const [selected, setSelected] = useState(slug || offices[0]?.currentHostname || '');
-  const [identifier, setIdentifier] = useState('');
+  const preferredOffice = slug ? getOfficeByHostname(slug) : undefined;
+
+  const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [pendingOffices, setPendingOffices] = useState<Office[] | null>(null);
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
 
-  const office = useMemo(() => getOfficeByHostname(selected), [selected]);
+  const goAdmin = (office: Office) => {
+    navigate(tenantMode ? '/admin/dashboard' : PATHS.oficinaAdmin(office.currentHostname));
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!office) {
-      setError('Oficina não encontrada.');
+    setPendingOffices(null);
+
+    const result = attemptDemoLogin(cpf, password, preferredOffice?.id);
+    if (!result.ok) {
+      setError(result.reason);
       return;
     }
-    const session = attemptDemoLogin(office.id, identifier, password);
-    if (!session) {
-      setError('Não foi possível entrar. Confira e-mail/CPF e senha.');
+
+    if (preferredOffice) {
+      const allowed = result.offices.some((item) => item.id === preferredOffice.id);
+      if (!allowed) {
+        setError('Este CPF não possui permissão para administrar esta oficina.');
+        return;
+      }
+      goAdmin(preferredOffice);
       return;
     }
-    navigate(tenantMode ? '/admin/dashboard' : PATHS.oficinaAdmin(office.currentHostname));
+
+    if (result.offices.length === 1) {
+      goAdmin(result.offices[0]);
+      return;
+    }
+
+    if (result.session && result.offices.length > 1 && !result.needsOfficeSelection) {
+      const current = result.offices.find((item) => item.id === result.session.officeId) ?? result.offices[0];
+      goAdmin(current);
+      return;
+    }
+
+    setPendingUserId(result.session.userId);
+    setPendingOffices(result.offices);
   };
+
+  const selectOffice = (officeId: string) => {
+    const session = switchOfficeContext(officeId);
+    const office = pendingOffices?.find((item) => item.id === officeId);
+    if (!session || !office) {
+      setError('Não foi possível abrir esta oficina.');
+      return;
+    }
+    goAdmin(office);
+  };
+
+  const hintOffices = useMemo(() => listOfficesForUser(DEMO_USERS.carlos.id).map((item) => item.office.identity.publicName), []);
+
+  if (pendingOffices && pendingOffices.length > 1) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F1F5F9] px-4">
+        <div className="w-full max-w-md space-y-5 rounded-2xl border border-slate-200 bg-white p-6">
+          <Logo size="md" variant="dark" />
+          <div>
+            <h1 className="text-xl font-bold text-[#0B1E36]">Escolha a oficina</h1>
+            <p className="mt-1 text-sm text-slate-600">Este CPF administra mais de uma oficina. Selecione o contexto.</p>
+          </div>
+          <DemoBanner />
+          <ul className="space-y-2">
+            {pendingOffices.map((office) => (
+              <li key={office.id}>
+                <button
+                  type="button"
+                  onClick={() => selectOffice(office.id)}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left hover:border-[#0B1E36]"
+                >
+                  <span className="block font-semibold text-[#0B1E36]">{office.identity.publicName}</span>
+                  <span className="font-mono text-xs text-slate-500">{displayOfficeHost(office.currentHostname)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-slate-500">Sessão: {pendingUserId}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F1F5F9] px-4">
@@ -44,45 +117,33 @@ export const AdminLogin: React.FC<{ hostname?: string; tenantMode?: boolean }> =
         <Logo size="md" variant="dark" />
         <div>
           <h1 className="text-xl font-bold text-[#0B1E36]">Área administrativa</h1>
-          <p className="mt-1 text-sm text-slate-600">Acesso da oficina. Autenticação simulada.</p>
+          <p className="mt-1 text-sm text-slate-600">Login com CPF e senha da identidade VEBOOK.</p>
         </div>
         <DemoBanner />
+        {preferredOffice && (
+          <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
+            Contexto solicitado: <strong>{preferredOffice.identity.publicName}</strong>
+            <span className="mt-1 block font-mono text-xs">{displayOfficeHost(preferredOffice.currentHostname)}</span>
+          </p>
+        )}
         <form onSubmit={submit} className="space-y-4">
-          <label className="block space-y-1.5">
-            <span className="text-sm font-semibold text-slate-800">Oficina</span>
-            <select
-              value={selected}
-              onChange={(e) => setSelected(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5"
-            >
-              {offices.map((item) => (
-                <option key={item.id} value={item.currentHostname}>
-                  {item.identity.publicName} · {displayOfficeHost(item.currentHostname)}
-                </option>
-              ))}
-            </select>
-          </label>
           <Input
-            id="login-id"
-            label="E-mail ou CPF"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value.includes('@') ? e.target.value : formatCpf(e.target.value))}
+            id="login-cpf"
+            label="CPF"
+            value={cpf}
+            onChange={(e) => setCpf(formatCpf(e.target.value))}
             required
           />
           <Input id="login-pass" type="password" label="Senha" value={password} onChange={(e) => setPassword(e.target.value)} required />
           {error && <Alert tone="error">{error}</Alert>}
           <Button type="submit" fullWidth>Entrar</Button>
         </form>
-        {office && (office.id === 'office_000001' || office.id === 'office_000002') && (
-          <p className="text-xs text-slate-500">
-            Oficinas de exemplo: {office.email} ou CPF do responsável. Senha de demonstração: {DEMO_LOGIN_HINT}
-          </p>
-        )}
-        {office && office.id !== 'office_000001' && office.id !== 'office_000002' && (
-          <p className="text-xs text-slate-500">
-            Use o e-mail ou o CPF definidos no cadastro. A senha é a informada na criação desta oficina.
-          </p>
-        )}
+        <div className="space-y-1 text-xs text-slate-500">
+          <p>Demonstração — senha: {DEMO_LOGIN_HINT}</p>
+          <p>Carlos (várias oficinas: {hintOffices.join(', ')}): {DEMO_USERS.carlos.cpf}</p>
+          <p>Maria (somente Norte): {DEMO_USERS.maria.cpf}</p>
+          <p>O e-mail não é credencial de login; serve para recuperação e comunicação.</p>
+        </div>
         <p className="text-sm">
           <Link to={PATHS.oficinas} className="font-semibold text-[#0B1E36] hover:underline">
             Voltar para o VEBOOK

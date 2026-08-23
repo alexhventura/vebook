@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Logo } from '../layout/Logo';
 import { Button } from '../ui/Button';
@@ -18,7 +18,9 @@ import {
 import { emptyOnboardingDraft } from '../../office/draft';
 import {
   clearOnboardingDraft,
+  getDemoSession,
   getLastPublishedHostname,
+  getUserById,
   hostnameAvailability,
   loadOnboardingDraft,
   publishOfficeFromDraft,
@@ -50,15 +52,57 @@ function isStepId(value: string | undefined): value is OnboardingStepId {
 export const OfficeOnboarding: React.FC = () => {
   const { step } = useParams();
   const navigate = useNavigate();
-  const [draft, setDraft] = useState<OnboardingDraft>(() => loadOnboardingDraft() ?? emptyOnboardingDraft());
+  const [searchParams] = useSearchParams();
+  const existingSession = getDemoSession();
+  const existingUser = existingSession ? getUserById(existingSession.userId) : undefined;
+  const attachingToExisting = Boolean(existingUser && (searchParams.get('nova') === '1' || existingSession));
+
+  const [draft, setDraft] = useState<OnboardingDraft>(() => {
+    const loaded = loadOnboardingDraft();
+    if (loaded) {
+      return {
+        ...loaded,
+        account: loaded.account ?? loaded.access ?? emptyOnboardingDraft().account,
+        skipAccount: loaded.skipAccount || Boolean(existingUser),
+      };
+    }
+    return emptyOnboardingDraft({ skipAccount: Boolean(existingUser) });
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [hostStatus, setHostStatus] = useState<{ available: boolean; message: string } | null>(null);
+
+  const visibleSteps = useMemo(
+    () => ONBOARDING_STEPS.filter((item) => !(draft.skipAccount && item.id === 'acesso')),
+    [draft.skipAccount]
+  );
   const current = isStepId(step) ? step : 'identificacao';
-  const index = STEP_IDS.indexOf(current);
+  const index = visibleSteps.findIndex((item) => item.id === current);
+
+  useEffect(() => {
+    if (existingUser) {
+      setDraft((prev) => ({
+        ...prev,
+        skipAccount: true,
+        account: {
+          ...prev.account,
+          name: existingUser.name,
+          cpf: existingUser.cpf,
+          email: existingUser.email,
+          phone: existingUser.phone ?? '',
+        },
+      }));
+    }
+  }, [existingUser?.id]);
 
   useEffect(() => {
     saveOnboardingDraft(draft);
   }, [draft]);
+
+  useEffect(() => {
+    if (current === 'acesso' && draft.skipAccount) {
+      navigate(PATHS.cadastroStep('revisao'), { replace: true });
+    }
+  }, [current, draft.skipAccount, navigate]);
 
   useEffect(() => {
     if (current === 'subdominio' && draft.hostname) {
@@ -107,16 +151,20 @@ export const OfficeOnboarding: React.FC = () => {
       const result = hostnameAvailability(draft.hostname);
       if (!result.available) next.hostname = result.reason || 'Endereço indisponível.';
     }
-    if (id === 'acesso') {
-      if (!isValidEmail(draft.access.email)) next.accessEmail = 'E-mail inválido.';
-      if (!isValidCpf(draft.access.cpf)) next.accessCpf = 'CPF inválido.';
-      const pwd = passwordError(draft.access.password, draft.access.confirmPassword);
+    if (id === 'acesso' && !draft.skipAccount) {
+      if (!draft.account.name.trim()) next.accountName = 'Informe o nome completo.';
+      if (!isValidCpf(draft.account.cpf)) next.accountCpf = 'CPF inválido.';
+      if (!isValidEmail(draft.account.email)) next.accountEmail = 'E-mail inválido.';
+      if (!isValidPhone(draft.account.phone)) next.accountPhone = 'Telefone inválido.';
+      const pwd = passwordError(draft.account.password, draft.account.confirmPassword);
       if (pwd) next.password = pwd;
     }
     if (id === 'revisao') {
       if (!draft.termsAccepted) next.terms = 'É necessário aceitar os termos.';
-      const pwd = passwordError(draft.access.password, draft.access.confirmPassword);
-      if (pwd) next.password = pwd;
+      if (!draft.skipAccount) {
+        const pwd = passwordError(draft.account.password, draft.account.confirmPassword);
+        if (pwd) next.password = pwd;
+      }
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -130,34 +178,46 @@ export const OfficeOnboarding: React.FC = () => {
     if (current === 'identificacao' && !draft.identity.publicName) {
       patch('identity', { ...draft.identity, publicName: draft.identification.tradeName || draft.identification.legalName });
     }
-    if (current === 'identificacao' && !draft.access.email) {
-      patch('access', { ...draft.access, email: draft.identification.email, cpf: draft.identification.responsibleCpf });
+    if (current === 'identificacao' && !draft.skipAccount && !draft.account.email) {
+      patch('account', {
+        ...draft.account,
+        name: draft.identification.responsibleName,
+        email: draft.identification.email,
+        cpf: draft.identification.responsibleCpf,
+        phone: draft.identification.phone,
+      });
     }
     if (current === 'identidade' && !draft.hostname) {
       patch('hostname', normalizeHostname(draft.identity.publicName));
     }
-    const next = STEP_IDS[index + 1];
-    if (next) go(next);
+    const next = visibleSteps[index + 1];
+    if (next) go(next.id);
   };
 
   const prevStep = () => {
-    const prev = STEP_IDS[index - 1];
-    if (prev && prev !== 'concluido') go(prev);
+    const prev = visibleSteps[index - 1];
+    if (prev && prev.id !== 'concluido') go(prev.id);
   };
 
   const publish = () => {
     if (!validate('revisao')) return;
-    const { office, user } = publishOfficeFromDraft(draft);
-    setDemoSession({
-      officeId: office.id,
-      userId: user.id,
-      role: user.role,
-      startedAt: new Date().toISOString(),
-      demo: true,
-    });
-    clearOnboardingDraft();
-    setLastPublishedHostname(office.currentHostname);
-    navigate(PATHS.cadastroStep('concluido'));
+    try {
+      const { office, user, membership } = publishOfficeFromDraft(draft, {
+        existingUserId: draft.skipAccount ? existingSession?.userId : undefined,
+      });
+      setDemoSession({
+        officeId: office.id,
+        userId: user.id,
+        role: membership.role,
+        startedAt: new Date().toISOString(),
+        demo: true,
+      });
+      clearOnboardingDraft();
+      setLastPublishedHostname(office.currentHostname);
+      navigate(PATHS.cadastroStep('concluido'));
+    } catch (err) {
+      setErrors({ publish: err instanceof Error ? err.message : 'Não foi possível criar a oficina.' });
+    }
   };
 
   if (!isStepId(step)) {
@@ -168,6 +228,10 @@ export const OfficeOnboarding: React.FC = () => {
     return <Navigate to={PATHS.cadastroStep('revisao')} replace />;
   }
 
+  if (current === 'acesso' && draft.skipAccount) {
+    return <Navigate to={PATHS.cadastroStep('revisao')} replace />;
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <header className="border-b border-slate-200 bg-white">
@@ -175,13 +239,15 @@ export const OfficeOnboarding: React.FC = () => {
           <Link to={PATHS.home} aria-label="VEBOOK">
             <Logo size="md" variant="dark" />
           </Link>
-          <p className="text-sm font-medium text-slate-500">Cadastro de oficina</p>
+          <p className="text-sm font-medium text-slate-500">
+            {attachingToExisting ? 'Nova oficina na sua conta VEBOOK' : 'Cadastro de oficina'}
+          </p>
         </div>
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-8">
         <ol className="mb-8 grid grid-cols-3 gap-2 sm:grid-cols-9">
-          {ONBOARDING_STEPS.map((item, stepIndex) => {
+          {visibleSteps.map((item, stepIndex) => {
             const done = stepIndex < index;
             const active = item.id === current;
             return (
@@ -199,7 +265,7 @@ export const OfficeOnboarding: React.FC = () => {
                   }`}
                 >
                   <span className="block text-[11px] font-semibold">
-                    {done ? <Check className="inline h-3 w-3" /> : item.number}
+                    {done ? <Check className="inline h-3 w-3" /> : stepIndex + 1}
                   </span>
                   <span className="hidden text-[11px] font-medium sm:block">{item.label}</span>
                 </button>
@@ -397,14 +463,16 @@ export const OfficeOnboarding: React.FC = () => {
             </StepFrame>
           )}
 
-          {current === 'acesso' && (
-            <StepFrame title="Acesso administrativo" description="O login posterior aceita e-mail ou CPF. Nesta etapa a senha não é autenticação real.">
+          {current === 'acesso' && !draft.skipAccount && (
+            <StepFrame title="Criar conta VEBOOK" description="Identidade pessoal única. O login é CPF + senha. O e-mail é para recuperação e comunicação.">
               <Alert>Demonstração: a senha é armazenada apenas como fingerprint local, sem valor de segurança.</Alert>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <Input id="accessEmail" type="email" label="E-mail de acesso" value={draft.access.email} error={errors.accessEmail} required onChange={(e) => patch('access', { ...draft.access, email: e.target.value })} />
-                <Input id="accessCpf" label="CPF de acesso" value={draft.access.cpf} error={errors.accessCpf} required onChange={(e) => patch('access', { ...draft.access, cpf: formatCpf(e.target.value) })} />
-                <Input id="password" type="password" label="Senha" value={draft.access.password} error={errors.password} required onChange={(e) => patch('access', { ...draft.access, password: e.target.value })} />
-                <Input id="confirmPassword" type="password" label="Confirmação da senha" value={draft.access.confirmPassword} required onChange={(e) => patch('access', { ...draft.access, confirmPassword: e.target.value })} />
+                <Input id="accountName" label="Nome completo" value={draft.account.name} error={errors.accountName} required onChange={(e) => patch('account', { ...draft.account, name: e.target.value })} />
+                <Input id="accountCpf" label="CPF" value={draft.account.cpf} error={errors.accountCpf} required onChange={(e) => patch('account', { ...draft.account, cpf: formatCpf(e.target.value) })} />
+                <Input id="accountEmail" type="email" label="E-mail" hint="Não é usado como login" value={draft.account.email} error={errors.accountEmail} required onChange={(e) => patch('account', { ...draft.account, email: e.target.value })} />
+                <Input id="accountPhone" label="Telefone" value={draft.account.phone} error={errors.accountPhone} required onChange={(e) => patch('account', { ...draft.account, phone: formatPhone(e.target.value) })} />
+                <Input id="password" type="password" label="Senha" value={draft.account.password} error={errors.password} required onChange={(e) => patch('account', { ...draft.account, password: e.target.value })} />
+                <Input id="confirmPassword" type="password" label="Confirmação da senha" value={draft.account.confirmPassword} required onChange={(e) => patch('account', { ...draft.account, confirmPassword: e.target.value })} />
               </div>
             </StepFrame>
           )}
@@ -415,6 +483,9 @@ export const OfficeOnboarding: React.FC = () => {
 
           {current === 'revisao' && (
             <StepFrame title="Revisão" description="Depois de confirmar, o endereço VEBOOK será criado e a área administrativa estará disponível.">
+              {draft.skipAccount && existingUser && (
+                <Alert>A nova oficina será vinculada à conta já autenticada: {existingUser.name} ({existingUser.cpf}) como OWNER.</Alert>
+              )}
               <div className="grid gap-6 sm:grid-cols-2 text-sm">
                 <Summary title="Sua oficina" lines={[
                   `Nome: ${draft.identification.legalName}`,
@@ -429,14 +500,20 @@ export const OfficeOnboarding: React.FC = () => {
                   `CEP ${draft.address.zipCode}`,
                 ]} />
                 <Summary title="Site" lines={[displayOfficeHost(draft.hostname)]} />
-                <Summary title="Administração" lines={[`Login: ${draft.access.email}`, `CPF: ${draft.access.cpf}`]} />
+                <Summary title="Conta VEBOOK" lines={[
+                  `Nome: ${draft.skipAccount && existingUser ? existingUser.name : draft.account.name}`,
+                  `Login (CPF): ${draft.skipAccount && existingUser ? existingUser.cpf : draft.account.cpf}`,
+                  `E-mail: ${draft.skipAccount && existingUser ? existingUser.email : draft.account.email}`,
+                  'Papel: OWNER',
+                ]} />
               </div>
               <label className="mt-6 flex items-start gap-3 text-sm">
                 <input type="checkbox" checked={draft.termsAccepted} onChange={(e) => patch('termsAccepted', e.target.checked)} className="mt-1" />
                 <span>Declaro que as informações fornecidas são verdadeiras e concordo com os termos de utilização do VEBOOK.</span>
               </label>
               {errors.terms && <p className="mt-2 text-sm text-rose-700">{errors.terms}</p>}
-              {errors.password && <p className="mt-2 text-sm text-rose-700">{errors.password} Volte à etapa de acesso se a senha não estiver preenchida nesta sessão.</p>}
+              {errors.password && <p className="mt-2 text-sm text-rose-700">{errors.password} Volte à etapa Conta VEBOOK se a senha não estiver preenchida nesta sessão.</p>}
+              {errors.publish && <p className="mt-2 text-sm text-rose-700">{errors.publish}</p>}
             </StepFrame>
           )}
 

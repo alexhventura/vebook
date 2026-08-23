@@ -10,19 +10,24 @@ import {
   OfficeEcosystemState,
   OfficeHostname,
   OfficeId,
+  OfficeMembership,
   OfficeReturn,
+  OfficeRole,
   OfficeService,
   OfficeSession,
   OfficeUser,
   OfficeVehicle,
   OfficeWorkOrder,
   OnboardingDraft,
+  UserId,
+  VebookUser,
 } from './types';
-import { demoFingerprint, hostnameError, normalizeHostname } from './validation';
+import { demoFingerprint, hostnameError, normalizeHostname, onlyDigits } from './validation';
 
-const STORAGE_KEY = 'vebook.office-ecosystem.v1';
+const STORAGE_KEY = 'vebook.office-ecosystem.v2';
 const SESSION_KEY = 'vebook.office-session.demo';
 const DRAFT_KEY = 'vebook.office-onboarding.draft';
+const LAST_PUBLISHED_KEY = 'vebook.office-onboarding.last-published';
 
 let state: OfficeEcosystemState = loadState();
 const listeners = new Set<() => void>();
@@ -37,7 +42,7 @@ function loadState(): OfficeEcosystemState {
       return seed;
     }
     const parsed = JSON.parse(raw) as OfficeEcosystemState;
-    if (parsed?.version !== 1 || !Array.isArray(parsed.offices)) {
+    if (parsed?.version !== 2 || !Array.isArray(parsed.offices) || !Array.isArray(parsed.users) || !Array.isArray(parsed.memberships)) {
       const seed = createSeedState();
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
       return seed;
@@ -101,6 +106,15 @@ export function resetOfficeStoreToSeed(): void {
 
 export function getOfficeById(id: OfficeId): Office | undefined {
   return state.offices.find((item) => item.id === id);
+}
+
+export function getUserById(id: UserId): VebookUser | undefined {
+  return state.users.find((item) => item.id === id);
+}
+
+export function getUserByCpf(cpf: string): VebookUser | undefined {
+  const digits = onlyDigits(cpf);
+  return state.users.find((item) => onlyDigits(item.cpf) === digits);
 }
 
 export function getOfficeByHostname(hostname: string): Office | undefined {
@@ -168,14 +182,56 @@ export function officeReturns(officeId: OfficeId): OfficeReturn[] {
 export function officeCertificates(officeId: OfficeId): OfficeCertificate[] {
   return scoped(state.certificates, officeId);
 }
-export function officeUsers(officeId: OfficeId): OfficeUser[] {
-  return scoped(state.users, officeId);
+export function officeHostnames(officeId: OfficeId): OfficeHostname[] {
+  return scoped(state.hostnames, officeId);
 }
 export function officeAudit(officeId: OfficeId): AuditEvent[] {
   return scoped(state.audit, officeId);
 }
-export function officeHostnames(officeId: OfficeId): OfficeHostname[] {
-  return scoped(state.hostnames, officeId);
+
+/** Memberships ativos da oficina, enriquecidos com a identidade pessoal. */
+export function officeUsers(officeId: OfficeId): OfficeUser[] {
+  return state.memberships
+    .filter((item) => item.officeId === officeId)
+    .map((membership) => {
+      const user = getUserById(membership.userId);
+      if (!user) return null;
+      return {
+        ...user,
+        membershipId: membership.id,
+        officeId: membership.officeId,
+        role: membership.role,
+        active: membership.active,
+      };
+    })
+    .filter((item): item is OfficeUser => Boolean(item));
+}
+
+export function getMembership(userId: UserId, officeId: OfficeId): OfficeMembership | undefined {
+  return state.memberships.find((item) => item.userId === userId && item.officeId === officeId);
+}
+
+/** Valida acesso ativo. Preparado para espelhar RLS futuro. */
+export function assertUserCanAccessOffice(userId: UserId, officeId: OfficeId): OfficeMembership | null {
+  const membership = getMembership(userId, officeId);
+  if (!membership || !membership.active) return null;
+  return membership;
+}
+
+export function listOfficesForUser(userId: UserId): Array<{ office: Office; membership: OfficeMembership }> {
+  return state.memberships
+    .filter((item) => item.userId === userId && item.active)
+    .map((membership) => {
+      const office = getOfficeById(membership.officeId);
+      if (!office) return null;
+      return { office, membership };
+    })
+    .filter((item): item is { office: Office; membership: OfficeMembership } => Boolean(item))
+    .sort((a, b) => a.office.identity.publicName.localeCompare(b.office.identity.publicName, 'pt-BR'));
+}
+
+export function officeHostnamesForUser(userId: UserId): string[] {
+  return listOfficesForUser(userId).map((item) => item.office.currentHostname);
 }
 
 export function changeOfficeHostname(officeId: OfficeId, nextHostname: string): Office {
@@ -216,10 +272,47 @@ export function changeOfficeHostname(officeId: OfficeId, nextHostname: string): 
   return getOfficeById(officeId)!;
 }
 
-export function publishOfficeFromDraft(draft: OnboardingDraft, actorName?: string): { office: Office; user: OfficeUser } {
+function createUserRecord(input: {
+  name: string;
+  cpf: string;
+  email: string;
+  phone?: string;
+  password: string;
+}): VebookUser {
+  const existing = getUserByCpf(input.cpf);
+  if (existing) throw new Error('Já existe uma conta VEBOOK com este CPF.');
+  return {
+    id: uid('usr'),
+    name: input.name.trim(),
+    cpf: input.cpf,
+    email: input.email.trim().toLowerCase(),
+    phone: input.phone,
+    passwordFingerprint: demoFingerprint(input.password),
+    createdAt: nowIso(),
+  };
+}
+
+export function publishOfficeFromDraft(
+  draft: OnboardingDraft,
+  options?: { existingUserId?: UserId }
+): { office: Office; user: VebookUser; membership: OfficeMembership } {
   const hostCheck = hostnameAvailability(draft.hostname);
   if (!hostCheck.available) {
     throw new Error(hostCheck.reason || 'Subdomínio indisponível.');
+  }
+
+  const account = draft.account ?? draft.access;
+  let user: VebookUser | undefined = options?.existingUserId ? getUserById(options.existingUserId) : undefined;
+
+  if (!user) {
+    if (!account) throw new Error('Conta VEBOOK obrigatória.');
+    user = createUserRecord({
+      name: account.name || draft.identification.responsibleName,
+      cpf: account.cpf,
+      email: account.email,
+      phone: account.phone || draft.identification.phone,
+      password: account.password,
+    });
   }
 
   const seq = state.nextOfficeSeq;
@@ -251,15 +344,12 @@ export function publishOfficeFromDraft(draft: OnboardingDraft, actorName?: strin
     publishedAt: createdAt,
   };
 
-  const user: OfficeUser = {
-    id: uid('usr'),
+  const membership: OfficeMembership = {
+    id: uid('mem'),
+    userId: user.id,
     officeId,
-    name: actorName || draft.identification.responsibleName,
-    email: draft.access.email.trim().toLowerCase(),
-    cpf: draft.access.cpf,
-    phone: draft.identification.phone,
     role: 'OWNER',
-    passwordFingerprint: demoFingerprint(draft.access.password),
+    active: true,
     createdAt,
   };
 
@@ -285,39 +375,112 @@ export function publishOfficeFromDraft(draft: OnboardingDraft, actorName?: strin
     createdAt,
   };
 
+  const userExists = Boolean(getUserById(user.id));
   state = {
     ...state,
     nextOfficeSeq: seq + 1,
+    users: userExists
+      ? state.users.map((item) => (item.id === user!.id ? { ...item, lastOfficeId: officeId } : item))
+      : [...state.users, { ...user, lastOfficeId: officeId }],
+    memberships: [...state.memberships, membership],
     offices: [...state.offices, office],
     hostnames: [...state.hostnames, hostRecord],
-    users: [...state.users, user],
     services: [...state.services, ...services],
   };
   audit(officeId, user.id, 'office_created', 'office', officeId);
   emit();
-  return { office, user };
+  return { office, user: getUserById(user.id)!, membership };
 }
 
-export function attemptDemoLogin(officeId: OfficeId, identifier: string, password: string): OfficeSession | null {
-  const id = identifier.trim().toLowerCase();
-  const cpfDigits = identifier.replace(/\D/g, '');
-  const users = officeUsers(officeId);
-  const user = users.find((item) => item.email.toLowerCase() === id || item.cpf.replace(/\D/g, '') === cpfDigits);
-  if (!user) return null;
-  if (user.passwordFingerprint !== demoFingerprint(password)) return null;
+export type LoginResult =
+  | { ok: true; session: OfficeSession; offices: Office[]; needsOfficeSelection: boolean }
+  | { ok: false; reason: string };
+
+/**
+ * Login definitivo: CPF + senha.
+ * O e-mail NÃO é credencial de autenticação.
+ */
+export function attemptDemoLogin(cpf: string, password: string, preferredOfficeId?: OfficeId): LoginResult {
+  const user = getUserByCpf(cpf);
+  if (!user) return { ok: false, reason: 'CPF não encontrado no VEBOOK.' };
+  if (user.passwordFingerprint !== demoFingerprint(password)) {
+    return { ok: false, reason: 'Senha incorreta.' };
+  }
+
+  const accessible = listOfficesForUser(user.id);
+  if (accessible.length === 0) {
+    return { ok: false, reason: 'Nenhuma oficina ativa vinculada a este CPF.' };
+  }
+
+  let chosen =
+    (preferredOfficeId && accessible.find((item) => item.office.id === preferredOfficeId)) ||
+    (user.lastOfficeId && accessible.find((item) => item.office.id === user.lastOfficeId)) ||
+    accessible[0];
+
+  if (preferredOfficeId && !assertUserCanAccessOffice(user.id, preferredOfficeId)) {
+    return { ok: false, reason: 'Sem permissão para administrar esta oficina.' };
+  }
+
+  if (preferredOfficeId) {
+    const preferred = accessible.find((item) => item.office.id === preferredOfficeId);
+    if (preferred) chosen = preferred;
+  }
+
+  const session = activateSession(user.id, chosen.office.id, chosen.membership.role);
+  return {
+    ok: true,
+    session,
+    offices: accessible.map((item) => item.office),
+    needsOfficeSelection: accessible.length > 1 && !preferredOfficeId && !user.lastOfficeId,
+  };
+}
+
+function activateSession(userId: UserId, officeId: OfficeId, role: OfficeRole): OfficeSession {
+  const membership = assertUserCanAccessOffice(userId, officeId);
+  if (!membership) throw new Error('Acesso negado à oficina.');
+
   const session: OfficeSession = {
+    userId,
     officeId,
-    userId: user.id,
-    role: user.role,
+    role: membership.role,
     startedAt: nowIso(),
     demo: true,
+  };
+  state = {
+    ...state,
+    users: state.users.map((item) => (item.id === userId ? { ...item, lastOfficeId: officeId } : item)),
   };
   if (typeof window !== 'undefined') {
     window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
   }
-  audit(officeId, user.id, 'login', 'session');
+  audit(officeId, userId, 'login', 'session');
   emit();
   return session;
+}
+
+export function switchOfficeContext(officeId: OfficeId): OfficeSession | null {
+  const session = getDemoSession();
+  if (!session) return null;
+  const membership = assertUserCanAccessOffice(session.userId, officeId);
+  if (!membership) return null;
+
+  const next: OfficeSession = {
+    userId: session.userId,
+    officeId,
+    role: membership.role,
+    startedAt: nowIso(),
+    demo: true,
+  };
+  state = {
+    ...state,
+    users: state.users.map((item) => (item.id === session.userId ? { ...item, lastOfficeId: officeId } : item)),
+  };
+  if (typeof window !== 'undefined') {
+    window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
+  }
+  audit(officeId, session.userId, 'office_context_switched', 'session', officeId);
+  emit();
+  return next;
 }
 
 export function getDemoSession(): OfficeSession | null {
@@ -325,7 +488,13 @@ export function getDemoSession(): OfficeSession | null {
   try {
     const raw = window.sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as OfficeSession;
+    const session = JSON.parse(raw) as OfficeSession;
+    if (!session?.userId || !session?.officeId) return null;
+    if (!assertUserCanAccessOffice(session.userId, session.officeId)) {
+      window.sessionStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return session;
   } catch {
     return null;
   }
@@ -339,6 +508,9 @@ export function clearDemoSession(): void {
 }
 
 export function setDemoSession(session: OfficeSession): void {
+  if (!assertUserCanAccessOffice(session.userId, session.officeId)) {
+    throw new Error('Sessão inválida: sem membership ativo.');
+  }
   if (typeof window !== 'undefined') {
     window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
   }
@@ -349,7 +521,12 @@ export function loadOnboardingDraft(): OnboardingDraft | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = window.sessionStorage.getItem(DRAFT_KEY);
-    return raw ? (JSON.parse(raw) as OnboardingDraft) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as OnboardingDraft;
+    if (!parsed.account && parsed.access) {
+      parsed.account = parsed.access;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -359,7 +536,8 @@ export function saveOnboardingDraft(draft: OnboardingDraft): void {
   if (typeof window === 'undefined') return;
   const sanitized: OnboardingDraft = {
     ...draft,
-    access: { ...draft.access, password: '', confirmPassword: '' },
+    account: { ...draft.account, password: '', confirmPassword: '' },
+    access: draft.access ? { ...draft.access, password: '', confirmPassword: '' } : undefined,
   };
   window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(sanitized));
 }
@@ -370,10 +548,13 @@ export function clearOnboardingDraft(): void {
 }
 
 function actorId(officeId: OfficeId): string {
-  return getDemoSession()?.userId ?? officeUsers(officeId)[0]?.id ?? 'system';
+  const session = getDemoSession();
+  if (session && session.officeId === officeId) return session.userId;
+  return officeUsers(officeId).find((item) => item.active)?.id ?? 'system';
 }
 
 export function upsertClient(officeId: OfficeId, input: Omit<OfficeClient, 'officeId' | 'createdAt' | 'id'> & { id?: string }): OfficeClient {
+  requireActiveContext(officeId);
   const existing = input.id ? state.clients.find((item) => item.id === input.id) : undefined;
   const record: OfficeClient = {
     id: existing?.id ?? uid('cli'),
@@ -398,6 +579,7 @@ export function upsertClient(officeId: OfficeId, input: Omit<OfficeClient, 'offi
 }
 
 export function upsertVehicle(officeId: OfficeId, input: Omit<OfficeVehicle, 'officeId' | 'createdAt' | 'id'> & { id?: string }): OfficeVehicle {
+  requireActiveContext(officeId);
   const existing = input.id ? state.vehicles.find((item) => item.id === input.id) : undefined;
   const record: OfficeVehicle = {
     id: existing?.id ?? uid('veh'),
@@ -421,6 +603,7 @@ export function upsertVehicle(officeId: OfficeId, input: Omit<OfficeVehicle, 'of
 }
 
 export function upsertService(officeId: OfficeId, input: Omit<OfficeService, 'officeId' | 'id'> & { id?: string }): OfficeService {
+  requireActiveContext(officeId);
   const existing = input.id ? state.services.find((item) => item.id === input.id) : undefined;
   const record: OfficeService = {
     id: existing?.id ?? uid('svc'),
@@ -445,6 +628,7 @@ export function upsertService(officeId: OfficeId, input: Omit<OfficeService, 'of
 }
 
 export function upsertWorkOrder(officeId: OfficeId, input: Omit<OfficeWorkOrder, 'officeId' | 'createdAt' | 'id'> & { id?: string }): OfficeWorkOrder {
+  requireActiveContext(officeId);
   const existing = input.id ? state.workOrders.find((item) => item.id === input.id) : undefined;
   const record: OfficeWorkOrder = {
     id: existing?.id ?? uid('os'),
@@ -471,6 +655,7 @@ export function upsertWorkOrder(officeId: OfficeId, input: Omit<OfficeWorkOrder,
 }
 
 export function upsertAppointment(officeId: OfficeId, input: Omit<OfficeAppointment, 'officeId' | 'createdAt' | 'id'> & { id?: string }): OfficeAppointment {
+  requireActiveContext(officeId);
   const existing = input.id ? state.appointments.find((item) => item.id === input.id) : undefined;
   const record: OfficeAppointment = {
     id: existing?.id ?? uid('agd'),
@@ -495,6 +680,7 @@ export function upsertAppointment(officeId: OfficeId, input: Omit<OfficeAppointm
 }
 
 export function upsertReturn(officeId: OfficeId, input: Omit<OfficeReturn, 'officeId' | 'createdAt' | 'id'> & { id?: string }): OfficeReturn {
+  requireActiveContext(officeId);
   const existing = input.id ? state.returns.find((item) => item.id === input.id) : undefined;
   const record: OfficeReturn = {
     id: existing?.id ?? uid('ret'),
@@ -519,6 +705,7 @@ export function upsertReturn(officeId: OfficeId, input: Omit<OfficeReturn, 'offi
 }
 
 export function updateOffice(officeId: OfficeId, patch: Partial<Office>, action: AuditAction = 'site_updated'): Office {
+  requireActiveContext(officeId);
   const current = getOfficeById(officeId);
   if (!current) throw new Error('Oficina não encontrada.');
   const next = { ...current, ...patch, id: current.id };
@@ -528,21 +715,137 @@ export function updateOffice(officeId: OfficeId, patch: Partial<Office>, action:
   return next;
 }
 
-export function updateUser(userId: string, patch: Partial<OfficeUser>): OfficeUser {
-  const current = state.users.find((item) => item.id === userId);
+export function updateVebookUser(userId: UserId, patch: Partial<Pick<VebookUser, 'name' | 'email' | 'phone'>>): VebookUser {
+  const current = getUserById(userId);
   if (!current) throw new Error('Usuário não encontrado.');
-  const next = { ...current, ...patch, id: current.id, officeId: current.officeId };
+  const next = { ...current, ...patch, id: current.id, cpf: current.cpf };
   state = { ...state, users: state.users.map((item) => (item.id === userId ? next : item)) };
-  audit(current.officeId, userId, 'profile_updated', 'user', userId);
+  const session = getDemoSession();
+  if (session) audit(session.officeId, userId, 'profile_updated', 'user', userId);
   emit();
   return next;
+}
+
+/** @deprecated Use updateVebookUser */
+export function updateUser(userId: string, patch: Partial<VebookUser>): VebookUser {
+  return updateVebookUser(userId, patch);
+}
+
+export function inviteOfficeMember(
+  officeId: OfficeId,
+  input: {
+    name: string;
+    cpf: string;
+    email: string;
+    phone?: string;
+    role: OfficeRole;
+    password?: string;
+  }
+): { user: VebookUser; membership: OfficeMembership } {
+  requireActiveContext(officeId);
+  const session = getDemoSession();
+  if (!session || (session.role !== 'OWNER' && session.role !== 'ADMIN')) {
+    throw new Error('Somente OWNER ou ADMIN podem gerenciar usuários.');
+  }
+
+  let user = getUserByCpf(input.cpf);
+  if (!user) {
+    user = createUserRecord({
+      name: input.name,
+      cpf: input.cpf,
+      email: input.email,
+      phone: input.phone,
+      password: input.password || 'demonstracao',
+    });
+    state = { ...state, users: [...state.users, user] };
+  }
+
+  const existing = getMembership(user.id, officeId);
+  if (existing) {
+    const membership: OfficeMembership = {
+      ...existing,
+      role: input.role,
+      active: true,
+    };
+    state = {
+      ...state,
+      memberships: state.memberships.map((item) => (item.id === existing.id ? membership : item)),
+    };
+    audit(officeId, session.userId, 'membership_updated', 'membership', membership.id);
+    emit();
+    return { user, membership };
+  }
+
+  const membership: OfficeMembership = {
+    id: uid('mem'),
+    userId: user.id,
+    officeId,
+    role: input.role,
+    active: true,
+    createdAt: nowIso(),
+  };
+  state = { ...state, memberships: [...state.memberships, membership] };
+  audit(officeId, session.userId, 'membership_created', 'membership', membership.id);
+  emit();
+  return { user, membership };
+}
+
+export function updateMembership(
+  membershipId: string,
+  patch: Partial<Pick<OfficeMembership, 'role' | 'active'>>
+): OfficeMembership {
+  const current = state.memberships.find((item) => item.id === membershipId);
+  if (!current) throw new Error('Vínculo não encontrado.');
+  requireActiveContext(current.officeId);
+  const session = getDemoSession();
+  if (!session || (session.role !== 'OWNER' && session.role !== 'ADMIN')) {
+    throw new Error('Somente OWNER ou ADMIN podem gerenciar usuários.');
+  }
+  const next = { ...current, ...patch, id: current.id, userId: current.userId, officeId: current.officeId };
+  state = {
+    ...state,
+    memberships: state.memberships.map((item) => (item.id === membershipId ? next : item)),
+  };
+  audit(current.officeId, session.userId, 'membership_updated', 'membership', membershipId);
+  emit();
+  return next;
+}
+
+export function removeMembership(membershipId: string): void {
+  const current = state.memberships.find((item) => item.id === membershipId);
+  if (!current) return;
+  requireActiveContext(current.officeId);
+  const session = getDemoSession();
+  if (!session || session.role !== 'OWNER') {
+    throw new Error('Somente o OWNER pode remover acesso.');
+  }
+  if (current.userId === session.userId) {
+    throw new Error('Não é possível remover o próprio acesso OWNER nesta demonstração.');
+  }
+  state = {
+    ...state,
+    memberships: state.memberships.map((item) =>
+      item.id === membershipId ? { ...item, active: false } : item
+    ),
+  };
+  audit(current.officeId, session.userId, 'membership_removed', 'membership', membershipId);
+  emit();
+}
+
+function requireActiveContext(officeId: OfficeId): void {
+  const session = getDemoSession();
+  if (!session) throw new Error('Sessão demonstrativa ausente.');
+  if (session.officeId !== officeId) {
+    throw new Error('Contexto de oficina inválido para esta operação.');
+  }
+  if (!assertUserCanAccessOffice(session.userId, officeId)) {
+    throw new Error('Sem permissão para esta oficina.');
+  }
 }
 
 export function listPublicOffices(): Office[] {
   return state.offices;
 }
-
-const LAST_PUBLISHED_KEY = 'vebook.office-onboarding.last-published';
 
 export function setLastPublishedHostname(hostname: string): void {
   if (typeof window === 'undefined') return;

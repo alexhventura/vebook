@@ -212,7 +212,7 @@ function OficinaPage() {
       initialWorkshopId={workshop.id}
       workshopOverride={workshop}
       hidePreviewSwitcher={Boolean(office)}
-      adminHref={PATHS.oficinaAdminLogin(office?.currentHostname || slug || 'prisma')}
+      adminHref={PATHS.oficinaAdminLogin(office?.currentHostname || slug || 'norte')}
     />
   );
 }

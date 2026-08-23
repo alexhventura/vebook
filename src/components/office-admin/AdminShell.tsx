@@ -19,10 +19,18 @@ import {
 } from 'lucide-react';
 import { PATHS } from '../../lib/paths';
 import { displayOfficeHost } from '../../office/constants';
-import { clearDemoSession, getDemoSession, getOfficeByHostname, officeUsers } from '../../office/repository';
+import {
+  assertUserCanAccessOffice,
+  clearDemoSession,
+  getDemoSession,
+  getOfficeByHostname,
+  getUserById,
+} from '../../office/repository';
 import { useOfficeSnapshot } from '../../office/useOfficeSnapshot';
 import { DemoBanner } from './shared';
+import { OfficeSwitcher } from './OfficeSwitcher';
 import { Button } from '../ui/Button';
+import { Office } from '../../office/types';
 
 const NAV = [
   { to: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -49,7 +57,7 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
   const location = useLocation();
   const office = getOfficeByHostname(slug);
   const session = getDemoSession();
-  const user = office && session ? officeUsers(office.id).find((item) => item.id === session.userId) : undefined;
+  const user = session ? getUserById(session.userId) : undefined;
   const welcome = params.get('bem-vindo') === '1';
   const loginPath = tenantMode ? '/admin/entrar' : PATHS.oficinaAdminLogin(slug);
   const publicPath = tenantMode ? '/' : PATHS.oficina(slug);
@@ -57,7 +65,7 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
   if (!office) {
     return <Navigate to={tenantMode ? '/' : PATHS.oficinas} replace />;
   }
-  if (!session || session.officeId !== office.id) {
+  if (!session || !assertUserCanAccessOffice(session.userId, office.id) || session.officeId !== office.id) {
     return <Navigate to={loginPath} replace />;
   }
 
@@ -66,6 +74,15 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
   const logout = () => {
     clearDemoSession();
     navigate(publicPath);
+  };
+
+  const onOfficeSwitched = (next: Office) => {
+    if (tenantMode) {
+      navigate(PATHS.oficinaAdmin(next.currentHostname));
+      return;
+    }
+    const module = currentNav?.to ?? 'dashboard';
+    navigate(PATHS.oficinaAdminModule(next.currentHostname, module));
   };
 
   return (
@@ -79,6 +96,7 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
             <div>
               <p className="text-xs uppercase tracking-wide text-slate-400">VEBOOK Admin</p>
               <p className="font-bold">{office.identity.publicName}</p>
+              <p className="mt-1 text-[11px] text-slate-400">{session.role}</p>
             </div>
             <button type="button" className="lg:hidden" onClick={() => setMenuOpen(false)} aria-label="Fechar menu">
               <X className="h-5 w-5" />
@@ -104,11 +122,12 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
+          <header className="sticky top-0 z-30 flex flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
             <button type="button" className="rounded-lg p-2 lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Abrir menu">
               <Menu className="h-5 w-5" />
             </button>
-            <p className="hidden text-sm text-slate-500 sm:block">{displayOfficeHost(office.currentHostname)}</p>
+            <OfficeSwitcher currentOfficeId={office.id} tenantMode={tenantMode} onSwitched={onOfficeSwitched} />
+            <p className="hidden text-sm text-slate-500 md:block">{displayOfficeHost(office.currentHostname)}</p>
             <div className="relative ml-auto flex items-center gap-3">
               <button type="button" className="inline-flex items-center gap-1 text-sm text-slate-600" onClick={() => setNotesOpen((open) => !open)}>
                 <Bell className="h-4 w-4" /> 3
@@ -133,14 +152,16 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
 
           <main className="space-y-4 p-4 sm:p-6">
             <p className="text-xs font-medium text-slate-500">Administração · {currentNav?.label ?? 'Painel'}</p>
-            <DemoBanner />
+            <DemoBanner>
+              Demonstração — identidade pessoal por CPF; oficina via office_users. Sem autenticação real nem banco.
+            </DemoBanner>
             {welcome && (
               <section className="rounded-2xl bg-[#0B1E36] p-6 text-white">
                 <h1 className="text-2xl font-bold">Bem-vindo ao VEBOOK</h1>
                 <p className="mt-2 text-slate-300">Sua oficina foi criada.</p>
                 <p className="mt-1 font-mono">{displayOfficeHost(office.currentHostname)}</p>
                 <div className="mt-4 flex flex-wrap gap-3">
-                <Link to={publicPath} className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-[#0B1E36]">
+                  <Link to={publicPath} className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-[#0B1E36]">
                     Ver meu site
                   </Link>
                   <Button variant="onDark" onClick={() => setParams({})}>
@@ -149,7 +170,7 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
                 </div>
               </section>
             )}
-            <Outlet context={{ officeId: office.id, slug: office.currentHostname, publicPath }} />
+            <Outlet context={{ officeId: office.id, slug: office.currentHostname, publicPath, role: session.role, userId: session.userId }} />
           </main>
         </div>
       </div>

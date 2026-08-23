@@ -2,16 +2,30 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
 import { PATHS } from '../../lib/paths';
 import { displayOfficeHost, WEEKDAY_KEYS, WEEKDAY_LABELS } from '../../office/constants';
-import { changeOfficeHostname, getOfficeById, hostnameAvailability, officeAudit, officeHostnames, officeUsers, updateOffice, updateUser } from '../../office/repository';
+import {
+  changeOfficeHostname,
+  getOfficeById,
+  getUserById,
+  hostnameAvailability,
+  inviteOfficeMember,
+  officeAudit,
+  officeHostnames,
+  officeUsers,
+  removeMembership,
+  updateMembership,
+  updateOffice,
+  updateVebookUser,
+} from '../../office/repository';
 import { useOfficeSnapshot } from '../../office/useOfficeSnapshot';
 import { formatDateTime } from '../../office/period';
-import { Office } from '../../office/types';
-import { normalizeHostname } from '../../office/validation';
+import { Office, OfficeRole } from '../../office/types';
+import { formatCpf, normalizeHostname } from '../../office/validation';
 import { DemoBanner } from './shared';
 
-type Ctx = { officeId: string; slug: string; publicPath?: string };
+type Ctx = { officeId: string; slug: string; publicPath?: string; role?: OfficeRole; userId?: string };
 
 export const SiteModule: React.FC = () => {
   useOfficeSnapshot();
@@ -124,36 +138,23 @@ const SiteImageField: React.FC<{ label: string; value?: string; onChange: (value
 
 export const ProfileModule: React.FC = () => {
   useOfficeSnapshot();
-  const { officeId } = useOutletContext<Ctx>();
-  const users = officeUsers(officeId);
-  const owner = users[0];
-  const [name, setName] = useState(owner?.name ?? '');
-  const [email, setEmail] = useState(owner?.email ?? '');
-  const [phone, setPhone] = useState(owner?.phone ?? '');
+  const { userId } = useOutletContext<Ctx>();
+  const user = userId ? getUserById(userId) : undefined;
+  const [name, setName] = useState(user?.name ?? '');
+  const [email, setEmail] = useState(user?.email ?? '');
+  const [phone, setPhone] = useState(user?.phone ?? '');
 
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-bold text-[#0B1E36]">Perfil</h1>
-      <DemoBanner>Perfil do usuário administrativo. A senha não é armazenada de forma segura nesta etapa.</DemoBanner>
+      <DemoBanner>Identidade pessoal VEBOOK. O CPF é o login; a senha não é armazenada de forma segura nesta etapa.</DemoBanner>
       <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
         <Input id="p-name" label="Nome" value={name} onChange={(e) => setName(e.target.value)} />
-        <Input id="p-cpf" label="CPF" value={owner?.cpf ?? ''} disabled />
-        <Input id="p-email" label="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input id="p-cpf" label="CPF (login)" value={user?.cpf ?? ''} disabled />
+        <Input id="p-email" label="E-mail (recuperação e comunicação)" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input id="p-phone" label="Telefone" value={phone} onChange={(e) => setPhone(e.target.value)} />
         <Input id="p-pass" label="Senha" type="password" placeholder="Alteração de senha disponível no backend" disabled />
-        <Button onClick={() => owner && updateUser(owner.id, { name, email, phone })}>Salvar perfil</Button>
-      </section>
-      <section className="rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="font-bold">Usuários da oficina</h2>
-        <p className="mt-1 text-sm text-slate-600">Interface preparada para múltiplos usuários. Papéis conceituais: OWNER, ADMIN, MANAGER, EMPLOYEE.</p>
-        <ul className="mt-3 space-y-2 text-sm">
-          {users.map((item) => (
-            <li key={item.id} className="flex justify-between rounded-lg bg-slate-50 p-3">
-              <span>{item.name} · {item.email}</span>
-              <span className="font-semibold">{item.role}</span>
-            </li>
-          ))}
-        </ul>
+        <Button onClick={() => user && updateVebookUser(user.id, { name, email, phone })}>Salvar perfil</Button>
       </section>
     </div>
   );
@@ -161,13 +162,18 @@ export const ProfileModule: React.FC = () => {
 
 export const SettingsModule: React.FC = () => {
   useOfficeSnapshot();
-  const { officeId } = useOutletContext<Ctx>();
+  const { officeId, role } = useOutletContext<Ctx>();
   const navigate = useNavigate();
   const office = getOfficeById(officeId)!;
   const events = officeAudit(officeId).slice(0, 12);
   const hosts = officeHostnames(officeId);
+  const members = officeUsers(officeId);
   const [nextHost, setNextHost] = useState('');
   const [hostMsg, setHostMsg] = useState('');
+  const [inviteError, setInviteError] = useState('');
+  const [invite, setInvite] = useState({ name: '', cpf: '', email: '', role: 'EMPLOYEE' as OfficeRole });
+
+  const canManage = role === 'OWNER' || role === 'ADMIN';
 
   const requestHostnameChange = () => {
     const check = hostnameAvailability(nextHost);
@@ -176,8 +182,23 @@ export const SettingsModule: React.FC = () => {
       return;
     }
     const updated = changeOfficeHostname(officeId, nextHost);
-    setHostMsg(`Endereço atualizado. O anterior permanece reservado e redireciona.`);
+    setHostMsg('Endereço atualizado. O anterior permanece reservado e redireciona.');
     navigate(PATHS.oficinaAdminModule(updated.currentHostname, 'configuracoes'));
+  };
+
+  const addMember = () => {
+    setInviteError('');
+    try {
+      inviteOfficeMember(officeId, {
+        name: invite.name,
+        cpf: invite.cpf,
+        email: invite.email,
+        role: invite.role,
+      });
+      setInvite({ name: '', cpf: '', email: '', role: 'EMPLOYEE' });
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : 'Não foi possível cadastrar.');
+    }
   };
 
   return (
@@ -191,9 +212,73 @@ export const SettingsModule: React.FC = () => {
         <p>Agendamento online: {office.acceptsOnlineBooking ? 'sim' : 'não'}</p>
         <p>Antecedência mínima: {office.minAdvanceHours}h</p>
       </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
+        <h2 className="font-bold">Usuários e permissões</h2>
+        <p className="text-sm text-slate-600">
+          Cada pessoa tem um CPF único no VEBOOK. Aqui você gerencia apenas o vínculo com esta oficina (`office_users`).
+        </p>
+        <ul className="space-y-2 text-sm">
+          {members.map((item) => (
+            <li key={item.membershipId} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 p-3">
+              <div>
+                <p className="font-semibold">{item.name}</p>
+                <p className="text-slate-500">{item.cpf} · {item.email}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  disabled={!canManage || item.role === 'OWNER'}
+                  value={item.role}
+                  onChange={(e) => updateMembership(item.membershipId, { role: e.target.value as OfficeRole })}
+                  className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                >
+                  <option value="OWNER">OWNER</option>
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="MANAGER">MANAGER</option>
+                  <option value="EMPLOYEE">EMPLOYEE</option>
+                </select>
+                <span className={`text-xs font-semibold ${item.active ? 'text-emerald-700' : 'text-rose-700'}`}>
+                  {item.active ? 'ativo' : 'inativo'}
+                </span>
+                {canManage && item.role !== 'OWNER' && (
+                  <>
+                    <Button size="sm" variant="secondary" onClick={() => updateMembership(item.membershipId, { active: !item.active })}>
+                      {item.active ? 'Desativar' : 'Ativar'}
+                    </Button>
+                    {role === 'OWNER' && (
+                      <Button size="sm" variant="secondary" onClick={() => removeMembership(item.membershipId)}>
+                        Remover acesso
+                      </Button>
+                    )}
+                  </>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {canManage && (
+          <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+            <h3 className="font-semibold">Cadastrar usuário nesta oficina</h3>
+            <p className="text-xs text-slate-500">Não cria nova oficina. Cria/reutiliza a pessoa e vincula o papel.</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input id="inv-name" label="Nome" value={invite.name} onChange={(e) => setInvite({ ...invite, name: e.target.value })} />
+              <Input id="inv-cpf" label="CPF" value={invite.cpf} onChange={(e) => setInvite({ ...invite, cpf: formatCpf(e.target.value) })} />
+              <Input id="inv-email" label="E-mail" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} />
+              <Select id="inv-role" label="Função" value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value as OfficeRole })}>
+                <option value="ADMIN">ADMIN</option>
+                <option value="MANAGER">MANAGER</option>
+                <option value="EMPLOYEE">EMPLOYEE</option>
+              </Select>
+            </div>
+            {inviteError && <p className="text-sm text-rose-700">{inviteError}</p>}
+            <Button onClick={addMember}>Adicionar à oficina</Button>
+          </div>
+        )}
+      </section>
+
       <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3 text-sm">
         <h2 className="font-bold">Endereço digital</h2>
-        <p>O subdomínio não é o identificador principal. Histórico de hostnames permanece reservado.</p>
+        <p>O subdomínio identifica a oficina. O CPF identifica a pessoa.</p>
         <ul className="space-y-1">
           {hosts.map((item) => (
             <li key={`${item.hostname}-${item.createdAt}`} className="flex flex-wrap justify-between gap-2 rounded-lg bg-slate-50 p-3">
@@ -214,12 +299,10 @@ export const SettingsModule: React.FC = () => {
         <label className="flex gap-2"><input type="checkbox" defaultChecked /> Avisar agendamentos do dia</label>
       </section>
       <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-2 text-sm">
-        <h2 className="font-bold">Segurança e gerenciamento de acesso</h2>
+        <h2 className="font-bold">Segurança</h2>
         <DemoBanner>
-          Sem autenticação, sessão, MFA, RBAC, RLS, recuperação de senha, logs reais ou auditoria persistente.
-          A estrutura de papéis e eventos abaixo é conceitual, para conexão posterior.
+          Sem autenticação real, MFA, RLS ou recuperação de senha. A validação de office_users no repositório mock prepara o futuro Supabase Auth + RLS.
         </DemoBanner>
-        <p>Papéis previstos: OWNER, ADMIN, MANAGER, EMPLOYEE.</p>
       </section>
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <h2 className="font-bold">Eventos administrativos (mock)</h2>

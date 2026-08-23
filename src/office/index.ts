@@ -6,4 +6,4 @@ export * from './period';
 export * from './adapter';
 export * from './repository';
 export * from './useOfficeSnapshot';
-export { DEMO_LOGIN_HINT } from './seed';
+export { DEMO_LOGIN_HINT, DEMO_USERS } from './seed';

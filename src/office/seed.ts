@@ -7,13 +7,14 @@ import {
   OfficeClient,
   OfficeEcosystemState,
   OfficeHostname,
+  OfficeMembership,
   OfficeReturn,
   OfficeService,
-  OfficeUser,
   OfficeVehicle,
   OfficeWorkOrder,
+  VebookUser,
 } from './types';
-import { demoFingerprint } from './validation';
+import { demoFingerprint, formatCpf } from './validation';
 
 const DEMO_SECRET = 'demonstracao';
 const NOW = '2026-08-23T10:00:00.000Z';
@@ -32,7 +33,7 @@ function cpfFromIndex(n: number): string {
   };
   const d1 = calc(base, 10);
   const d2 = calc(base + d1, 11);
-  return `${base}${d1}${d2}`;
+  return formatCpf(`${base}${d1}${d2}`);
 }
 
 function cnpjFromIndex(n: number): string {
@@ -45,7 +46,8 @@ function cnpjFromIndex(n: number): string {
   };
   const d1 = calc(base, [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
   const d2 = calc(base + d1, [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
-  return `${base}${d1}${d2}`;
+  const raw = `${base}${d1}${d2}`;
+  return raw.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
 }
 
 function isoDaysAgo(days: number, hour = 10): string {
@@ -110,32 +112,57 @@ function servicesFor(officeId: string, prefix: string, prices: number[]): Office
   }));
 }
 
+/** CPFs fictícios de demonstração (dígitos válidos). */
+export const DEMO_USERS = {
+  carlos: {
+    id: 'usr_carlos',
+    name: 'Carlos Almeida',
+    cpf: cpfFromIndex(301),
+    email: 'carlos.almeida@vebook.exemplo',
+    phone: '(11) 99111-2200',
+  },
+  maria: {
+    id: 'usr_maria',
+    name: 'Maria Souza',
+    cpf: cpfFromIndex(302),
+    email: 'maria.souza@vebook.exemplo',
+    phone: '(11) 99222-3300',
+  },
+  joao: {
+    id: 'usr_joao',
+    name: 'João Pereira',
+    cpf: cpfFromIndex(303),
+    email: 'joao.pereira@vebook.exemplo',
+    phone: '(11) 99333-4400',
+  },
+} as const;
+
 export function createSeedState(): OfficeEcosystemState {
-  const prismaId = 'office_000001';
-  const alemaoId = 'office_000002';
+  const norteId = 'office_000001';
+  const sulId = 'office_000002';
   const fingerprint = demoFingerprint(DEMO_SECRET);
 
-  const prisma: Office = {
-    id: prismaId,
-    legalName: 'Auto Center Prisma Ltda',
-    tradeName: 'Auto Center Prisma',
+  const norte: Office = {
+    id: norteId,
+    legalName: 'Auto Center Norte Ltda',
+    tradeName: 'Auto Center Norte',
     cnpj: cnpjFromIndex(1),
-    responsibleName: 'Paulo Henrique Prisma',
-    responsibleCpf: cpfFromIndex(1),
-    email: 'atendimento@autocenterprisma.com.br',
+    responsibleName: DEMO_USERS.carlos.name,
+    responsibleCpf: DEMO_USERS.carlos.cpf,
+    email: 'atendimento@autocenternorte.exemplo',
     phone: '(11) 99145-3300',
     secondaryPhone: '(11) 4002-8922',
     address: {
-      zipCode: '03201-010',
+      zipCode: '02345-000',
       state: 'SP',
       city: 'São Paulo',
-      neighborhood: 'Vila Industrial',
-      street: 'Av. das Oficinas',
-      number: '1420',
+      neighborhood: 'Santana',
+      street: 'Av. Tucuruvi',
+      number: '900',
     },
     identity: {
-      publicName: 'Auto Center Prisma',
-      slogan: 'Mecânica geral, suspensão e injeção eletrônica.',
+      publicName: 'Auto Center Norte',
+      slogan: 'Mecânica geral com histórico VEBOOK.',
       description:
         'Mecânica geral, suspensão e injeção eletrônica. Cada serviço registrado no histórico permanente do veículo.',
       foundedYear: 2014,
@@ -144,30 +171,30 @@ export function createSeedState(): OfficeEcosystemState {
     acceptsOnlineBooking: true,
     minAdvanceHours: 4,
     slotIntervalMinutes: 30,
-    currentHostname: 'prisma',
+    currentHostname: 'norte',
     createdAt: '2023-01-15T12:00:00.000Z',
     publishedAt: '2023-01-15T12:00:00.000Z',
   };
 
-  const alemao: Office = {
-    id: alemaoId,
-    legalName: 'Oficina do Alemão Mecânica Ltda',
-    tradeName: 'Oficina do Alemão',
+  const sul: Office = {
+    id: sulId,
+    legalName: 'Oficina Sul Mecânica Ltda',
+    tradeName: 'Oficina Sul',
     cnpj: cnpjFromIndex(2),
-    responsibleName: 'Hans Müller da Costa',
-    responsibleCpf: cpfFromIndex(2),
-    email: 'contato@oficinadoalemao.com.br',
+    responsibleName: DEMO_USERS.carlos.name,
+    responsibleCpf: DEMO_USERS.carlos.cpf,
+    email: 'contato@oficinasul.exemplo',
     phone: '(11) 98765-4321',
     address: {
-      zipCode: '09520-000',
+      zipCode: '04101-000',
       state: 'SP',
-      city: 'São Caetano do Sul',
-      neighborhood: 'Santa Paula',
-      street: 'Rua das Oficinas',
-      number: '88',
+      city: 'São Paulo',
+      neighborhood: 'Vila Mariana',
+      street: 'Rua Domingos de Morais',
+      number: '1200',
     },
     identity: {
-      publicName: 'Oficina do Alemão',
+      publicName: 'Oficina Sul',
       slogan: 'Manutenção que você pode confiar',
       description: 'Atendimento técnico em freios, suspensão e troca de óleo, com registro no VEBOOK.',
       foundedYear: 2008,
@@ -176,68 +203,111 @@ export function createSeedState(): OfficeEcosystemState {
     acceptsOnlineBooking: true,
     minAdvanceHours: 2,
     slotIntervalMinutes: 45,
-    currentHostname: 'oficinadoalemao',
+    currentHostname: 'sul',
     createdAt: '2024-03-10T12:00:00.000Z',
     publishedAt: '2024-03-10T12:00:00.000Z',
   };
 
   const hostnames: OfficeHostname[] = [
     {
-      officeId: prismaId,
-      hostname: 'prisma',
+      officeId: norteId,
+      hostname: 'norte',
       status: 'active',
       isCurrent: true,
-      createdAt: prisma.createdAt,
+      createdAt: norte.createdAt,
     },
     {
-      officeId: alemaoId,
-      hostname: 'oficinadoalemao',
+      officeId: sulId,
+      hostname: 'sul',
       status: 'active',
       isCurrent: true,
-      createdAt: alemao.createdAt,
+      createdAt: sul.createdAt,
     },
     {
-      officeId: alemaoId,
-      hostname: 'oficina-alemao',
+      officeId: sulId,
+      hostname: 'oficina-sul',
       status: 'retired',
       isCurrent: false,
       createdAt: '2024-03-10T12:00:00.000Z',
       retiredAt: '2024-06-01T12:00:00.000Z',
-      redirectTo: 'oficinadoalemao',
+      redirectTo: 'sul',
     },
   ];
 
-  const users: OfficeUser[] = [
+  const users: VebookUser[] = [
     {
-      id: 'usr_prisma_owner',
-      officeId: prismaId,
-      name: prisma.responsibleName,
-      email: prisma.email,
-      cpf: prisma.responsibleCpf,
-      phone: prisma.phone,
-      role: 'OWNER',
+      id: DEMO_USERS.carlos.id,
+      name: DEMO_USERS.carlos.name,
+      cpf: DEMO_USERS.carlos.cpf,
+      email: DEMO_USERS.carlos.email,
+      phone: DEMO_USERS.carlos.phone,
       passwordFingerprint: fingerprint,
-      createdAt: prisma.createdAt,
+      lastOfficeId: norteId,
+      createdAt: norte.createdAt,
     },
     {
-      id: 'usr_alemao_owner',
-      officeId: alemaoId,
-      name: alemao.responsibleName,
-      email: alemao.email,
-      cpf: alemao.responsibleCpf,
-      phone: alemao.phone,
-      role: 'OWNER',
+      id: DEMO_USERS.maria.id,
+      name: DEMO_USERS.maria.name,
+      cpf: DEMO_USERS.maria.cpf,
+      email: DEMO_USERS.maria.email,
+      phone: DEMO_USERS.maria.phone,
       passwordFingerprint: fingerprint,
-      createdAt: alemao.createdAt,
+      lastOfficeId: norteId,
+      createdAt: '2024-05-01T12:00:00.000Z',
+    },
+    {
+      id: DEMO_USERS.joao.id,
+      name: DEMO_USERS.joao.name,
+      cpf: DEMO_USERS.joao.cpf,
+      email: DEMO_USERS.joao.email,
+      phone: DEMO_USERS.joao.phone,
+      passwordFingerprint: fingerprint,
+      lastOfficeId: norteId,
+      createdAt: '2024-08-01T12:00:00.000Z',
     },
   ];
 
-  const prismaServices = servicesFor(prismaId, 'prisma', [189, 420, 380, 160, 90, 350, 280, 310, 150, 490]);
-  const alemaoServices = servicesFor(alemaoId, 'alemao', [170, 390, 350, 150, 80, 320, 250, 290, 140, 450]);
+  const memberships: OfficeMembership[] = [
+    {
+      id: 'mem_carlos_norte',
+      userId: DEMO_USERS.carlos.id,
+      officeId: norteId,
+      role: 'OWNER',
+      active: true,
+      createdAt: norte.createdAt,
+    },
+    {
+      id: 'mem_carlos_sul',
+      userId: DEMO_USERS.carlos.id,
+      officeId: sulId,
+      role: 'OWNER',
+      active: true,
+      createdAt: sul.createdAt,
+    },
+    {
+      id: 'mem_maria_norte',
+      userId: DEMO_USERS.maria.id,
+      officeId: norteId,
+      role: 'MANAGER',
+      active: true,
+      createdAt: '2024-05-01T12:00:00.000Z',
+    },
+    {
+      id: 'mem_joao_norte',
+      userId: DEMO_USERS.joao.id,
+      officeId: norteId,
+      role: 'EMPLOYEE',
+      active: true,
+      createdAt: '2024-08-01T12:00:00.000Z',
+    },
+  ];
+
+  const norteServices = servicesFor(norteId, 'norte', [189, 420, 380, 160, 90, 350, 280, 310, 150, 490]);
+  const sulServices = servicesFor(sulId, 'sul', [170, 390, 350, 150, 80, 320, 250, 290, 140, 450]);
 
   const clients: OfficeClient[] = CLIENT_NAMES.map((name, index) => ({
-    id: `cli_prisma_${pad(index + 1, 3)}`,
-    officeId: prismaId,
+    id: `cli_norte_${pad(index + 1, 3)}`,
+    officeId: norteId,
     name,
     cpf: cpfFromIndex(100 + index),
     phone: `(11) 9${String(80000000 + index).slice(-8)}`,
@@ -246,25 +316,25 @@ export function createSeedState(): OfficeEcosystemState {
     createdAt: isoDaysAgo(200 - index * 8),
   }));
 
-  const alemaoClients: OfficeClient[] = [
+  const sulClients: OfficeClient[] = [
     'Helga Schmidt',
     'Otto Barbosa',
     'Liesel Rocha',
     'Klaus Ferreira',
     'Ingrid Nunes',
   ].map((name, index) => ({
-    id: `cli_alemao_${pad(index + 1, 3)}`,
-    officeId: alemaoId,
+    id: `cli_sul_${pad(index + 1, 3)}`,
+    officeId: sulId,
     name,
     cpf: cpfFromIndex(200 + index),
     phone: `(11) 9${String(70000000 + index).slice(-8)}`,
-    email: `cliente${index + 1}@oficinadoalemao.exemplo`,
+    email: `cliente${index + 1}@oficinasul.exemplo`,
     createdAt: isoDaysAgo(90 - index * 7),
   }));
 
   const vehicles: OfficeVehicle[] = VEHICLE_DEFS.map((item, index) => ({
-    id: `veh_prisma_${pad(index + 1, 3)}`,
-    officeId: prismaId,
+    id: `veh_norte_${pad(index + 1, 3)}`,
+    officeId: norteId,
     plate: item.plate,
     brand: item.brand,
     model: item.model,
@@ -274,21 +344,21 @@ export function createSeedState(): OfficeEcosystemState {
     createdAt: isoDaysAgo(180 - index * 4),
   }));
 
-  const alemaoVehicles: OfficeVehicle[] = [
-    { plate: 'ALM1A23', brand: 'Volkswagen', model: 'Golf', year: 2018, km: 112000, owner: 0 },
-    { plate: 'ALM2B45', brand: 'BMW', model: '320i', year: 2016, km: 98000, owner: 1 },
-    { plate: 'ALM3C67', brand: 'Audi', model: 'A3', year: 2019, km: 67000, owner: 2 },
-    { plate: 'ALM4D89', brand: 'Mercedes-Benz', model: 'C180', year: 2015, km: 140200, owner: 3 },
-    { plate: 'ALM5E01', brand: 'Volkswagen', model: 'Jetta', year: 2021, km: 41000, owner: 4 },
-    { plate: 'ALM6F12', brand: 'Porsche', model: 'Macan', year: 2020, km: 35500, owner: 0 },
+  const sulVehicles: OfficeVehicle[] = [
+    { plate: 'SUL1A23', brand: 'Volkswagen', model: 'Golf', year: 2018, km: 112000, owner: 0 },
+    { plate: 'SUL2B45', brand: 'BMW', model: '320i', year: 2016, km: 98000, owner: 1 },
+    { plate: 'SUL3C67', brand: 'Audi', model: 'A3', year: 2019, km: 67000, owner: 2 },
+    { plate: 'SUL4D89', brand: 'Mercedes-Benz', model: 'C180', year: 2015, km: 140200, owner: 3 },
+    { plate: 'SUL5E01', brand: 'Volkswagen', model: 'Jetta', year: 2021, km: 41000, owner: 4 },
+    { plate: 'SUL6F12', brand: 'Porsche', model: 'Macan', year: 2020, km: 35500, owner: 0 },
   ].map((item, index) => ({
-    id: `veh_alemao_${pad(index + 1, 3)}`,
-    officeId: alemaoId,
+    id: `veh_sul_${pad(index + 1, 3)}`,
+    officeId: sulId,
     plate: item.plate,
     brand: item.brand,
     model: item.model,
     year: item.year,
-    clientId: alemaoClients[item.owner].id,
+    clientId: sulClients[item.owner].id,
     currentMileageKm: item.km,
     createdAt: isoDaysAgo(70 - index * 5),
   }));
@@ -296,11 +366,11 @@ export function createSeedState(): OfficeEcosystemState {
   const statuses: OfficeWorkOrder['status'][] = ['concluido', 'concluido', 'concluido', 'em_andamento', 'aberto', 'cancelado'];
   const workOrders: OfficeWorkOrder[] = Array.from({ length: 50 }, (_, index) => {
     const vehicle = vehicles[index % vehicles.length];
-    const service = prismaServices[index % prismaServices.length];
+    const service = norteServices[index % norteServices.length];
     const daysAgo = index < 3 ? index : index < 10 ? index + 1 : index * 3;
     return {
-      id: `os_prisma_${pad(index + 1, 3)}`,
-      officeId: prismaId,
+      id: `os_norte_${pad(index + 1, 3)}`,
+      officeId: norteId,
       date: isoDaysAgo(daysAgo, 9 + (index % 7)),
       clientId: vehicle.clientId,
       vehicleId: vehicle.id,
@@ -313,20 +383,20 @@ export function createSeedState(): OfficeEcosystemState {
     };
   });
 
-  const alemaoOrders: OfficeWorkOrder[] = Array.from({ length: 12 }, (_, index) => {
-    const vehicle = alemaoVehicles[index % alemaoVehicles.length];
-    const service = alemaoServices[index % alemaoServices.length];
+  const sulOrders: OfficeWorkOrder[] = Array.from({ length: 12 }, (_, index) => {
+    const vehicle = sulVehicles[index % sulVehicles.length];
+    const service = sulServices[index % sulServices.length];
     return {
-      id: `os_alemao_${pad(index + 1, 3)}`,
-      officeId: alemaoId,
-      date: isoDaysAgo(index * 6 + 1, 11),
+      id: `os_sul_${pad(index + 1, 3)}`,
+      officeId: sulId,
+      date: isoDaysAgo(index * 4 + 1, 10),
       clientId: vehicle.clientId,
       vehicleId: vehicle.id,
       serviceId: service.id,
-      mileageKm: vehicle.currentMileageKm - index * 90,
-      amount: service.price ?? 220,
-      status: index % 5 === 0 ? 'aberto' : 'concluido',
-      createdAt: isoDaysAgo(index * 6 + 1, 10),
+      mileageKm: vehicle.currentMileageKm - index * 120,
+      amount: (service.price ?? 180) + index * 15,
+      status: statuses[index % statuses.length],
+      createdAt: isoDaysAgo(index * 4 + 1, 9),
     };
   });
 
@@ -347,27 +417,27 @@ export function createSeedState(): OfficeEcosystemState {
     starts.setUTCDate(starts.getUTCDate() + item.offset);
     starts.setUTCHours(item.hour, 0, 0, 0);
     return {
-      id: `agd_prisma_${pad(index + 1, 3)}`,
-      officeId: prismaId,
+      id: `agd_norte_${pad(index + 1, 3)}`,
+      officeId: norteId,
       clientId: vehicle.clientId,
       vehicleId: vehicle.id,
-      serviceId: prismaServices[index % prismaServices.length].id,
+      serviceId: norteServices[index % norteServices.length].id,
       startsAt: starts.toISOString(),
       status: item.status,
       createdAt: NOW,
     };
   });
 
-  const alemaoAppointments: OfficeAppointment[] = alemaoVehicles.slice(0, 4).map((vehicle, index) => {
+  const sulAppointments: OfficeAppointment[] = sulVehicles.slice(0, 4).map((vehicle, index) => {
     const starts = new Date('2026-08-23T00:00:00.000Z');
     starts.setUTCDate(starts.getUTCDate() + index);
     starts.setUTCHours(10 + index, 0, 0, 0);
     return {
-      id: `agd_alemao_${pad(index + 1, 3)}`,
-      officeId: alemaoId,
+      id: `agd_sul_${pad(index + 1, 3)}`,
+      officeId: sulId,
       clientId: vehicle.clientId,
       vehicleId: vehicle.id,
-      serviceId: alemaoServices[index].id,
+      serviceId: sulServices[index].id,
       startsAt: starts.toISOString(),
       status: 'agendado' as const,
       createdAt: NOW,
@@ -382,8 +452,8 @@ export function createSeedState(): OfficeEcosystemState {
       const due = new Date(last);
       due.setMonth(due.getMonth() + 6);
       return {
-        id: `ret_prisma_${pad(index + 1, 3)}`,
-        officeId: prismaId,
+        id: `ret_norte_${pad(index + 1, 3)}`,
+        officeId: norteId,
         clientId: item.clientId,
         vehicleId: item.vehicleId,
         serviceId: item.serviceId,
@@ -394,15 +464,15 @@ export function createSeedState(): OfficeEcosystemState {
       };
     });
 
-  const alemaoReturns: OfficeReturn[] = alemaoOrders
+  const sulReturns: OfficeReturn[] = sulOrders
     .filter((item) => item.status === 'concluido')
     .slice(0, 4)
     .map((item, index) => {
       const due = new Date(item.date);
       due.setMonth(due.getMonth() + 6);
       return {
-        id: `ret_alemao_${pad(index + 1, 3)}`,
-        officeId: alemaoId,
+        id: `ret_sul_${pad(index + 1, 3)}`,
+        officeId: sulId,
         clientId: item.clientId,
         vehicleId: item.vehicleId,
         serviceId: item.serviceId,
@@ -414,8 +484,8 @@ export function createSeedState(): OfficeEcosystemState {
     });
 
   const certificates: OfficeCertificate[] = vehicles.slice(0, 8).map((vehicle, index) => ({
-    id: `crt_prisma_${pad(index + 1, 3)}`,
-    officeId: prismaId,
+    id: `crt_norte_${pad(index + 1, 3)}`,
+    officeId: norteId,
     code: `VBK-2026-${vehicle.plate}-${8000 + index}`,
     vehicleId: vehicle.id,
     issuedAt: isoDaysAgo(index * 9, 14),
@@ -423,29 +493,29 @@ export function createSeedState(): OfficeEcosystemState {
     status: index % 3 === 0 ? 'verificada' : 'emitida',
   }));
 
-  const alemaoCertificates: OfficeCertificate[] = alemaoVehicles.slice(0, 3).map((vehicle, index) => ({
-    id: `crt_alemao_${pad(index + 1, 3)}`,
-    officeId: alemaoId,
+  const sulCertificates: OfficeCertificate[] = sulVehicles.slice(0, 3).map((vehicle, index) => ({
+    id: `crt_sul_${pad(index + 1, 3)}`,
+    officeId: sulId,
     code: `VBK-2026-${vehicle.plate}-${9000 + index}`,
     vehicleId: vehicle.id,
     issuedAt: isoDaysAgo(12 + index * 5, 15),
-    requesterName: alemaoClients.find((c) => c.id === vehicle.clientId)?.name ?? 'Solicitante',
+    requesterName: sulClients.find((c) => c.id === vehicle.clientId)?.name ?? 'Solicitante',
     status: 'emitida' as const,
   }));
 
   const audit: AuditEvent[] = [
     {
       id: 'aud_001',
-      officeId: prismaId,
-      actorUserId: 'usr_prisma_owner',
+      officeId: norteId,
+      actorUserId: DEMO_USERS.carlos.id,
       action: 'login',
       entity: 'session',
       createdAt: isoDaysAgo(0, 8),
     },
     {
       id: 'aud_002',
-      officeId: prismaId,
-      actorUserId: 'usr_prisma_owner',
+      officeId: norteId,
+      actorUserId: DEMO_USERS.carlos.id,
       action: 'work_order_created',
       entity: 'work_order',
       entityId: workOrders[0].id,
@@ -454,18 +524,19 @@ export function createSeedState(): OfficeEcosystemState {
   ];
 
   return {
-    version: 1,
+    version: 2,
     nextOfficeSeq: 3,
-    offices: [prisma, alemao],
-    hostnames,
     users,
-    clients: [...clients, ...alemaoClients],
-    vehicles: [...vehicles, ...alemaoVehicles],
-    services: [...prismaServices, ...alemaoServices],
-    workOrders: [...workOrders, ...alemaoOrders],
-    appointments: [...appointments, ...alemaoAppointments],
-    returns: [...returns, ...alemaoReturns],
-    certificates: [...certificates, ...alemaoCertificates],
+    memberships,
+    offices: [norte, sul],
+    hostnames,
+    clients: [...clients, ...sulClients],
+    vehicles: [...vehicles, ...sulVehicles],
+    services: [...norteServices, ...sulServices],
+    workOrders: [...workOrders, ...sulOrders],
+    appointments: [...appointments, ...sulAppointments],
+    returns: [...returns, ...sulReturns],
+    certificates: [...certificates, ...sulCertificates],
     audit,
   };
 }

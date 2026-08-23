@@ -1,6 +1,7 @@
-/** Entidade central do ecossistema de oficinas. officeId é estável; o subdomínio é identidade pública. */
+/** Ecossistema de oficinas: identidade pessoal (CPF) distinta da oficina (officeId) e do hostname. */
 
 export type OfficeId = string;
+export type UserId = string;
 
 export type OfficeRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 
@@ -22,6 +23,7 @@ export type AuditAction =
   | 'login'
   | 'logout'
   | 'office_created'
+  | 'office_context_switched'
   | 'client_created'
   | 'client_updated'
   | 'work_order_created'
@@ -33,6 +35,9 @@ export type AuditAction =
   | 'service_updated'
   | 'site_updated'
   | 'profile_updated'
+  | 'membership_created'
+  | 'membership_updated'
+  | 'membership_removed'
   | 'certificate_viewed';
 
 export interface OfficeHostname {
@@ -99,6 +104,33 @@ export interface OfficeSocial {
   website?: string;
 }
 
+/** Identidade pessoal única no VEBOOK. CPF é o identificador de login. */
+export interface VebookUser {
+  id: UserId;
+  name: string;
+  cpf: string;
+  email: string;
+  phone?: string;
+  /** Fingerprint de demonstração. Não constitui autenticação real. */
+  passwordFingerprint: string;
+  /** Última oficina usada (preferência de UX; sempre revalidada em office_users). */
+  lastOfficeId?: OfficeId;
+  createdAt: string;
+}
+
+/**
+ * Relação usuário ↔ oficina (office_users).
+ * Papel e ativação vivem aqui — não na identidade pessoal.
+ */
+export interface OfficeMembership {
+  id: string;
+  userId: UserId;
+  officeId: OfficeId;
+  role: OfficeRole;
+  active: boolean;
+  createdAt: string;
+}
+
 export interface Office {
   id: OfficeId;
   legalName: string;
@@ -121,18 +153,8 @@ export interface Office {
   publishedAt: string;
 }
 
-export interface OfficeUser {
-  id: string;
-  officeId: OfficeId;
-  name: string;
-  email: string;
-  cpf: string;
-  phone?: string;
-  role: OfficeRole;
-  /** Fingerprint de demonstração. Não constitui autenticação. */
-  passwordFingerprint: string;
-  createdAt: string;
-}
+/** @deprecated Prefer VebookUser + OfficeMembership. Mantido só como alias de leitura enriquecida. */
+export type OfficeUser = VebookUser & { membershipId: string; officeId: OfficeId; role: OfficeRole; active: boolean };
 
 export interface OfficeClient {
   id: string;
@@ -217,19 +239,20 @@ export interface AuditEvent {
 }
 
 export interface OfficeSession {
+  userId: UserId;
   officeId: OfficeId;
-  userId: string;
   role: OfficeRole;
   startedAt: string;
   demo: true;
 }
 
 export interface OfficeEcosystemState {
-  version: 1;
+  version: 2;
   nextOfficeSeq: number;
+  users: VebookUser[];
+  memberships: OfficeMembership[];
   offices: Office[];
   hostnames: OfficeHostname[];
-  users: OfficeUser[];
   clients: OfficeClient[];
   vehicles: OfficeVehicle[];
   services: OfficeService[];
@@ -240,7 +263,17 @@ export interface OfficeEcosystemState {
   audit: AuditEvent[];
 }
 
+export interface AccountDraft {
+  name: string;
+  cpf: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export interface OnboardingDraft {
+  account: AccountDraft;
   identification: {
     legalName: string;
     tradeName: string;
@@ -267,11 +300,9 @@ export interface OnboardingDraft {
   minAdvanceHours: number;
   slotIntervalMinutes: number;
   hostname: string;
-  access: {
-    email: string;
-    cpf: string;
-    password: string;
-    confirmPassword: string;
-  };
+  /** @deprecated Prefer account. Mantido para rascunhos antigos. */
+  access?: AccountDraft;
   termsAccepted: boolean;
+  /** Quando true, o cadastro de conta é omitido (usuário já autenticado). */
+  skipAccount?: boolean;
 }

@@ -37,7 +37,7 @@ export function pathForView(view: AppView): string {
     case 'oficinas':
       return PATHS.oficinas;
     case 'site-oficina':
-      return PATHS.oficina('prisma');
+      return PATHS.oficina('norte');
     case 'validacao':
       return PATHS.validar;
     case 'transparencia':

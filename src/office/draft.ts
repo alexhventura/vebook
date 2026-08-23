@@ -1,8 +1,16 @@
 import { defaultOfficeHours, SERVICE_CATALOG } from './constants';
 import { OnboardingDraft } from './types';
 
-export function emptyOnboardingDraft(): OnboardingDraft {
+export function emptyOnboardingDraft(options?: { skipAccount?: boolean }): OnboardingDraft {
   return {
+    account: {
+      name: '',
+      cpf: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: '',
+    },
     identification: {
       legalName: '',
       tradeName: '',
@@ -42,12 +50,7 @@ export function emptyOnboardingDraft(): OnboardingDraft {
     minAdvanceHours: 4,
     slotIntervalMinutes: 30,
     hostname: '',
-    access: {
-      email: '',
-      cpf: '',
-      password: '',
-      confirmPassword: '',
-    },
     termsAccepted: false,
+    skipAccount: options?.skipAccount ?? false,
   };
 }

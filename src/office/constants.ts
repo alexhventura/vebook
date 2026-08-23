@@ -53,7 +53,7 @@ export const ONBOARDING_STEPS = [
   { id: 'servicos', label: 'Serviços', number: 4 },
   { id: 'atendimento', label: 'Atendimento', number: 5 },
   { id: 'subdominio', label: 'Endereço digital', number: 6 },
-  { id: 'acesso', label: 'Acesso', number: 7 },
+  { id: 'acesso', label: 'Conta VEBOOK', number: 7 },
   { id: 'revisao', label: 'Revisão', number: 8 },
   { id: 'concluido', label: 'Publicação', number: 9 },
 ] as const;
