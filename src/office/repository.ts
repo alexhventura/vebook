@@ -3,6 +3,8 @@ import { createSeedState } from './seed';
 import {
   AuditAction,
   AuditEvent,
+  computeWorkOrderTotals,
+  GlobalProduct,
   Office,
   OfficeAppointment,
   OfficeCertificate,
@@ -11,6 +13,7 @@ import {
   OfficeHostname,
   OfficeId,
   OfficeMembership,
+  OfficeProductContext,
   OfficeReturn,
   OfficeRole,
   OfficeService,
@@ -21,10 +24,14 @@ import {
   OnboardingDraft,
   UserId,
   VebookUser,
+  WorkOrderProductLine,
+  WorkOrderServiceLine,
 } from './types';
+import { findDuplicateCandidates, productNormalizedKey, searchGlobalProducts } from './products';
+import { buildMarketIntelligence, IntelligenceQuery } from './intelligence';
 import { demoFingerprint, hostnameError, normalizeHostname, onlyDigits } from './validation';
 
-const STORAGE_KEY = 'vebook.office-ecosystem.v2';
+const STORAGE_KEY = 'vebook.office-ecosystem.v3';
 const SESSION_KEY = 'vebook.office-session.demo';
 const DRAFT_KEY = 'vebook.office-onboarding.draft';
 const LAST_PUBLISHED_KEY = 'vebook.office-onboarding.last-published';
@@ -42,7 +49,7 @@ function loadState(): OfficeEcosystemState {
       return seed;
     }
     const parsed = JSON.parse(raw) as OfficeEcosystemState;
-    if (parsed?.version !== 2 || !Array.isArray(parsed.offices) || !Array.isArray(parsed.users) || !Array.isArray(parsed.memberships)) {
+    if (parsed?.version !== 3 || !Array.isArray(parsed.offices) || !Array.isArray(parsed.users) || !Array.isArray(parsed.memberships) || !Array.isArray(parsed.globalProducts)) {
       const seed = createSeedState();
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
       return seed;
@@ -553,9 +560,23 @@ function actorId(officeId: OfficeId): string {
   return officeUsers(officeId).find((item) => item.active)?.id ?? 'system';
 }
 
+export function findClientByCpf(officeId: OfficeId, cpf: string): OfficeClient | undefined {
+  const digits = onlyDigits(cpf);
+  return officeClients(officeId).find((item) => onlyDigits(item.cpf) === digits);
+}
+
+export function findVehicleByPlate(officeId: OfficeId, plate: string): OfficeVehicle | undefined {
+  const normalized = plate.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  return officeVehicles(officeId).find((item) => item.plate.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === normalized);
+}
+
 export function upsertClient(officeId: OfficeId, input: Omit<OfficeClient, 'officeId' | 'createdAt' | 'id'> & { id?: string }): OfficeClient {
   requireActiveContext(officeId);
-  const existing = input.id ? state.clients.find((item) => item.id === input.id) : undefined;
+  const actor = actorId(officeId);
+  const byId = input.id ? state.clients.find((item) => item.id === input.id && item.officeId === officeId) : undefined;
+  const byCpf = !byId ? findClientByCpf(officeId, input.cpf) : undefined;
+  const existing = byId ?? byCpf;
+  const stamp = nowIso();
   const record: OfficeClient = {
     id: existing?.id ?? uid('cli'),
     officeId,
@@ -565,7 +586,10 @@ export function upsertClient(officeId: OfficeId, input: Omit<OfficeClient, 'offi
     whatsapp: input.whatsapp,
     email: input.email,
     notes: input.notes,
-    createdAt: existing?.createdAt ?? nowIso(),
+    createdBy: existing?.createdBy ?? actor,
+    updatedBy: actor,
+    createdAt: existing?.createdAt ?? stamp,
+    updatedAt: stamp,
   };
   state = {
     ...state,
@@ -573,14 +597,18 @@ export function upsertClient(officeId: OfficeId, input: Omit<OfficeClient, 'offi
       ? state.clients.map((item) => (item.id === record.id ? record : item))
       : [...state.clients, record],
   };
-  audit(officeId, actorId(officeId), existing ? 'client_updated' : 'client_created', 'client', record.id);
+  audit(officeId, actor, existing ? 'client_updated' : 'client_created', 'client', record.id);
   emit();
   return record;
 }
 
 export function upsertVehicle(officeId: OfficeId, input: Omit<OfficeVehicle, 'officeId' | 'createdAt' | 'id'> & { id?: string }): OfficeVehicle {
   requireActiveContext(officeId);
-  const existing = input.id ? state.vehicles.find((item) => item.id === input.id) : undefined;
+  const actor = actorId(officeId);
+  const byId = input.id ? state.vehicles.find((item) => item.id === input.id && item.officeId === officeId) : undefined;
+  const byPlate = !byId ? findVehicleByPlate(officeId, input.plate) : undefined;
+  const existing = byId ?? byPlate;
+  const stamp = nowIso();
   const record: OfficeVehicle = {
     id: existing?.id ?? uid('veh'),
     officeId,
@@ -588,9 +616,15 @@ export function upsertVehicle(officeId: OfficeId, input: Omit<OfficeVehicle, 'of
     brand: input.brand,
     model: input.model,
     year: input.year,
+    color: input.color,
+    chassis: input.chassis,
+    renavam: input.renavam,
     clientId: input.clientId,
     currentMileageKm: input.currentMileageKm,
-    createdAt: existing?.createdAt ?? nowIso(),
+    createdBy: existing?.createdBy ?? actor,
+    updatedBy: actor,
+    createdAt: existing?.createdAt ?? stamp,
+    updatedAt: stamp,
   };
   state = {
     ...state,
@@ -598,6 +632,7 @@ export function upsertVehicle(officeId: OfficeId, input: Omit<OfficeVehicle, 'of
       ? state.vehicles.map((item) => (item.id === record.id ? record : item))
       : [...state.vehicles, record],
   };
+  audit(officeId, actor, existing ? 'vehicle_updated' : 'vehicle_created', 'vehicle', record.id);
   emit();
   return record;
 }
@@ -627,46 +662,119 @@ export function upsertService(officeId: OfficeId, input: Omit<OfficeService, 'of
   return record;
 }
 
-export function upsertWorkOrder(officeId: OfficeId, input: Omit<OfficeWorkOrder, 'officeId' | 'createdAt' | 'id'> & { id?: string }): OfficeWorkOrder {
+function syncReturnFromWorkOrder(order: OfficeWorkOrder): void {
+  const without = state.returns.filter((item) => item.workOrderId !== order.id);
+  if (!order.returnDueDate || order.status === 'cancelado') {
+    state = { ...state, returns: without };
+    return;
+  }
+  const serviceLabel = order.services.map((s) => s.description).join(' · ') || 'Atendimento';
+  const record: OfficeReturn = {
+    id: state.returns.find((item) => item.workOrderId === order.id)?.id ?? uid('ret'),
+    officeId: order.officeId,
+    clientId: order.clientId,
+    vehicleId: order.vehicleId,
+    serviceId: order.services[0]?.officeServiceId,
+    serviceLabel,
+    lastServiceDate: order.date,
+    dueDate: order.returnDueDate,
+    reason: order.returnReason,
+    workOrderId: order.id,
+    createdAt: order.createdAt,
+  };
+  state = { ...state, returns: [...without, record] };
+}
+
+export function upsertWorkOrder(
+  officeId: OfficeId,
+  input: Partial<OfficeWorkOrder> & {
+    clientId: string;
+    vehicleId: string;
+    date: string;
+    mileageKm: number;
+    status: OfficeWorkOrder['status'];
+    services?: WorkOrderServiceLine[];
+    products?: WorkOrderProductLine[];
+    id?: string;
+  }
+): OfficeWorkOrder {
   requireActiveContext(officeId);
-  const existing = input.id ? state.workOrders.find((item) => item.id === input.id) : undefined;
+  const actor = actorId(officeId);
+  const existing = input.id ? state.workOrders.find((item) => item.id === input.id && item.officeId === officeId) : undefined;
+  const services = input.services ?? existing?.services ?? [];
+  const products = input.products ?? existing?.products ?? [];
+  const totals = computeWorkOrderTotals({ services, products });
+  const stamp = nowIso();
+  const amountReceived = input.amountReceived ?? existing?.amountReceived ?? 0;
+  const paymentStatus =
+    input.paymentStatus ??
+    existing?.paymentStatus ??
+    (amountReceived <= 0 ? 'pendente' : amountReceived >= totals.amount ? 'recebido' : 'parcial');
+
   const record: OfficeWorkOrder = {
     id: existing?.id ?? uid('os'),
     officeId,
     date: input.date,
     clientId: input.clientId,
     vehicleId: input.vehicleId,
-    serviceId: input.serviceId,
     mileageKm: input.mileageKm,
-    amount: input.amount,
     status: input.status,
-    notes: input.notes,
-    createdAt: existing?.createdAt ?? nowIso(),
+    notes: input.notes ?? existing?.notes,
+    services,
+    products,
+    laborTotal: totals.laborTotal,
+    productsRevenue: totals.productsRevenue,
+    productsCost: totals.productsCost,
+    amount: totals.amount,
+    amountReceived,
+    paymentStatus,
+    returnDueDate: input.returnDueDate ?? existing?.returnDueDate,
+    returnReason: input.returnReason ?? existing?.returnReason,
+    returnNotes: input.returnNotes ?? existing?.returnNotes,
+    createdBy: existing?.createdBy ?? actor,
+    updatedBy: actor,
+    createdAt: existing?.createdAt ?? stamp,
+    updatedAt: stamp,
+    serviceId: services[0]?.officeServiceId ?? input.serviceId ?? existing?.serviceId,
   };
+
   state = {
     ...state,
     workOrders: existing
       ? state.workOrders.map((item) => (item.id === record.id ? record : item))
       : [...state.workOrders, record],
+    vehicles: state.vehicles.map((item) =>
+      item.id === record.vehicleId && item.officeId === officeId
+        ? { ...item, currentMileageKm: Math.max(item.currentMileageKm, record.mileageKm), updatedAt: stamp, updatedBy: actor }
+        : item
+    ),
   };
-  audit(officeId, actorId(officeId), existing ? 'work_order_updated' : 'work_order_created', 'work_order', record.id);
+  syncReturnFromWorkOrder(record);
+  audit(officeId, actor, existing ? 'work_order_updated' : 'work_order_created', 'work_order', record.id);
   emit();
   return record;
 }
 
 export function upsertAppointment(officeId: OfficeId, input: Omit<OfficeAppointment, 'officeId' | 'createdAt' | 'id'> & { id?: string }): OfficeAppointment {
   requireActiveContext(officeId);
+  const actor = actorId(officeId);
   const existing = input.id ? state.appointments.find((item) => item.id === input.id) : undefined;
+  const stamp = nowIso();
   const record: OfficeAppointment = {
     id: existing?.id ?? uid('agd'),
     officeId,
     clientId: input.clientId,
     vehicleId: input.vehicleId,
     serviceId: input.serviceId,
+    serviceLabel: input.serviceLabel,
+    employeeUserId: input.employeeUserId,
     startsAt: input.startsAt,
     status: input.status,
     notes: input.notes,
-    createdAt: existing?.createdAt ?? nowIso(),
+    createdBy: existing?.createdBy ?? actor,
+    updatedBy: actor,
+    createdAt: existing?.createdAt ?? stamp,
+    updatedAt: stamp,
   };
   state = {
     ...state,
@@ -674,7 +782,7 @@ export function upsertAppointment(officeId: OfficeId, input: Omit<OfficeAppointm
       ? state.appointments.map((item) => (item.id === record.id ? record : item))
       : [...state.appointments, record],
   };
-  audit(officeId, actorId(officeId), existing ? 'appointment_updated' : 'appointment_created', 'appointment', record.id);
+  audit(officeId, actor, existing ? 'appointment_updated' : 'appointment_created', 'appointment', record.id);
   emit();
   return record;
 }
@@ -845,6 +953,103 @@ function requireActiveContext(officeId: OfficeId): void {
 
 export function listPublicOffices(): Office[] {
   return state.offices;
+}
+
+export function listGlobalProducts(): GlobalProduct[] {
+  return state.globalProducts;
+}
+
+export function searchProducts(query: string, limit = 20): GlobalProduct[] {
+  return searchGlobalProducts(state.globalProducts, query, limit);
+}
+
+export function getGlobalProduct(id: string): GlobalProduct | undefined {
+  return state.globalProducts.find((item) => item.id === id);
+}
+
+export function officeProductContexts(officeId: OfficeId): OfficeProductContext[] {
+  return scoped(state.officeProductContexts, officeId);
+}
+
+export function getOfficeProductContext(officeId: OfficeId, productId: string): OfficeProductContext | undefined {
+  return officeProductContexts(officeId).find((item) => item.productId === productId);
+}
+
+export function createGlobalProduct(input: {
+  name: string;
+  brand: string;
+  code: string;
+  category: string;
+  application?: string;
+}): { product: GlobalProduct; duplicates: GlobalProduct[] } {
+  const duplicates = findDuplicateCandidates(state.globalProducts, input.name, input.brand, input.code);
+  if (duplicates.length) {
+    return { product: duplicates[0], duplicates };
+  }
+  const actor = getDemoSession()?.userId;
+  const product: GlobalProduct = {
+    id: uid('prd'),
+    name: input.name.trim(),
+    brand: input.brand.trim(),
+    code: input.code.trim(),
+    category: input.category.trim(),
+    application: input.application?.trim(),
+    normalizedKey: productNormalizedKey(input.name, input.brand, input.code),
+    createdAt: nowIso(),
+    createdByUserId: actor,
+  };
+  state = { ...state, globalProducts: [...state.globalProducts, product] };
+  if (actor) {
+    const session = getDemoSession();
+    if (session) audit(session.officeId, actor, 'product_created', 'product', product.id);
+  }
+  emit();
+  return { product, duplicates: [] };
+}
+
+export function upsertOfficeProductContext(
+  officeId: OfficeId,
+  input: {
+    productId: string;
+    defaultCost?: number;
+    defaultPrice?: number;
+    supplier?: string;
+    stockQty?: number;
+    id?: string;
+  }
+): OfficeProductContext {
+  requireActiveContext(officeId);
+  const actor = actorId(officeId);
+  const existing =
+    (input.id ? state.officeProductContexts.find((item) => item.id === input.id) : undefined) ??
+    getOfficeProductContext(officeId, input.productId);
+  const stamp = nowIso();
+  const record: OfficeProductContext = {
+    id: existing?.id ?? uid('opc'),
+    officeId,
+    productId: input.productId,
+    defaultCost: input.defaultCost,
+    defaultPrice: input.defaultPrice,
+    supplier: input.supplier,
+    stockQty: input.stockQty,
+    createdAt: existing?.createdAt ?? stamp,
+    updatedAt: stamp,
+    createdBy: existing?.createdBy ?? actor,
+    updatedBy: actor,
+  };
+  state = {
+    ...state,
+    officeProductContexts: existing
+      ? state.officeProductContexts.map((item) => (item.id === record.id ? record : item))
+      : [...state.officeProductContexts, record],
+  };
+  audit(officeId, actor, 'product_linked', 'office_product', record.id);
+  emit();
+  return record;
+}
+
+export function queryMarketIntelligence(query: IntelligenceQuery = {}) {
+  return buildMarketIntelligence(state, query);
 }
 
 export function setLastPublishedHostname(hostname: string): void {
