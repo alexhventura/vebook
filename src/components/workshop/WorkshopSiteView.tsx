@@ -414,6 +414,9 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
                   {workshop.name}
                 </h2>
+                {workshop.slogan && (
+                  <p className="text-lg font-semibold text-slate-800">{workshop.slogan}</p>
+                )}
                 <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed">
                   {workshop.description}
                 </p>
@@ -717,7 +720,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                   Nossa Estrutura & História
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                  Compromisso com precisão mecânica e transparência
+                  {workshop.slogan || 'Compromisso com precisão mecânica e transparência'}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                   {workshop.aboutHistory || workshop.description}

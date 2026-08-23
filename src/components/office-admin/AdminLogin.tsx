@@ -73,9 +73,14 @@ export const AdminLogin: React.FC<{ hostname?: string; tenantMode?: boolean }> =
           {error && <Alert tone="error">{error}</Alert>}
           <Button type="submit" fullWidth>Entrar</Button>
         </form>
-        {office && (
+        {office && (office.id === 'office_000001' || office.id === 'office_000002') && (
           <p className="text-xs text-slate-500">
             Oficinas de exemplo: {office.email} ou CPF do responsável. Senha de demonstração: {DEMO_LOGIN_HINT}
+          </p>
+        )}
+        {office && office.id !== 'office_000001' && office.id !== 'office_000002' && (
+          <p className="text-xs text-slate-500">
+            Use o e-mail ou o CPF definidos no cadastro. A senha é a informada na criação desta oficina.
           </p>
         )}
         <p className="text-sm">
