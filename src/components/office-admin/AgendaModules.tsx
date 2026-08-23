@@ -7,138 +7,272 @@ import { Select } from '../ui/Select';
 import { Badge } from '../ui/Badge';
 import {
   officeAppointments,
-  officeCertificates,
   officeClients,
   officeReturns,
   officeServices,
+  officeUsers,
   officeVehicles,
   upsertAppointment,
-  upsertReturn,
 } from '../../office/repository';
 import { useOfficeSnapshot } from '../../office/useOfficeSnapshot';
-import { AppointmentStatus } from '../../office/types';
-import { DateRange, formatDate, inRange, rangeForPreset, PeriodPreset } from '../../office/period';
-import { PeriodFilter } from './shared';
+import { AppointmentStatus, RETURN_REASON_LABELS } from '../../office/types';
 
 type Ctx = { officeId: string };
+
+const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
+  agendado: 'Agendado',
+  confirmado: 'Confirmado',
+  em_atendimento: 'Em atendimento',
+  concluido: 'Concluído',
+  cancelado: 'Cancelado',
+  nao_compareceu: 'Não compareceu',
+};
+
+function statusTone(status: AppointmentStatus) {
+  if (status === 'cancelado' || status === 'nao_compareceu') return 'danger' as const;
+  if (status === 'concluido') return 'success' as const;
+  return 'info' as const;
+}
+
+const HOURS = Array.from({ length: 11 }, (_, i) => 8 + i);
+
+function monthGrid(year: number, month: number) {
+  const first = new Date(year, month, 1);
+  const startPad = first.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: Array<{ date: Date | null; key: string }> = [];
+  for (let i = 0; i < startPad; i++) cells.push({ date: null, key: `pad-${i}` });
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push({ date: new Date(year, month, d), key: `day-${d}` });
+  }
+  return cells;
+}
 
 export const AppointmentsModule: React.FC = () => {
   useOfficeSnapshot();
   const { officeId } = useOutletContext<Ctx>();
-  const [view, setView] = useState<'dia' | 'semana' | 'mes'>('semana');
+  const [cursor, setCursor] = useState(() => new Date());
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [open, setOpen] = useState(false);
-  const items = officeAppointments(officeId).slice().sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+
+  const appointments = officeAppointments(officeId);
+  const returns = officeReturns(officeId);
   const clients = officeClients(officeId);
   const vehicles = officeVehicles(officeId);
-  const services = officeServices(officeId);
-  const reference = new Date();
 
-  const visible = items.filter((item) => {
-    const date = new Date(item.startsAt);
-    if (view === 'dia') {
-      return date.toDateString() === reference.toDateString();
-    }
-    if (view === 'semana') {
-      const start = new Date(reference);
-      start.setDate(reference.getDate() - reference.getDay());
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(start);
-      end.setDate(start.getDate() + 6);
-      end.setHours(23, 59, 59, 999);
-      return date >= start && date <= end;
-    }
-    return date.getMonth() === reference.getMonth() && date.getFullYear() === reference.getFullYear();
-  });
+  const year = cursor.getFullYear();
+  const month = cursor.getMonth();
+  const cells = useMemo(() => monthGrid(year, month), [year, month]);
 
-  const grouped = useMemo(() => {
-    const map = new Map<string, typeof visible>();
-    visible.forEach((item) => {
-      const key = new Date(item.startsAt).toLocaleDateString('pt-BR');
-      map.set(key, [...(map.get(key) ?? []), item]);
+  const countByDay = useMemo(() => {
+    const map = new Map<string, { appointments: number; returns: number }>();
+    appointments.forEach((a) => {
+      const key = new Date(a.startsAt).toDateString();
+      const current = map.get(key) ?? { appointments: 0, returns: 0 };
+      current.appointments += 1;
+      map.set(key, current);
     });
-    return Array.from(map.entries());
-  }, [visible]);
+    returns.forEach((r) => {
+      const key = new Date(r.dueDate).toDateString();
+      const current = map.get(key) ?? { appointments: 0, returns: 0 };
+      current.returns += 1;
+      map.set(key, current);
+    });
+    return map;
+  }, [appointments, returns]);
+
+  const dayAppointments = selectedDay
+    ? appointments
+        .filter((a) => new Date(a.startsAt).toDateString() === selectedDay.toDateString())
+        .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    : [];
+
+  const dayReturns = selectedDay
+    ? returns.filter((r) => new Date(r.dueDate).toDateString() === selectedDay.toDateString())
+    : [];
+
+  const monthLabel = cursor.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-[#0B1E36]">Agendamentos</h1>
-        <div className="flex gap-2">
-          {(['dia', 'semana', 'mes'] as const).map((id) => (
-            <button key={id} type="button" onClick={() => setView(id)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${view === id ? 'bg-[#0B1E36] text-white' : 'bg-slate-100'}`}>
-              {id}
-            </button>
-          ))}
-          <Button onClick={() => setOpen(true)}>Novo agendamento</Button>
+        <h1 className="text-2xl font-bold text-[#0B1E36]">Agenda</h1>
+        <Button onClick={() => setOpen(true)}>+ Agendar</Button>
+      </div>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <button type="button" className="text-sm font-semibold text-[#0B1E36]" onClick={() => setCursor(new Date(year, month - 1, 1))}>
+            ← Anterior
+          </button>
+          <h2 className="font-bold capitalize text-[#0B1E36]">{monthLabel}</h2>
+          <button type="button" className="text-sm font-semibold text-[#0B1E36]" onClick={() => setCursor(new Date(year, month + 1, 1))}>
+            Próximo →
+          </button>
         </div>
-      </div>
-      <div className="space-y-4">
-        {grouped.length === 0 && (
-          <p className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">Nenhum agendamento nesta visão.</p>
-        )}
-        {grouped.map(([day, rows]) => (
-          <section key={day} className="rounded-2xl border border-slate-200 bg-white p-4">
-            <h2 className="font-bold text-[#0B1E36]">{day}</h2>
-            <ul className="mt-2 space-y-2 text-sm">
-              {rows.map((item) => (
-                <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 p-3">
-                  <span>{new Date(item.startsAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} · {clients.find((c) => c.id === item.clientId)?.name} · {vehicles.find((v) => v.id === item.vehicleId)?.plate} · {services.find((s) => s.id === item.serviceId)?.name}</span>
-                  <StatusPill status={item.status} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-      </div>
-      {open && <AppointmentForm officeId={officeId} onClose={() => setOpen(false)} />}
+        <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-500">
+          {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((d) => (
+            <div key={d} className="py-2">{d}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {cells.map((cell) => {
+            if (!cell.date) return <div key={cell.key} className="min-h-16" />;
+            const key = cell.date.toDateString();
+            const counts = countByDay.get(key);
+            const isSelected = selectedDay?.toDateString() === key;
+            const isToday = new Date().toDateString() === key;
+            return (
+              <button
+                key={cell.key}
+                type="button"
+                onClick={() => setSelectedDay(cell.date)}
+                className={`min-h-16 rounded-lg border p-1 text-left text-sm ${
+                  isSelected ? 'border-[#0B1E36] bg-slate-50' : 'border-slate-100 hover:border-slate-300'
+                } ${isToday ? 'ring-1 ring-[#0B1E36]' : ''}`}
+              >
+                <span className="font-semibold">{cell.date.getDate()}</span>
+                {counts && (
+                  <div className="mt-1 space-y-0.5 text-[10px]">
+                    {counts.appointments > 0 && <span className="block rounded bg-sky-100 px-1 text-sky-900">{counts.appointments} ag.</span>}
+                    {counts.returns > 0 && <span className="block rounded bg-amber-100 px-1 text-amber-900">{counts.returns} ret.</span>}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {selectedDay && (
+        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <h2 className="font-bold text-[#0B1E36]">
+            {selectedDay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </h2>
+          <div className="mt-4 space-y-2">
+            {HOURS.map((hour) => {
+              const slotStart = new Date(selectedDay);
+              slotStart.setHours(hour, 0, 0, 0);
+              const slotEnd = new Date(selectedDay);
+              slotEnd.setHours(hour + 1, 0, 0, 0);
+              const inSlot = dayAppointments.filter((a) => {
+                const t = new Date(a.startsAt);
+                return t >= slotStart && t < slotEnd;
+              });
+              return (
+                <div key={hour} className="flex gap-3 border-b border-slate-100 py-2 text-sm">
+                  <span className="w-14 shrink-0 font-mono text-slate-500">{String(hour).padStart(2, '0')}:00</span>
+                  <div className="flex-1">
+                    {inSlot.length === 0 ? (
+                      <span className="text-slate-400">disponível</span>
+                    ) : (
+                      inSlot.map((item) => {
+                        const client = clients.find((c) => c.id === item.clientId);
+                        const vehicle = vehicles.find((v) => v.id === item.vehicleId);
+                        return (
+                          <div key={item.id} className="mb-1 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 p-2">
+                            <span>
+                              {new Date(item.startsAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              {' · '}
+                              {client?.name} · {vehicle?.plate} · {item.serviceLabel ?? 'Serviço'}
+                            </span>
+                            <StatusPill status={item.status} />
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {dayReturns.length > 0 && (
+            <div className="mt-6 border-t border-slate-100 pt-4">
+              <h3 className="font-semibold text-[#0B1E36]">Retornos previstos neste dia</h3>
+              <ul className="mt-2 space-y-2 text-sm">
+                {dayReturns.map((item) => {
+                  const client = clients.find((c) => c.id === item.clientId);
+                  const vehicle = vehicles.find((v) => v.id === item.vehicleId);
+                  return (
+                    <li key={item.id} className="rounded-lg bg-amber-50 p-2">
+                      {client?.name} · {vehicle?.plate} · {item.serviceLabel}
+                      {item.reason && ` · ${RETURN_REASON_LABELS[item.reason]}`}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
+
+      {open && <AppointmentForm officeId={officeId} defaultDate={selectedDay ?? new Date()} onClose={() => setOpen(false)} />}
     </div>
   );
 };
 
-const AppointmentForm: React.FC<{ officeId: string; onClose: () => void }> = ({ officeId, onClose }) => {
+const AppointmentForm: React.FC<{ officeId: string; defaultDate: Date; onClose: () => void }> = ({ officeId, defaultDate, onClose }) => {
   const clients = officeClients(officeId);
   const vehicles = officeVehicles(officeId);
   const services = officeServices(officeId).filter((s) => s.active);
+  const employees = officeUsers(officeId).filter((u) => u.active);
   const [clientId, setClientId] = useState(clients[0]?.id ?? '');
   const [vehicleId, setVehicleId] = useState(vehicles.find((v) => v.clientId === clients[0]?.id)?.id ?? '');
   const [serviceId, setServiceId] = useState(services[0]?.id ?? '');
-  const [date, setDate] = useState('2026-08-24');
+  const [serviceLabel, setServiceLabel] = useState(services[0]?.name ?? '');
+  const [date, setDate] = useState(defaultDate.toISOString().slice(0, 10));
   const [time, setTime] = useState('09:00');
+  const [employeeUserId, setEmployeeUserId] = useState(employees[0]?.id ?? '');
   const [status, setStatus] = useState<AppointmentStatus>('agendado');
   const [notes, setNotes] = useState('');
+
   return (
-    <Modal isOpen onClose={onClose} title="Novo agendamento" footer={
+    <Modal isOpen onClose={onClose} title="Agendar" footer={
       <Button onClick={() => {
         upsertAppointment(officeId, {
           clientId,
           vehicleId,
-          serviceId,
+          serviceId: serviceId || undefined,
+          serviceLabel: serviceLabel || services.find((s) => s.id === serviceId)?.name,
+          employeeUserId: employeeUserId || undefined,
           startsAt: new Date(`${date}T${time}:00`).toISOString(),
           status,
-          notes,
+          notes: notes || undefined,
         });
         onClose();
       }}>Salvar</Button>
     }>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Select id="a-cli" label="Cliente" value={clientId} onChange={(e) => setClientId(e.target.value)}>
+        <Select id="a-cli" label="Cliente" value={clientId} onChange={(e) => {
+          setClientId(e.target.value);
+          const next = vehicles.find((v) => v.clientId === e.target.value);
+          if (next) setVehicleId(next.id);
+        }}>
           {clients.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
         </Select>
         <Select id="a-veh" label="Veículo" value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
           {vehicles.filter((v) => v.clientId === clientId).map((item) => <option key={item.id} value={item.id}>{item.plate}</option>)}
         </Select>
-        <Select id="a-svc" label="Serviço" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
+        <Select id="a-svc" label="Serviço (catálogo)" value={serviceId} onChange={(e) => {
+          setServiceId(e.target.value);
+          const svc = services.find((s) => s.id === e.target.value);
+          if (svc) setServiceLabel(svc.name);
+        }}>
+          <option value="">Personalizado</option>
           {services.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
         </Select>
+        <Input id="a-label" label="Descrição do serviço" value={serviceLabel} onChange={(e) => setServiceLabel(e.target.value)} />
         <Input id="a-date" type="date" label="Data" value={date} onChange={(e) => setDate(e.target.value)} />
         <Input id="a-time" type="time" label="Horário" value={time} onChange={(e) => setTime(e.target.value)} />
+        <Select id="a-emp" label="Responsável" value={employeeUserId} onChange={(e) => setEmployeeUserId(e.target.value)}>
+          <option value="">—</option>
+          {employees.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+        </Select>
         <Select id="a-st" label="Status" value={status} onChange={(e) => setStatus(e.target.value as AppointmentStatus)}>
-          <option value="agendado">Agendado</option>
-          <option value="confirmado">Confirmado</option>
-          <option value="em_atendimento">Em atendimento</option>
-          <option value="concluido">Concluído</option>
-          <option value="cancelado">Cancelado</option>
-          <option value="nao_compareceu">Não compareceu</option>
+          {Object.entries(APPOINTMENT_STATUS_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
         </Select>
         <div className="sm:col-span-2">
           <Input id="a-notes" label="Observação" value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -148,137 +282,6 @@ const AppointmentForm: React.FC<{ officeId: string; onClose: () => void }> = ({ 
   );
 };
 
-function StatusPill({ status }: { status: string }) {
-  const tone = status.includes('cancel') || status === 'nao_compareceu' ? 'danger' : status.includes('conclu') ? 'success' : 'info';
-  return <Badge tone={tone}>{status.replace('_', ' ')}</Badge>;
+function StatusPill({ status }: { status: AppointmentStatus }) {
+  return <Badge tone={statusTone(status)}>{APPOINTMENT_STATUS_LABELS[status]}</Badge>;
 }
-
-export const ReturnsModule: React.FC = () => {
-  useOfficeSnapshot();
-  const { officeId } = useOutletContext<Ctx>();
-  const [open, setOpen] = useState(false);
-  const [preset, setPreset] = useState<PeriodPreset>('all');
-  const [from, setFrom] = useState('2026-08-01');
-  const [to, setTo] = useState('2026-08-23');
-  const [applied, setApplied] = useState<DateRange>(() => rangeForPreset('all'));
-  const now = new Date();
-  const clients = officeClients(officeId);
-  const vehicles = officeVehicles(officeId);
-  const services = officeServices(officeId);
-  const items = officeReturns(officeId).filter((item) => inRange(item.dueDate, applied));
-
-  const bucket = (due: string) => {
-    const d = new Date(due);
-    const diff = (d.getTime() - now.getTime()) / 86400000;
-    if (diff < 0) return 'Atrasado';
-    if (diff <= 15) return 'Próximo';
-    return 'Futuro';
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#0B1E36]">Retornos</h1>
-        <Button onClick={() => setOpen(true)}>Novo retorno</Button>
-      </div>
-      <PeriodFilter
-        preset={preset}
-        from={from}
-        to={to}
-        onPreset={(next) => { setPreset(next); setApplied(rangeForPreset(next, from, to)); }}
-        onFrom={setFrom}
-        onTo={setTo}
-        onApply={() => { setPreset('custom'); setApplied(rangeForPreset('custom', from, to)); }}
-      />
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-slate-50"><tr>{['Cliente', 'Veículo', 'Serviço', 'Último serviço', 'Próximo retorno', 'Situação'].map((h) => <th key={h} className="p-3">{h}</th>)}</tr></thead>
-          <tbody className="divide-y divide-slate-100">
-            {items.map((item) => (
-              <tr key={item.id}>
-                <td className="p-3">{clients.find((c) => c.id === item.clientId)?.name}</td>
-                <td className="p-3">{vehicles.find((v) => v.id === item.vehicleId)?.plate}</td>
-                <td className="p-3">{services.find((s) => s.id === item.serviceId)?.name}</td>
-                <td className="p-3">{formatDate(item.lastServiceDate)}</td>
-                <td className="p-3">{formatDate(item.dueDate)}</td>
-                <td className="p-3">{bucket(item.dueDate)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {open && <ReturnForm officeId={officeId} onClose={() => setOpen(false)} />}
-    </div>
-  );
-};
-
-const ReturnForm: React.FC<{ officeId: string; onClose: () => void }> = ({ officeId, onClose }) => {
-  const clients = officeClients(officeId);
-  const vehicles = officeVehicles(officeId);
-  const services = officeServices(officeId);
-  const [clientId, setClientId] = useState(clients[0]?.id ?? '');
-  const [vehicleId, setVehicleId] = useState(vehicles[0]?.id ?? '');
-  const [serviceId, setServiceId] = useState(services[0]?.id ?? '');
-  const [last, setLast] = useState('2026-08-15');
-  const [due, setDue] = useState('2027-02-15');
-  return (
-    <Modal isOpen onClose={onClose} title="Novo retorno" footer={
-      <Button onClick={() => {
-        upsertReturn(officeId, {
-          clientId,
-          vehicleId,
-          serviceId,
-          lastServiceDate: new Date(`${last}T12:00:00`).toISOString(),
-          dueDate: new Date(`${due}T12:00:00`).toISOString(),
-        });
-        onClose();
-      }}>Salvar</Button>
-    }>
-      <div className="grid gap-3">
-        <Select id="r-cli" label="Cliente" value={clientId} onChange={(e) => setClientId(e.target.value)}>
-          {clients.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-        </Select>
-        <Select id="r-veh" label="Veículo" value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
-          {vehicles.map((item) => <option key={item.id} value={item.id}>{item.plate} · {item.model}</option>)}
-        </Select>
-        <Select id="r-svc" label="Serviço" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
-          {services.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-        </Select>
-        <Input id="r-last" type="date" label="Data do serviço" value={last} onChange={(e) => setLast(e.target.value)} />
-        <Input id="r-due" type="date" label="Próximo retorno" value={due} onChange={(e) => setDue(e.target.value)} />
-      </div>
-    </Modal>
-  );
-};
-
-export const CertificatesModule: React.FC = () => {
-  useOfficeSnapshot();
-  const { officeId } = useOutletContext<Ctx>();
-  const vehicles = officeVehicles(officeId);
-  const items = officeCertificates(officeId);
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-[#0B1E36]">Certidões</h1>
-      <p className="text-sm text-slate-600">Interface de consulta. A emissão de PDF real fica para o backend.</p>
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead className="bg-slate-50"><tr>{['Código', 'Veículo', 'Data', 'Solicitante', 'Status'].map((h) => <th key={h} className="p-3">{h}</th>)}</tr></thead>
-          <tbody className="divide-y divide-slate-100">
-            {items.map((item) => {
-              const vehicle = vehicles.find((v) => v.id === item.vehicleId);
-              return (
-                <tr key={item.id}>
-                  <td className="p-3 font-mono">{item.code}</td>
-                  <td className="p-3">{vehicle?.plate}</td>
-                  <td className="p-3">{formatDate(item.issuedAt)}</td>
-                  <td className="p-3">{item.requesterName}</td>
-                  <td className="p-3">{item.status}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};

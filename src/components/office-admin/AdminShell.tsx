@@ -5,17 +5,19 @@ import {
   Calendar,
   Car,
   ClipboardList,
-  FileCheck2,
   Globe,
   LayoutDashboard,
+  LineChart,
   LogOut,
   Menu,
-  RotateCcw,
+  Package,
   Settings,
   User,
   Users,
+  Wallet,
   Wrench,
   X,
+  BarChart3,
 } from 'lucide-react';
 import { PATHS } from '../../lib/paths';
 import { displayOfficeHost } from '../../office/constants';
@@ -36,14 +38,16 @@ import { Office } from '../../office/types';
 const NAV = [
   { to: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: 'atendimentos', label: 'Atendimentos', icon: ClipboardList },
+  { to: 'agenda', label: 'Agenda', icon: Calendar },
   { to: 'clientes', label: 'Clientes', icon: Users },
   { to: 'veiculos', label: 'Veículos', icon: Car },
-  { to: 'servicos', label: 'Serviços', icon: Wrench },
-  { to: 'agendamentos', label: 'Agendamentos', icon: Calendar },
-  { to: 'retornos', label: 'Retornos', icon: RotateCcw },
-  { to: 'certidoes', label: 'Certidões', icon: FileCheck2 },
-  { to: 'site', label: 'Meu site', icon: Globe },
-  { to: 'perfil', label: 'Perfil', icon: User },
+  { to: 'produtos', label: 'Produtos', icon: Package },
+  { to: 'financeiro', label: 'Financeiro', icon: Wallet },
+  { to: 'equipe', label: 'Equipe e Permissões', icon: Wrench },
+  { to: 'relatorios', label: 'Relatórios', icon: BarChart3 },
+  { to: 'inteligencia', label: 'Inteligência de Mercado', icon: LineChart },
+  { to: 'perfil', label: 'Meu Perfil', icon: User },
+  { to: 'site', label: 'Meu Site', icon: Globe },
   { to: 'configuracoes', label: 'Configurações', icon: Settings },
 ];
 
@@ -63,11 +67,6 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
   const loginPath = tenantMode ? '/admin/entrar' : PATHS.oficinaAdminLogin(slug);
   const publicPath = tenantMode ? '/' : PATHS.oficina(slug);
 
-  /**
-   * O hostname da URL é a fonte de verdade do tenant.
-   * Se a sessão apontar para outra oficina mas o usuário tiver membership
-   * nesta, sincroniza (troca pelo seletor / deep link) em vez de forçar login.
-   */
   useEffect(() => {
     if (!office || !session) return;
     if (session.officeId === office.id) return;
@@ -109,7 +108,7 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
         {menuOpen && (
           <button type="button" className="fixed inset-0 z-30 bg-black/40 lg:hidden" aria-label="Fechar menu" onClick={() => setMenuOpen(false)} />
         )}
-        <aside className={`fixed inset-y-0 left-0 z-40 w-64 border-r border-slate-200 bg-[#0B1E36] text-white lg:static ${menuOpen ? 'block' : 'hidden lg:block'}`}>
+        <aside className={`fixed inset-y-0 left-0 z-40 w-64 overflow-y-auto border-r border-slate-200 bg-[#0B1E36] text-white lg:static ${menuOpen ? 'block' : 'hidden lg:block'}`}>
           <div className="flex items-center justify-between px-4 py-4">
             <div>
               <p className="text-xs uppercase tracking-wide text-slate-400">VEBOOK Admin</p>
@@ -132,7 +131,7 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
                   }`
                 }
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-4 w-4 shrink-0" />
                 {item.label}
               </NavLink>
             ))}
@@ -154,13 +153,15 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
                 <div className="absolute right-24 top-10 z-20 w-72 rounded-xl border border-slate-200 bg-white p-3 text-sm shadow-lg">
                   <p className="font-semibold">Notificações</p>
                   <ul className="mt-2 space-y-2 text-slate-600">
-                    <li>2 retornos nos próximos 15 dias</li>
-                    <li>3 agendamentos para hoje</li>
-                    <li>1 certidão consultada nesta semana</li>
+                    <li>Retornos e agenda do dia disponíveis no Dashboard</li>
+                    <li>Inteligência de Mercado usa apenas dados agregados</li>
+                    <li>Produto do cliente não entra como receita</li>
                   </ul>
                 </div>
               )}
-              <span className="text-sm font-semibold">{user?.name}</span>
+              <Link to={`${base}/perfil`} className="text-sm font-semibold hover:underline">
+                {user?.name}
+              </Link>
               <Button size="sm" variant="secondary" onClick={logout}>
                 <LogOut className="h-4 w-4" />
                 Sair
@@ -171,7 +172,7 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
           <main className="space-y-4 p-4 sm:p-6">
             <p className="text-xs font-medium text-slate-500">Administração · {currentNav?.label ?? 'Painel'}</p>
             <DemoBanner>
-              Demonstração — identidade pessoal por CPF; oficina via office_users. Sem autenticação real nem banco.
+              Demonstração — identidade por CPF; contexto por office_users. Sem autenticação real nem banco.
             </DemoBanner>
             {welcome && (
               <section className="rounded-2xl bg-[#0B1E36] p-6 text-white">
@@ -188,7 +189,7 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
                 </div>
               </section>
             )}
-            <Outlet context={{ officeId: office.id, slug: office.currentHostname, publicPath, role: activeSession.role, userId: activeSession.userId }} />
+            <Outlet context={{ officeId: office.id, slug: office.currentHostname, publicPath, role: activeSession.role, userId: activeSession.userId, base }} />
           </main>
         </div>
       </div>

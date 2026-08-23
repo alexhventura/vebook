@@ -216,7 +216,7 @@ export const SettingsModule: React.FC = () => {
       <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
         <h2 className="font-bold">Usuários e permissões</h2>
         <p className="text-sm text-slate-600">
-          Cada pessoa tem um CPF único no VEBOOK. Aqui você gerencia apenas o vínculo com esta oficina (`office_users`).
+          Cada pessoa tem um CPF único no VEBOOK. O gerenciamento principal da equipe está em <strong>Equipe e Permissões</strong>; aqui permanece como atalho secundário para vínculos (`office_users`).
         </p>
         <ul className="space-y-2 text-sm">
           {members.map((item) => (

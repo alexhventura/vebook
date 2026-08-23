@@ -21,8 +21,13 @@ import { OfficeOnboarding } from './components/office-onboarding/OfficeOnboardin
 import { AdminLogin } from './components/office-admin/AdminLogin';
 import { AdminShell } from './components/office-admin/AdminShell';
 import { DashboardModule } from './components/office-admin/DashboardModule';
-import { ClientsModule, ServicesModule, VehiclesModule, WorkOrdersModule } from './components/office-admin/OperationsModules';
-import { AppointmentsModule, CertificatesModule, ReturnsModule } from './components/office-admin/AgendaModules';
+import { ClientsModule, VehiclesModule, WorkOrdersModule } from './components/office-admin/OperationsModules';
+import { AppointmentsModule } from './components/office-admin/AgendaModules';
+import { ProductsModule } from './components/office-admin/ProductsModule';
+import { FinanceModule } from './components/office-admin/FinanceModule';
+import { TeamModule } from './components/office-admin/TeamModule';
+import { ReportsModule } from './components/office-admin/ReportsModule';
+import { IntelligenceModule } from './components/office-admin/IntelligenceModule';
 import { ProfileModule, SettingsModule, SiteModule } from './components/office-admin/SiteProfileSettings';
 import { officeToWorkshop } from './office/adapter';
 import { applyHostnameHistory, resolveTenantFromHostname } from './office/host';
@@ -280,15 +285,21 @@ export default function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<DashboardModule />} />
           <Route path="atendimentos" element={<WorkOrdersModule />} />
+          <Route path="agenda" element={<AppointmentsModule />} />
           <Route path="clientes" element={<ClientsModule />} />
           <Route path="veiculos" element={<VehiclesModule />} />
-          <Route path="servicos" element={<ServicesModule />} />
-          <Route path="agendamentos" element={<AppointmentsModule />} />
-          <Route path="retornos" element={<ReturnsModule />} />
-          <Route path="certidoes" element={<CertificatesModule />} />
-          <Route path="site" element={<SiteModule />} />
+          <Route path="produtos" element={<ProductsModule />} />
+          <Route path="financeiro" element={<FinanceModule />} />
+          <Route path="equipe" element={<TeamModule />} />
+          <Route path="relatorios" element={<ReportsModule />} />
+          <Route path="inteligencia" element={<IntelligenceModule />} />
           <Route path="perfil" element={<ProfileModule />} />
+          <Route path="site" element={<SiteModule />} />
           <Route path="configuracoes" element={<SettingsModule />} />
+          <Route path="agendamentos" element={<Navigate to="agenda" replace />} />
+          <Route path="retornos" element={<Navigate to="dashboard" replace />} />
+          <Route path="certidoes" element={<Navigate to="dashboard" replace />} />
+          <Route path="servicos" element={<Navigate to="produtos" replace />} />
         </Route>
         <Route path="/" element={<TenantPublic hostname={tenant.redirectedFrom ? tenant.hostname : tenant.hostname} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -306,15 +317,21 @@ export default function App() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardModule />} />
         <Route path="atendimentos" element={<WorkOrdersModule />} />
+        <Route path="agenda" element={<AppointmentsModule />} />
         <Route path="clientes" element={<ClientsModule />} />
         <Route path="veiculos" element={<VehiclesModule />} />
-        <Route path="servicos" element={<ServicesModule />} />
-        <Route path="agendamentos" element={<AppointmentsModule />} />
-        <Route path="retornos" element={<ReturnsModule />} />
-        <Route path="certidoes" element={<CertificatesModule />} />
-        <Route path="site" element={<SiteModule />} />
+        <Route path="produtos" element={<ProductsModule />} />
+        <Route path="financeiro" element={<FinanceModule />} />
+        <Route path="equipe" element={<TeamModule />} />
+        <Route path="relatorios" element={<ReportsModule />} />
+        <Route path="inteligencia" element={<IntelligenceModule />} />
         <Route path="perfil" element={<ProfileModule />} />
+        <Route path="site" element={<SiteModule />} />
         <Route path="configuracoes" element={<SettingsModule />} />
+        <Route path="agendamentos" element={<Navigate to="agenda" replace />} />
+        <Route path="retornos" element={<Navigate to="dashboard" replace />} />
+        <Route path="certidoes" element={<Navigate to="dashboard" replace />} />
+        <Route path="servicos" element={<Navigate to="produtos" replace />} />
       </Route>
       <Route path="/admin" element={<Navigate to={PATHS.entrarOficina} replace />} />
       <Route element={<AppShell />}>
