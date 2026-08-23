@@ -6,4 +6,7 @@ export * from './period';
 export * from './adapter';
 export * from './repository';
 export * from './useOfficeSnapshot';
+export * from './products';
+export * from './finance';
+export * from './intelligence';
 export { DEMO_LOGIN_HINT, DEMO_USERS } from './seed';
