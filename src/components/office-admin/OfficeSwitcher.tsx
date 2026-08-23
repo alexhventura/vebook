@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Check, ChevronDown, Plus } from 'lucide-react';
 import { PATHS } from '../../lib/paths';
 import { displayOfficeHost } from '../../office/constants';
-import { getDemoSession, listOfficesForUser, switchOfficeContext } from '../../office/repository';
+import { getDemoSession, listOfficesForUser } from '../../office/repository';
 import { useOfficeSnapshot } from '../../office/useOfficeSnapshot';
 import { Office } from '../../office/types';
 
@@ -37,9 +37,8 @@ export const OfficeSwitcher: React.FC<Props> = ({ currentOfficeId, tenantMode = 
       setOpen(false);
       return;
     }
-    const next = switchOfficeContext(office.id);
-    if (!next) return;
     setOpen(false);
+    // Navega primeiro; o AdminShell sincroniza a sessão a partir do hostname (office_users).
     onSwitched(office);
   };
 

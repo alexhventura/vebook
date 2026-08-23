@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Bell,
@@ -25,6 +25,7 @@ import {
   getDemoSession,
   getOfficeByHostname,
   getUserById,
+  switchOfficeContext,
 } from '../../office/repository';
 import { useOfficeSnapshot } from '../../office/useOfficeSnapshot';
 import { DemoBanner } from './shared';
@@ -62,13 +63,30 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
   const loginPath = tenantMode ? '/admin/entrar' : PATHS.oficinaAdminLogin(slug);
   const publicPath = tenantMode ? '/' : PATHS.oficina(slug);
 
+  /**
+   * O hostname da URL é a fonte de verdade do tenant.
+   * Se a sessão apontar para outra oficina mas o usuário tiver membership
+   * nesta, sincroniza (troca pelo seletor / deep link) em vez de forçar login.
+   */
+  useEffect(() => {
+    if (!office || !session) return;
+    if (session.officeId === office.id) return;
+    if (!assertUserCanAccessOffice(session.userId, office.id)) return;
+    switchOfficeContext(office.id);
+  }, [office?.id, session?.userId, session?.officeId]);
+
   if (!office) {
     return <Navigate to={tenantMode ? '/' : PATHS.oficinas} replace />;
   }
-  if (!session || !assertUserCanAccessOffice(session.userId, office.id) || session.officeId !== office.id) {
+  const membership = session ? assertUserCanAccessOffice(session.userId, office.id) : null;
+  if (!session || !membership) {
     return <Navigate to={loginPath} replace />;
   }
 
+  const activeSession =
+    session.officeId === office.id
+      ? session
+      : { ...session, officeId: office.id, role: membership.role };
   const base = tenantMode ? '/admin' : PATHS.oficinaAdmin(office.currentHostname);
   const currentNav = NAV.find((item) => location.pathname.endsWith(`/${item.to}`));
   const logout = () => {
@@ -96,7 +114,7 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
             <div>
               <p className="text-xs uppercase tracking-wide text-slate-400">VEBOOK Admin</p>
               <p className="font-bold">{office.identity.publicName}</p>
-              <p className="mt-1 text-[11px] text-slate-400">{session.role}</p>
+              <p className="mt-1 text-[11px] text-slate-400">{activeSession.role}</p>
             </div>
             <button type="button" className="lg:hidden" onClick={() => setMenuOpen(false)} aria-label="Fechar menu">
               <X className="h-5 w-5" />
@@ -170,7 +188,7 @@ export const AdminShell: React.FC<{ slugOverride?: string; tenantMode?: boolean 
                 </div>
               </section>
             )}
-            <Outlet context={{ officeId: office.id, slug: office.currentHostname, publicPath, role: session.role, userId: session.userId }} />
+            <Outlet context={{ officeId: office.id, slug: office.currentHostname, publicPath, role: activeSession.role, userId: activeSession.userId }} />
           </main>
         </div>
       </div>
