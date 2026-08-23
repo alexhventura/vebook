@@ -182,7 +182,7 @@ export const ClientsModule: React.FC = () => {
             const next = returns.filter((r) => r.clientId === item.id).sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
             return [
               item.name,
-              item.cpf,
+              formatCpf(item.cpf),
               item.phone,
               vehicles.filter((v) => v.clientId === item.id).map((v) => v.plate).join(', ') || '—',
               last ? formatDate(last.date) : '—',
