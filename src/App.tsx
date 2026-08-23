@@ -11,13 +11,28 @@ import { ValidacaoSimuladorView } from './components/views/ValidacaoSimuladorVie
 import { WorkshopSiteView } from './components/workshop/WorkshopSiteView';
 import { TransparenciaView } from './components/views/TransparenciaView';
 import { ContatoView } from './components/views/ContatoView';
-import { CredenciamentoModal } from './components/modals/CredenciamentoModal';
 import { CookieBanner } from './components/cookies/CookieBanner';
 import { MinhaPrivacidadeModal } from './components/privacy/MinhaPrivacidadeModal';
 import { ContestacaoModal } from './components/contestation/ContestacaoModal';
 import { AppView, ServiceRecord, TransparenciaSection } from './types';
 import { PATHS, pathForSection, pathForView, sectionFromPath, titleForPath } from './lib/paths';
 import { WORKSHOPS_MOCK } from './data/mockData';
+import { OfficeOnboarding } from './components/office-onboarding/OfficeOnboarding';
+import { AdminLogin } from './components/office-admin/AdminLogin';
+import { AdminShell } from './components/office-admin/AdminShell';
+import { DashboardModule } from './components/office-admin/DashboardModule';
+import { ClientsModule, ServicesModule, VehiclesModule, WorkOrdersModule } from './components/office-admin/OperationsModules';
+import { AppointmentsModule, CertificatesModule, ReturnsModule } from './components/office-admin/AgendaModules';
+import { ProfileModule, SettingsModule, SiteModule } from './components/office-admin/SiteProfileSettings';
+import { officeToWorkshop } from './office/adapter';
+import { applyHostnameHistory, resolveTenantFromHostname } from './office/host';
+import {
+  getOfficeByHostname,
+  getOfficeSnapshot,
+  officeServices,
+  resolveHostnameRecord,
+} from './office/repository';
+import { useOfficeSnapshot } from './office/useOfficeSnapshot';
 
 type ShellContext = {
   openCadastro: () => void;
@@ -29,7 +44,7 @@ type ShellContext = {
 
 function AppShell() {
   const location = useLocation();
-  const [credenciamentoMode, setCredenciamentoMode] = useState<'cadastro' | 'login' | null>(null);
+  const navigate = useNavigate();
   const [isCookieConfigModalOpen, setIsCookieConfigModalOpen] = useState(false);
   const [isPrivacidadeModalOpen, setIsPrivacidadeModalOpen] = useState(false);
   const [isContestacaoModalOpen, setIsContestacaoModalOpen] = useState(false);
@@ -41,8 +56,8 @@ function AppShell() {
   }, [location.pathname]);
 
   const ctx: ShellContext = {
-    openCadastro: () => setCredenciamentoMode('cadastro'),
-    openLogin: () => setCredenciamentoMode('login'),
+    openCadastro: () => navigate(PATHS.cadastroOficina),
+    openLogin: () => navigate(PATHS.entrarOficina),
     openCookies: () => setIsCookieConfigModalOpen(true),
     openPrivacidade: () => setIsPrivacidadeModalOpen(true),
     openContestacao: (record) => {
@@ -84,9 +99,6 @@ function AppShell() {
         }}
         targetRecord={targetContestationRecord}
       />
-      {credenciamentoMode && (
-        <CredenciamentoModal mode={credenciamentoMode} onClose={() => setCredenciamentoMode(null)} />
-      )}
     </div>
   );
 }
@@ -183,12 +195,24 @@ function OficinaPage() {
   const { slug } = useParams();
   const { onNavigate } = useViewNav();
   const navigate = useNavigate();
-  const workshop = WORKSHOPS_MOCK.find((w) => w.subdomain.startsWith(`${slug}.`) || w.id === `ws-${slug}`);
+  useOfficeSnapshot();
+  const record = resolveHostnameRecord(slug || '');
+  if (record?.status === 'retired' && record.redirectTo) {
+    return <Navigate to={PATHS.oficina(record.redirectTo)} replace />;
+  }
+  const office = getOfficeByHostname(slug || '');
+  const mock = WORKSHOPS_MOCK.find((w) => w.subdomain.startsWith(`${slug}.`) || w.id === `ws-${slug}`);
+  const workshop = office ? officeToWorkshop(office, officeServices(office.id)) : mock;
+  if (!workshop) return <Navigate to={PATHS.oficinas} replace />;
+
   return (
     <WorkshopSiteView
       onNavigate={onNavigate}
       onSearchPlate={(plate) => navigate(plate ? PATHS.historico(plate) : PATHS.consultar)}
-      initialWorkshopId={workshop?.id ?? 'ws-prisma'}
+      initialWorkshopId={workshop.id}
+      workshopOverride={workshop}
+      hidePreviewSwitcher={Boolean(office)}
+      adminHref={PATHS.oficinaAdminLogin(office?.currentHostname || slug || 'prisma')}
     />
   );
 }
@@ -224,9 +248,75 @@ function TransparenciaPage({ section }: { section?: TransparenciaSection }) {
   );
 }
 
+function TenantPublic({ hostname }: { hostname: string }) {
+  const { onNavigate } = useViewNav();
+  const navigate = useNavigate();
+  useOfficeSnapshot();
+  const office = getOfficeByHostname(hostname);
+  if (!office) return <p className="p-8">Oficina não encontrada neste endereço.</p>;
+  const workshop = officeToWorkshop(office, officeServices(office.id));
+  return (
+    <WorkshopSiteView
+      onNavigate={onNavigate}
+      onSearchPlate={(plate) => navigate(plate ? PATHS.historico(plate) : PATHS.consultar)}
+      workshopOverride={workshop}
+      hidePreviewSwitcher
+      adminHref="/admin/entrar"
+    />
+  );
+}
+
 export default function App() {
+  const tenant = applyHostnameHistory(
+    resolveTenantFromHostname(window.location.hostname),
+    getOfficeSnapshot().hostnames
+  );
+
+  if (tenant.kind === 'office') {
+    return (
+      <Routes>
+        <Route path="/admin/entrar" element={<AdminLogin hostname={tenant.hostname} tenantMode />} />
+        <Route path="/admin" element={<AdminShell slugOverride={tenant.hostname} tenantMode />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardModule />} />
+          <Route path="atendimentos" element={<WorkOrdersModule />} />
+          <Route path="clientes" element={<ClientsModule />} />
+          <Route path="veiculos" element={<VehiclesModule />} />
+          <Route path="servicos" element={<ServicesModule />} />
+          <Route path="agendamentos" element={<AppointmentsModule />} />
+          <Route path="retornos" element={<ReturnsModule />} />
+          <Route path="certidoes" element={<CertificatesModule />} />
+          <Route path="site" element={<SiteModule />} />
+          <Route path="perfil" element={<ProfileModule />} />
+          <Route path="configuracoes" element={<SettingsModule />} />
+        </Route>
+        <Route path="/" element={<TenantPublic hostname={tenant.redirectedFrom ? tenant.hostname : tenant.hostname} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
+  }
+
   return (
     <Routes>
+      <Route path="/oficina/cadastro" element={<Navigate to={PATHS.cadastroStep('identificacao')} replace />} />
+      <Route path="/oficina/cadastro/:step" element={<OfficeOnboarding />} />
+      <Route path="/oficina/entrar" element={<AdminLogin />} />
+      <Route path="/oficina/:slug/admin/entrar" element={<AdminLogin />} />
+      <Route path="/oficina/:slug/admin" element={<AdminShell />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardModule />} />
+        <Route path="atendimentos" element={<WorkOrdersModule />} />
+        <Route path="clientes" element={<ClientsModule />} />
+        <Route path="veiculos" element={<VehiclesModule />} />
+        <Route path="servicos" element={<ServicesModule />} />
+        <Route path="agendamentos" element={<AppointmentsModule />} />
+        <Route path="retornos" element={<ReturnsModule />} />
+        <Route path="certidoes" element={<CertificatesModule />} />
+        <Route path="site" element={<SiteModule />} />
+        <Route path="perfil" element={<ProfileModule />} />
+        <Route path="configuracoes" element={<SettingsModule />} />
+      </Route>
+      <Route path="/admin" element={<Navigate to={PATHS.entrarOficina} replace />} />
       <Route element={<AppShell />}>
         <Route path={PATHS.home} element={<HomePage />} />
         <Route path={PATHS.consultar} element={<ConsultarPage />} />
@@ -251,3 +341,4 @@ export default function App() {
     </Routes>
   );
 }
+

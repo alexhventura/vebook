@@ -7,6 +7,12 @@ export const PATHS = {
   certidao: (placa?: string) => (placa ? `/certidao/${placa}` : '/certidao'),
   oficinas: '/oficinas',
   oficina: (slug: string) => `/oficina/${slug}`,
+  oficinaAdmin: (slug: string) => `/oficina/${slug}/admin`,
+  oficinaAdminModule: (slug: string, module: string) => `/oficina/${slug}/admin/${module}`,
+  oficinaAdminLogin: (slug: string) => `/oficina/${slug}/admin/entrar`,
+  cadastroOficina: '/oficina/cadastro',
+  cadastroStep: (step: string) => `/oficina/cadastro/${step}`,
+  entrarOficina: '/oficina/entrar',
   comoFunciona: '/como-funciona',
   sobre: '/sobre',
   faq: '/faq',
@@ -79,6 +85,8 @@ export const TITLE_BY_PATH: Record<string, string> = {
   '/consultar': 'Consultar veículo — VEBOOK',
   '/certidao': 'Certidão de histórico — VEBOOK',
   '/oficinas': 'Para oficinas — VEBOOK',
+  '/oficina/cadastro': 'Cadastrar oficina — VEBOOK',
+  '/oficina/entrar': 'Entrar na oficina — VEBOOK',
   '/como-funciona': 'Como funciona — VEBOOK',
   '/sobre': 'Como tratamos informações — VEBOOK',
   '/faq': 'FAQ — VEBOOK',
@@ -93,6 +101,8 @@ export const TITLE_BY_PATH: Record<string, string> = {
 export function titleForPath(pathname: string): string {
   if (pathname.startsWith('/historico/')) return 'Histórico do veículo — VEBOOK';
   if (pathname.startsWith('/certidao/')) return 'Certidão de histórico — VEBOOK';
+  if (pathname.includes('/admin')) return 'Administração da oficina — VEBOOK';
+  if (pathname.startsWith('/oficina/cadastro')) return 'Cadastrar oficina — VEBOOK';
   if (pathname.startsWith('/oficina/')) return 'Página da oficina — VEBOOK';
   if (pathname.startsWith('/transparencia/')) return 'Transparência — VEBOOK';
   return TITLE_BY_PATH[pathname] ?? 'VEBOOK';

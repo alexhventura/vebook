@@ -34,12 +34,18 @@ interface WorkshopSiteViewProps {
   onNavigate: (view: AppView) => void;
   onSearchPlate?: (plate: string) => void;
   initialWorkshopId?: string;
+  workshopOverride?: Workshop;
+  hidePreviewSwitcher?: boolean;
+  adminHref?: string;
 }
 
 export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
   onNavigate,
   onSearchPlate,
   initialWorkshopId = 'ws-prisma',
+  workshopOverride,
+  hidePreviewSwitcher = false,
+  adminHref,
 }) => {
   const [currentWorkshopId, setCurrentWorkshopId] = useState<string>(initialWorkshopId);
   const [selectedServiceCategory, setSelectedServiceCategory] = useState<string>('todos');
@@ -66,7 +72,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
     notes: '',
   });
 
-  const workshop = WORKSHOPS_MOCK.find(w => w.id === currentWorkshopId) || WORKSHOPS_MOCK[0];
+  const workshop = workshopOverride ?? WORKSHOPS_MOCK.find(w => w.id === currentWorkshopId) ?? WORKSHOPS_MOCK[0];
 
   // Helper color mappings
   const themeClasses = {
@@ -212,21 +218,25 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
             <span className="hidden sm:inline text-slate-400"> · {workshop.subdomain}</span>
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <label className="sr-only" htmlFor="workshop-preview-select">
-              Selecionar oficina
-            </label>
-            <select
-              id="workshop-preview-select"
-              value={currentWorkshopId}
-              onChange={(e) => handleWorkshopChange(e.target.value)}
-              className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm"
-            >
-              {WORKSHOPS_MOCK.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.name}
-                </option>
-              ))}
-            </select>
+            {!hidePreviewSwitcher && (
+              <>
+                <label className="sr-only" htmlFor="workshop-preview-select">
+                  Selecionar oficina
+                </label>
+                <select
+                  id="workshop-preview-select"
+                  value={currentWorkshopId}
+                  onChange={(e) => handleWorkshopChange(e.target.value)}
+                  className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm"
+                >
+                  {WORKSHOPS_MOCK.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
             <button
               type="button"
               onClick={() => onNavigate('oficinas')}
@@ -862,7 +872,12 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               <div>
                 © {new Date().getFullYear()} {workshop.name}. Todos os direitos reservados.
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {adminHref && (
+                  <a href={adminHref} className="text-slate-500 hover:text-white">
+                    Área restrita · Entrar
+                  </a>
+                )}
                 <span>Powered by</span>
                 <span className="text-white font-bold tracking-wider">VEBOOK</span>
                 <span className="text-slate-600">· Histórico de manutenção veicular</span>

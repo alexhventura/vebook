@@ -150,10 +150,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
               ))}
             </ul>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button onClick={onOpenCredenciamento}>Cadastrar oficina</Button>
-              <Button variant="secondary" onClick={onOpenJaCredenciado}>
-                Entrar
-              </Button>
+              <Link to={PATHS.cadastroOficina}>
+                <Button>Cadastrar oficina</Button>
+              </Link>
+              <Link to={PATHS.entrarOficina}>
+                <Button variant="secondary">Entrar</Button>
+              </Link>
             </div>
             <Link
               to={PATHS.oficinas}

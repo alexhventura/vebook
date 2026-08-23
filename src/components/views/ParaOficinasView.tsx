@@ -1,4 +1,4 @@
-import React from 'react';
+import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { AppView } from '../../types';
 import { WORKSHOPS_MOCK } from '../../data/mockData';
@@ -37,8 +37,12 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
           description="O VEBOOK organiza o registro de manutenções, o histórico do cliente e a validação do serviço — sem substituir o trabalho da oficina."
           actions={
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Button onClick={onOpenCredenciamentoModal}>Cadastrar oficina</Button>
-              <Button variant="secondary" onClick={onOpenJaCredenciadoModal}>Entrar</Button>
+              <Link to={PATHS.cadastroOficina}>
+                <Button>Cadastrar oficina</Button>
+              </Link>
+              <Link to={PATHS.entrarOficina}>
+                <Button variant="secondary">Entrar</Button>
+              </Link>
             </div>
           }
         />
@@ -111,15 +115,15 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
         <div className="rounded-2xl bg-[#0B1E36] p-8 text-white sm:p-10">
           <h2 className="text-2xl font-bold">Cadastre sua oficina</h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300">
-            Envie os dados do estabelecimento. O acesso à área da oficina será liberado nas próximas etapas da plataforma.
+            Cadastre a oficina, escolha o endereço digital e acesse a área administrativa.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Button variant="inverse" onClick={onOpenCredenciamentoModal}>
-              Cadastrar oficina
-            </Button>
-            <Button variant="onDark" onClick={onOpenJaCredenciadoModal}>
-              Entrar
-            </Button>
+            <Link to={PATHS.cadastroOficina}>
+              <Button variant="inverse">Cadastrar oficina</Button>
+            </Link>
+            <Link to={PATHS.entrarOficina}>
+              <Button variant="onDark">Entrar</Button>
+            </Link>
           </div>
         </div>
       </div>
