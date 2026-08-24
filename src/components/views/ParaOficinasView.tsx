@@ -100,6 +100,109 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
           </div>
         </div>
 
+        {/* PREÇO E CONDIÇÕES — visíveis antes de iniciar o cadastro */}
+        <section id="precos-oficinas" className="space-y-6">
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B1E36]">Preço e condições</h2>
+            <p className="text-sm text-slate-600">
+              Primeiro ano: {formatBRL(OFFICE_PRICING.year1Monthly)}/mês. A partir do segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)}/mês.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <button
+              type="button"
+              onClick={() => setModality('monthly')}
+              className={`text-left bg-white rounded-3xl border p-6 space-y-3 cursor-pointer ${
+                modality === 'monthly' ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/15' : 'border-slate-200'
+              }`}
+            >
+              <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano mensal</p>
+              <p className="text-3xl font-black text-[#0B1E36]">{formatBRL(OFFICE_PRICING.year1Monthly)}<span className="text-base font-bold text-slate-500">/mês</span></p>
+              <p className="text-sm text-slate-600">Cobrança recorrente no cartão no primeiro ano.</p>
+              <p className="text-sm font-bold text-slate-800">A partir do segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)}/mês.</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setModality('annual')}
+              className={`text-left bg-white rounded-3xl border p-6 space-y-3 cursor-pointer ${
+                modality === 'annual' ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/15' : 'border-slate-200'
+              }`}
+            >
+              <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano anual · 10% de desconto</p>
+              <p className="text-3xl font-black text-[#0B1E36]">{formatBRL(OFFICE_ANNUAL.year1Net)}<span className="text-base font-bold text-slate-500">/ano</span></p>
+              <p className="text-sm text-slate-600">
+                {formatBRL(OFFICE_PRICING.year1Monthly)} × 12 = {formatBRL(OFFICE_ANNUAL.year1Gross)}. Com 10% de desconto: {formatBRL(OFFICE_ANNUAL.year1Net)}.
+              </p>
+              <p className="text-sm font-bold text-slate-800">
+                Segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)} × 12 = {formatBRL(OFFICE_ANNUAL.year2Gross)}; com 10% = {formatBRL(OFFICE_ANNUAL.year2Net)}/ano.
+              </p>
+            </button>
+          </div>
+          <p className="text-xs text-slate-500 text-center">
+            Plano anual com 10% de desconto sobre o valor vigente. A alteração de preço do segundo ano permanece visível antes da contratação.
+          </p>
+          <div className="text-center">
+            <button
+              onClick={() => onStartCadastro(modality)}
+              className="px-8 py-3.5 rounded-xl bg-[#0B1E36] text-white font-extrabold text-sm cursor-pointer"
+            >
+              Cadastrar minha oficina
+            </button>
+          </div>
+        </section>
+
+        {/* BUSCA PÚBLICA DE OFICINAS ATIVAS */}
+        <section id="rede-oficinas" className="space-y-5">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-extrabold text-[#0B1E36]">Encontre oficinas da rede VEBOOK</h2>
+            <p className="text-sm text-slate-600">Somente oficinas ativas, com pagamento confirmado e autorização para publicação. Dados privados do responsável não são exibidos.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Pesquisar por nome ou serviço"
+              className="px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm"
+            />
+            <input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="Cidade ou região"
+              className="px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm"
+            />
+            <input
+              value={uf}
+              onChange={(e) => setUf(e.target.value.toUpperCase().slice(0, 2))}
+              placeholder="UF"
+              className="px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm uppercase"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {publicOffices.map((office) => (
+              <article key={office.officeId} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+                <div>
+                  <h3 className="font-extrabold text-[#0B1E36]">{office.name}</h3>
+                  <p className="text-xs text-slate-600">{office.city} — {office.state}</p>
+                  <p className="text-xs text-slate-500 mt-1">{(office.specialties || office.segments || []).slice(0, 4).join(' · ')}</p>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[11px] font-mono text-slate-500">{workshopHost(office.slug)}</span>
+                  <button
+                    type="button"
+                    onClick={() => onOpenWorkshop(office.slug)}
+                    className="px-3 py-2 rounded-lg bg-[#0B1E36] text-white text-xs font-bold cursor-pointer"
+                  >
+                    Ver oficina
+                  </button>
+                </div>
+              </article>
+            ))}
+            {publicOffices.length === 0 ? (
+              <p className="text-sm text-slate-500">Nenhuma oficina ativa encontrada com esses filtros.</p>
+            ) : null}
+          </div>
+        </section>
+
         {/* DEMONSTRAÇÃO INTERATIVA: A PÁGINA PÚBLICA DA OFICINA */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden space-y-6 p-6 sm:p-10">
           
@@ -301,109 +404,6 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
             <span className="text-xs text-slate-300">Valores visíveis antes do cadastro · Ativação após confirmação de pagamento</span>
           </div>
         </div>
-
-        {/* PREÇO E CONDIÇÕES — visíveis antes de iniciar o cadastro */}
-        <section id="precos-oficinas" className="space-y-6">
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B1E36]">Preço e condições</h2>
-            <p className="text-sm text-slate-600">
-              Primeiro ano: {formatBRL(OFFICE_PRICING.year1Monthly)}/mês. A partir do segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)}/mês.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <button
-              type="button"
-              onClick={() => setModality('monthly')}
-              className={`text-left bg-white rounded-3xl border p-6 space-y-3 cursor-pointer ${
-                modality === 'monthly' ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/15' : 'border-slate-200'
-              }`}
-            >
-              <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano mensal</p>
-              <p className="text-3xl font-black text-[#0B1E36]">{formatBRL(OFFICE_PRICING.year1Monthly)}<span className="text-base font-bold text-slate-500">/mês</span></p>
-              <p className="text-sm text-slate-600">Cobrança recorrente no cartão no primeiro ano.</p>
-              <p className="text-sm font-bold text-slate-800">A partir do segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)}/mês.</p>
-            </button>
-            <button
-              type="button"
-              onClick={() => setModality('annual')}
-              className={`text-left bg-white rounded-3xl border p-6 space-y-3 cursor-pointer ${
-                modality === 'annual' ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/15' : 'border-slate-200'
-              }`}
-            >
-              <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano anual · 10% de desconto</p>
-              <p className="text-3xl font-black text-[#0B1E36]">{formatBRL(OFFICE_ANNUAL.year1Net)}<span className="text-base font-bold text-slate-500">/ano</span></p>
-              <p className="text-sm text-slate-600">
-                {formatBRL(OFFICE_PRICING.year1Monthly)} × 12 = {formatBRL(OFFICE_ANNUAL.year1Gross)}. Com 10% de desconto: {formatBRL(OFFICE_ANNUAL.year1Net)}.
-              </p>
-              <p className="text-sm font-bold text-slate-800">
-                Segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)} × 12 = {formatBRL(OFFICE_ANNUAL.year2Gross)}; com 10% = {formatBRL(OFFICE_ANNUAL.year2Net)}/ano.
-              </p>
-            </button>
-          </div>
-          <p className="text-xs text-slate-500 text-center">
-            Plano anual com 10% de desconto sobre o valor vigente. A alteração de preço do segundo ano permanece visível antes da contratação.
-          </p>
-          <div className="text-center">
-            <button
-              onClick={() => onStartCadastro(modality)}
-              className="px-8 py-3.5 rounded-xl bg-[#0B1E36] text-white font-extrabold text-sm cursor-pointer"
-            >
-              Cadastrar minha oficina
-            </button>
-          </div>
-        </section>
-
-        {/* BUSCA PÚBLICA DE OFICINAS ATIVAS */}
-        <section className="space-y-5">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-extrabold text-[#0B1E36]">Encontre oficinas da rede VEBOOK</h2>
-            <p className="text-sm text-slate-600">Somente oficinas ativas, com pagamento confirmado e autorização para publicação. Dados privados do responsável não são exibidos.</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Pesquisar por nome ou serviço"
-              className="px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm"
-            />
-            <input
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Cidade ou região"
-              className="px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm"
-            />
-            <input
-              value={uf}
-              onChange={(e) => setUf(e.target.value.toUpperCase().slice(0, 2))}
-              placeholder="UF"
-              className="px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm uppercase"
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {publicOffices.map((office) => (
-              <article key={office.officeId} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-                <div>
-                  <h3 className="font-extrabold text-[#0B1E36]">{office.name}</h3>
-                  <p className="text-xs text-slate-600">{office.city} — {office.state}</p>
-                  <p className="text-xs text-slate-500 mt-1">{(office.specialties || office.segments || []).slice(0, 4).join(' · ')}</p>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[11px] font-mono text-slate-500">{workshopHost(office.slug)}</span>
-                  <button
-                    type="button"
-                    onClick={() => onOpenWorkshop(office.slug)}
-                    className="px-3 py-2 rounded-lg bg-[#0B1E36] text-white text-xs font-bold cursor-pointer"
-                  >
-                    Ver oficina
-                  </button>
-                </div>
-              </article>
-            ))}
-            {publicOffices.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhuma oficina ativa encontrada com esses filtros.</p>
-            ) : null}
-          </div>
-        </section>
 
       </div>
     </div>
