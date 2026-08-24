@@ -89,6 +89,10 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <h2 className="text-2xl font-extrabold text-[#0B1E36]">O que a oficina recebe</h2>
             <p className="text-sm text-slate-600">Recursos disponíveis nesta etapa do ecossistema. Sem promessas de módulos ainda não implementados.</p>
+            <p className="text-sm text-slate-700 bg-sky-50 border border-sky-200 rounded-2xl px-4 py-3">
+              <strong className="text-[#0B1E36]">O VEBOOK registra. A oficina se comunica.</strong>{' '}
+              Nesta fase não há envio automático de WhatsApp, SMS, e-mail ou lembretes ao cliente. Os dados de contato ficam no painel para a oficina consultar e usar pelos seus próprios meios.
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {OFFICE_BENEFITS.map((item) => (
@@ -364,7 +368,7 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
               Lançar uma OS no VEBOOK leva menos de 2 minutos
             </h2>
             <p className="text-sm text-slate-300 leading-relaxed">
-              O sistema foi construído para o dia a dia real da oficina. Rápido, sem burocracia e integrado à emissão de nota e WhatsApp do cliente.
+              O sistema foi construído para o dia a dia real da oficina. Rápido, sem burocracia: o VEBOOK registra o atendimento e organiza o histórico; o contato com o cliente permanece com a oficina.
             </p>
           </div>
 
@@ -386,10 +390,10 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
             </div>
 
             <div className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 space-y-2">
-              <span className="font-mono text-sky-400 font-bold text-sm">03. Enviar ao Cliente</span>
-              <h4 className="font-bold text-base">Disparo Automático</h4>
+              <span className="font-mono text-sky-400 font-bold text-sm">03. Registrar no Diário</span>
+              <h4 className="font-bold text-base">Histórico organizado</h4>
               <p className="text-xs text-slate-300 leading-relaxed">
-                O cliente recebe no WhatsApp o resumo para validar. O registro passa a integrar o Diário Veicular oficial do carro.
+                O atendimento passa a integrar o Diário Veicular do carro. Retornos ficam no painel para a oficina consultar. Se quiser contatar o cliente, a oficina usa seus próprios meios.
               </p>
             </div>
           </div>

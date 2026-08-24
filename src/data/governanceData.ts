@@ -14,7 +14,7 @@ export const DATA_CATEGORIES_MATRIX: DataCategoryDefinition[] = [
     title: 'Dados Pessoais dos Clientes e Usuários',
     examples: ['Nome completo', 'CPF (mascarado)', 'Telefone WhatsApp', 'E-mail de contato', 'Dados cadastrais da conta'],
     legalFramework: 'Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018), Art. 7º, II (Cumprimento de obrigação legal/regulatória) e V (Execução de contrato).',
-    purpose: 'Identificação para comunicação operacional sobre o veículo, validação de registros de serviço pelo proprietário e controle de segurança de acesso.',
+    purpose: 'Armazenamento administrativo dos dados de contato fornecidos pela oficina, identificação do titular para consulta e validação de registros no Diário Veicular e controle de segurança de acesso. Nesta fase o VEBOOK não envia mensagens ao cliente.',
     accessLevel: 'titular_protegido',
     retentionRule: 'Mantidos enquanto durar o vínculo contratual ou operacional, ou pelo prazo legal prescricional do Código de Defesa do Consumidor e Marco Civil da Internet.',
   },
@@ -86,7 +86,7 @@ export const FAQ_DATA: FaqItem[] = [
     category: 'proprietarios',
     categoryLabel: 'Para Proprietários',
     question: 'Como um serviço realizado no meu carro vai parar no VEBOOK?',
-    answer: 'Quando você leva seu veículo a uma oficina credenciada VEBOOK, a oficina registra a ordem de serviço com as peças e insumos aplicados. Em seguida, você recebe um resumo por WhatsApp ou SMS com link seguro para conferir e validar os dados informados.',
+    answer: 'Quando você leva seu veículo a uma oficina credenciada VEBOOK, a oficina registra a ordem de serviço com as peças e insumos aplicados. O registro fica disponível no Diário Veicular para consulta. O proprietário pode conferir e validar os dados informados, ou contestar divergências, diretamente na plataforma. Nesta fase o VEBOOK não envia WhatsApp, SMS nem e-mail automático ao cliente.',
   },
   {
     id: 'faq-p2',
@@ -123,7 +123,14 @@ export const FAQ_DATA: FaqItem[] = [
     category: 'oficinas',
     categoryLabel: 'Para Oficinas',
     question: 'Como a oficina é posicionada nos termos da LGPD perante seus clientes?',
-    answer: 'A oficina atua como Controladora dos dados pessoais que coleta diretamente de seus clientes no momento do atendimento. O VEBOOK atua como Operador para o processamento e organização do histórico, e como Controlador independente nas operações próprias de segurança e infraestrutura da plataforma.',
+    answer: 'A oficina atua como Controladora dos dados pessoais que coleta diretamente de seus clientes no momento do atendimento. Cabe à oficina garantir base adequada para armazená-los e utilizá-los, mantê-los atualizados e realizar o contato pelos seus próprios meios. O VEBOOK atua como Operador para o processamento e organização do histórico, e como Controlador independente nas operações próprias de segurança e infraestrutura da plataforma.',
+  },
+  {
+    id: 'faq-o4',
+    category: 'oficinas',
+    categoryLabel: 'Para Oficinas',
+    question: 'O VEBOOK envia mensagens ou lembretes aos clientes da oficina?',
+    answer: 'Não nesta fase. O VEBOOK cadastra clientes, armazena os dados de contato fornecidos pela oficina, registra veículos, atendimentos, serviços, produtos e retornos, e organiza o histórico no painel. A comunicação com o cliente é responsabilidade exclusiva da oficina, pelos meios que ela já utiliza (WhatsApp próprio, telefone, e-mail próprio ou outros). O VEBOOK registra. A oficina se comunica.',
   },
 
   // PRIVACIDADE & LGPD

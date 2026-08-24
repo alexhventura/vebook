@@ -176,6 +176,8 @@ async function ensureDemoOwner(): Promise<void> {
       officeId: prisma.officeId,
       name: 'João Carlos da Silva',
       phone: '11988880000',
+      whatsapp: '11988880000',
+      email: 'joao.silva@email.com',
       createdAt: nowIso(),
     };
     const vehicle: OfficeVehicleRecord = {
@@ -230,13 +232,36 @@ async function ensureDemoOwner(): Promise<void> {
         customerId: customer.id,
         vehicleId: vehicle.id,
         dueDate: '2026-09-21',
-        reason: 'Revisão de 10.000 km / próxima troca de óleo',
+        reason: 'Próxima troca de óleo',
+        serviceTitle: 'Troca de óleo',
+        nextMileageKm: 58320,
         status: 'scheduled',
         createdAt: nowIso(),
       },
     ];
   }
   persist();
+}
+
+function enrichDemoOperationalRecords(): void {
+  state.customers = state.customers.map((row) => {
+    if (row.id !== 'cust_demo_prisma') return row;
+    return {
+      ...row,
+      phone: row.phone || '11988880000',
+      whatsapp: row.whatsapp || '11988880000',
+      email: row.email || 'joao.silva@email.com',
+    };
+  });
+  state.returns = state.returns.map((row) => {
+    if (row.id !== 'ret_demo_prisma') return row;
+    return {
+      ...row,
+      serviceTitle: row.serviceTitle || 'Troca de óleo',
+      nextMileageKm: row.nextMileageKm ?? 58320,
+      reason: row.reason || 'Próxima troca de óleo',
+    };
+  });
 }
 
 export function subscribeOfficeStore(listener: () => void): () => void {
@@ -250,6 +275,8 @@ export function getOfficeStoreSnapshot(): StoreState {
 
 export async function initOfficeStore(): Promise<void> {
   await ensureDemoOwner();
+  enrichDemoOperationalRecords();
+  persist();
 }
 
 export function listPublicOffices(): Office[] {
@@ -626,6 +653,7 @@ export function upsertCustomer(officeId: string, input: Omit<OfficeCustomer, 'id
     officeId,
     name: input.name,
     phone: input.phone,
+    whatsapp: input.whatsapp,
     email: input.email,
     notes: input.notes,
     createdAt: nowIso(),
@@ -747,6 +775,8 @@ export function upsertReturn(
     customerId: input.customerId,
     dueDate: input.dueDate,
     reason: input.reason,
+    serviceTitle: input.serviceTitle,
+    nextMileageKm: input.nextMileageKm,
     status: input.status,
     createdAt: nowIso(),
   };

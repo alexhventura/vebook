@@ -555,7 +555,7 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
                               ) : record.validationStatus === 'aguardando' ? (
                                 <div className="flex items-center gap-1.5 text-amber-700">
                                   <Clock className="w-3.5 h-3.5 text-amber-600" />
-                                  <span>Notificação enviada ao cliente · Prazo de validação aberto</span>
+                                  <span>Aguardando validação do proprietário · Prazo de conferência aberto</span>
                                 </div>
                               ) : (
                                 <span>Origem: Registro realizado pela oficina credenciada</span>

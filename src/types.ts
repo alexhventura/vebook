@@ -259,6 +259,8 @@ export interface OfficeCustomer {
   officeId: string;
   name: string;
   phone?: string;
+  /** WhatsApp informado pela oficina, quando distinto do telefone. Uso administrativo interno. */
+  whatsapp?: string;
   email?: string;
   notes?: string;
   createdAt: string;
@@ -310,6 +312,10 @@ export interface OfficeReturn {
   customerId?: string;
   dueDate: string;
   reason: string;
+  /** Serviço de origem do retorno, quando informado. */
+  serviceTitle?: string;
+  /** Quilometragem prevista para o próximo retorno. */
+  nextMileageKm?: number;
   status: ReturnStatus;
   createdAt: string;
 }

@@ -30,8 +30,12 @@ export const OFFICE_BENEFITS = [
     detail: 'Histórico dos serviços realizados na oficina, com peças e procedimentos aplicados.',
   },
   {
-    title: 'Gestão de retornos e solicitações de agenda',
-    detail: 'Acompanhamento de retornos combinados e pedidos de agendamento recebidos na página pública.',
+    title: 'Gestão interna de retornos',
+    detail: 'Organize os próximos retornos dos seus clientes e consulte-os diretamente pelo painel. Nesta fase o VEBOOK não envia mensagens: o contato é responsabilidade da oficina.',
+  },
+  {
+    title: 'Dados de contato administrativos',
+    detail: 'A oficina cadastra nome, telefone, WhatsApp e e-mail do cliente. O VEBOOK armazena para consulta no painel; a oficina se comunica pelos seus próprios meios.',
   },
   {
     title: 'Dashboard operacional',

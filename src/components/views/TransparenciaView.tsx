@@ -223,7 +223,7 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
                         <span>Validação Transparente pelo Cliente</span>
                       </div>
                       <p className="text-xs text-slate-600 leading-relaxed">
-                        O proprietário recebe o extrato seguro para conferir itens e quilometragem. Havendo divergência, pode contestar antes da consolidação.
+                        O proprietário consulta o registro no Diário Veicular para conferir itens e quilometragem. Havendo divergência, pode contestar antes da consolidação. Nesta fase o VEBOOK não dispara mensagem automática ao cliente.
                       </p>
                     </div>
 
@@ -357,7 +357,7 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
                 <div className="space-y-4">
                   <h4 className="font-bold text-slate-900 text-sm">1. Agentes de Tratamento (Controlador x Operador)</h4>
                   <p>
-                    Em consonância com as diretrizes da ANPD: (a) <strong>A Oficina Credenciada</strong> atua como Controladora dos dados pessoais coletados no balcão de atendimento; (b) <strong>O VEBOOK</strong> atua como Operador para o processamento, envio de validações e organização do prontuário, e como Controlador nas operações próprias de gestão de contas, segurança e faturamento da plataforma.
+                    Em consonância com as diretrizes da ANPD: (a) <strong>A Oficina Credenciada</strong> atua como Controladora dos dados pessoais coletados no balcão de atendimento e é responsável pelo contato com o cliente pelos seus próprios meios; (b) <strong>O VEBOOK</strong> atua como Operador para o processamento, organização do prontuário e disponibilização das informações no painel da oficina, e como Controlador nas operações próprias de gestão de contas, segurança e faturamento da plataforma. Nesta fase o VEBOOK não envia mensagens aos clientes.
                   </p>
 
                   <h4 className="font-bold text-slate-900 text-sm">2. Bases Legais Utilizadas (Art. 7º da LGPD)</h4>
@@ -370,7 +370,7 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
 
                   <h4 className="font-bold text-slate-900 text-sm">3. Compartilhamento e Provedores Tecnológicos</h4>
                   <p>
-                    O VEBOOK não comercializa cadastros de titulares. O compartilhamento ocorre exclusivamente com suboperadores tecnológicos estritamente homologados (como infraestrutura de nuvem, envio de SMS/WhatsApp e segurança da informação), mediante cláusulas de confidencialidade e segurança equivalentes.
+                    O VEBOOK não comercializa cadastros de titulares. O compartilhamento ocorre exclusivamente com suboperadores tecnológicos estritamente homologados (como infraestrutura de nuvem e segurança da informação), mediante cláusulas de confidencialidade e segurança equivalentes. Nesta fase não há integração com WhatsApp, SMS ou provedores de e-mail transacional para contato com clientes.
                   </p>
 
                   <h4 className="font-bold text-slate-900 text-sm">4. Encarregado pelo Tratamento de Dados (DPO)</h4>

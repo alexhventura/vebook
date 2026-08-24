@@ -897,7 +897,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                   Todo serviço feito aqui fica registrado no Diário Veicular
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  A <strong>{workshop.name}</strong> integra a rede nacional VEBOOK. Ao retirar seu carro, você recebe o resumo digital no WhatsApp para validar marcas, modelos de peças e quilometragem real.
+                  A <strong>{workshop.name}</strong> integra a rede nacional VEBOOK. Ao retirar seu carro, o serviço fica registrado no Diário Veicular para consulta de marcas, modelos de peças e quilometragem real.
                 </p>
               </div>
 
@@ -1318,7 +1318,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 <div className="space-y-0.5">
                   <strong className="text-slate-900 font-bold text-sm block">Registro Oficial no Diário VEBOOK</strong>
                   <p className="text-slate-600 leading-relaxed">
-                    Você recebe o comprovante digital no WhatsApp. O serviço passa a integrar o histórico permanente do chassi do seu veículo para sempre.
+                    O serviço passa a integrar o histórico permanente do chassi do seu veículo no Diário Veicular. A oficina registra; o VEBOOK organiza e preserva.
                   </p>
                 </div>
               </div>

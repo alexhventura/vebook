@@ -302,6 +302,33 @@ const PanelShell: React.FC<{
   );
 };
 
+function formatIsoDate(iso: string): string {
+  const [year, month, day] = iso.slice(0, 10).split('-');
+  if (!year || !month || !day) return iso;
+  return `${day}/${month}/${year}`;
+}
+
+function formatKm(km?: number): string {
+  if (km == null || Number.isNaN(km)) return '';
+  return `${km.toLocaleString('pt-BR')} km`;
+}
+
+function daysUntilIso(iso: string): number {
+  const due = new Date(`${iso.slice(0, 10)}T12:00:00`);
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+  return Math.round((due.getTime() - today.getTime()) / 86_400_000);
+}
+
+const CommunicationNotice: React.FC = () => (
+  <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-slate-700 space-y-1">
+    <p className="font-extrabold text-[#0B1E36]">O VEBOOK registra. A oficina se comunica.</p>
+    <p>
+      Nesta fase o VEBOOK não envia WhatsApp, SMS, e-mail nem lembretes ao cliente. Os dados de contato ficam no painel para a oficina consultar e usar pelos seus próprios meios.
+    </p>
+  </div>
+);
+
 const Dashboard: React.FC<{ office: Office; onSectionChange: (section: PanelSection) => void }> = ({ office, onSectionChange }) => {
   const snapshot = useOfficeStore();
   const progress = onboardingProgress(office.officeId);
@@ -334,7 +361,7 @@ const Dashboard: React.FC<{ office: Office; onSectionChange: (section: PanelSect
           { label: 'Clientes', value: customers.length, go: 'clientes' as PanelSection },
           { label: 'Veículos', value: vehicles.length, go: 'veiculos' as PanelSection },
           { label: 'Atendimentos', value: attendances.length, go: 'atendimentos' as PanelSection },
-          { label: 'Retornos', value: returns.filter((row) => row.status === 'scheduled').length, go: 'retornos' as PanelSection },
+          { label: 'Retornos pendentes', value: returns.filter((row) => row.status === 'scheduled').length, go: 'retornos' as PanelSection },
         ].map((card) => (
           <button
             key={card.label}
@@ -347,6 +374,7 @@ const Dashboard: React.FC<{ office: Office; onSectionChange: (section: PanelSect
           </button>
         ))}
       </div>
+      <CommunicationNotice />
       {subscription ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-5 text-sm space-y-1">
           <p className="font-bold text-[#0B1E36]">{planLabel(subscription.modality)}</p>
@@ -464,29 +492,47 @@ const Clientes: React.FC<{ officeId: string }> = ({ officeId }) => {
   const rows = listCustomers(officeId);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [email, setEmail] = useState('');
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-extrabold text-[#0B1E36]">Clientes</h2>
+      <div className="space-y-1">
+        <h2 className="text-xl font-extrabold text-[#0B1E36]">Clientes</h2>
+        <p className="text-sm text-slate-600">
+          Cadastro administrativo da oficina. Telefone, WhatsApp e e-mail não aparecem na página pública do veículo nem na consulta do Diário.
+        </p>
+      </div>
+      <CommunicationNotice />
       <form
-        className="bg-white rounded-2xl border border-slate-200 p-4 grid grid-cols-1 sm:grid-cols-3 gap-3"
+        className="bg-white rounded-2xl border border-slate-200 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3"
         onSubmit={(e) => {
           e.preventDefault();
           if (!name.trim()) return;
-          upsertCustomer(officeId, { name, phone });
+          upsertCustomer(officeId, { name, phone, whatsapp, email });
           setName('');
           setPhone('');
+          setWhatsapp('');
+          setEmail('');
         }}
       >
         <input className={inputClass} placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} />
         <input className={inputClass} placeholder="Telefone" value={formatPhone(phone)} onChange={(e) => setPhone(onlyDigits(e.target.value))} />
-        <button className="rounded-xl bg-[#0B1E36] text-white font-bold text-sm cursor-pointer">Cadastrar cliente</button>
+        <input className={inputClass} placeholder="WhatsApp (quando aplicável)" value={formatPhone(whatsapp)} onChange={(e) => setWhatsapp(onlyDigits(e.target.value))} />
+        <input className={inputClass} type="email" placeholder="E-mail (quando aplicável)" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <button className="sm:col-span-2 rounded-xl bg-[#0B1E36] text-white font-bold text-sm py-2.5 cursor-pointer">Cadastrar cliente</button>
       </form>
       <div className="bg-white rounded-2xl border border-slate-200 divide-y">
         {rows.length === 0 ? <p className="p-4 text-sm text-slate-500">Nenhum cliente ainda.</p> : null}
         {rows.map((row) => (
-          <div key={row.id} className="px-4 py-3 text-sm">
-            <strong>{row.name}</strong>
-            <span className="text-slate-500"> · {row.phone ? formatPhone(row.phone) : 'sem telefone'}</span>
+          <div key={row.id} className="px-4 py-3 text-sm space-y-1">
+            <p><strong>{row.name}</strong></p>
+            <p className="text-slate-600 text-xs">
+              Telefone: {row.phone ? formatPhone(row.phone) : 'não informado'}
+              {' · '}
+              WhatsApp: {row.whatsapp ? formatPhone(row.whatsapp) : 'não informado'}
+              {' · '}
+              E-mail: {row.email || 'não informado'}
+            </p>
           </div>
         ))}
       </div>
@@ -547,7 +593,12 @@ const Atendimentos: React.FC<{ officeId: string }> = ({ officeId }) => {
   const [notes, setNotes] = useState('');
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-extrabold text-[#0B1E36]">Atendimentos</h2>
+      <div className="space-y-1">
+        <h2 className="text-xl font-extrabold text-[#0B1E36]">Atendimentos</h2>
+        <p className="text-sm text-slate-600">
+          Registrar um atendimento organiza o histórico da oficina. Nenhuma mensagem é enviada ao cliente.
+        </p>
+      </div>
       <form
         className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3"
         onSubmit={(e) => {
@@ -601,40 +652,119 @@ const Atendimentos: React.FC<{ officeId: string }> = ({ officeId }) => {
 const Retornos: React.FC<{ officeId: string }> = ({ officeId }) => {
   useOfficeStore();
   const rows = listReturns(officeId);
-  const [reason, setReason] = useState('');
+  const customers = listCustomers(officeId);
+  const vehicles = listVehicles(officeId);
+  const [customerId, setCustomerId] = useState('');
+  const [vehicleId, setVehicleId] = useState('');
+  const [serviceTitle, setServiceTitle] = useState('');
+  const [nextMileageKm, setNextMileageKm] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const customerById = Object.fromEntries(customers.map((row) => [row.id, row]));
+  const vehicleById = Object.fromEntries(vehicles.map((row) => [row.id, row]));
+  const scheduled = rows.filter((row) => row.status === 'scheduled').sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+  const upcoming = scheduled.filter((row) => daysUntilIso(row.dueDate) <= 45);
+  const later = scheduled.filter((row) => daysUntilIso(row.dueDate) > 45);
+  const done = rows.filter((row) => row.status !== 'scheduled');
+
+  const renderReturn = (row: (typeof rows)[number]) => {
+    const customer = row.customerId ? customerById[row.customerId] : undefined;
+    const vehicle = row.vehicleId ? vehicleById[row.vehicleId] : undefined;
+    const overdue = row.status === 'scheduled' && daysUntilIso(row.dueDate) < 0;
+    return (
+      <div key={row.id} className="px-4 py-3 text-sm flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div className="space-y-0.5">
+          <p>
+            <strong>{customer?.name || 'Cliente não vinculado'}</strong>
+            {overdue ? <span className="ml-2 text-[11px] font-bold uppercase tracking-wider text-amber-800">Vencido</span> : null}
+          </p>
+          <p className="text-slate-600">Veículo: {vehicle?.plate || 'não informado'}</p>
+          <p className="text-slate-600">Serviço: {row.serviceTitle || row.reason}</p>
+          {row.nextMileageKm != null ? <p className="text-slate-600">Próximo retorno: {formatKm(row.nextMileageKm)}</p> : null}
+          <p className="text-slate-600">Data prevista: {formatIsoDate(row.dueDate)}</p>
+        </div>
+        {row.status === 'done' ? (
+          <span className="text-xs font-bold text-emerald-800">Concluído</span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => upsertReturn(officeId, { ...row, status: 'done' })}
+            className="text-xs font-bold text-sky-800 cursor-pointer self-start"
+          >
+            Marcar como feito
+          </button>
+        )}
+      </div>
+    );
+  };
+
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-extrabold text-[#0B1E36]">Retornos</h2>
+      <div className="space-y-1">
+        <h2 className="text-xl font-extrabold text-[#0B1E36]">Retornos</h2>
+        <p className="text-sm text-slate-600">
+          Registro interno de uma necessidade ou previsão de retorno do veículo. Organize e consulte no painel; o VEBOOK não avisa o cliente.
+        </p>
+      </div>
+      <CommunicationNotice />
       <form
-        className="bg-white rounded-2xl border border-slate-200 p-4 grid grid-cols-1 sm:grid-cols-3 gap-3"
+        className="bg-white rounded-2xl border border-slate-200 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3"
         onSubmit={(e) => {
           e.preventDefault();
-          if (!reason || !dueDate) return;
-          upsertReturn(officeId, { reason, dueDate, status: 'scheduled' });
-          setReason('');
+          if (!serviceTitle.trim() || !dueDate) return;
+          upsertReturn(officeId, {
+            customerId: customerId || undefined,
+            vehicleId: vehicleId || undefined,
+            reason: serviceTitle.trim(),
+            serviceTitle: serviceTitle.trim(),
+            nextMileageKm: nextMileageKm ? Number(nextMileageKm) : undefined,
+            dueDate,
+            status: 'scheduled',
+          });
+          setCustomerId('');
+          setVehicleId('');
+          setServiceTitle('');
+          setNextMileageKm('');
           setDueDate('');
         }}
       >
-        <input className={inputClass} placeholder="Motivo do retorno" value={reason} onChange={(e) => setReason(e.target.value)} />
+        <select className={inputClass} value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
+          <option value="">Cliente</option>
+          {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}
+        </select>
+        <select className={inputClass} value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
+          <option value="">Veículo</option>
+          {vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.plate}</option>)}
+        </select>
+        <input className={inputClass} placeholder="Serviço (ex.: Troca de óleo)" value={serviceTitle} onChange={(e) => setServiceTitle(e.target.value)} />
+        <input className={inputClass} type="number" min={0} placeholder="Próximo retorno (km)" value={nextMileageKm} onChange={(e) => setNextMileageKm(e.target.value)} />
         <input className={inputClass} type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-        <button className="rounded-xl bg-[#0B1E36] text-white font-bold text-sm cursor-pointer">Agendar retorno</button>
+        <button className="rounded-xl bg-[#0B1E36] text-white font-bold text-sm cursor-pointer">Registrar retorno</button>
       </form>
-      <div className="bg-white rounded-2xl border border-slate-200 divide-y">
-        {rows.length === 0 ? <p className="p-4 text-sm text-slate-500">Nenhum retorno agendado.</p> : null}
-        {rows.map((row) => (
-          <div key={row.id} className="px-4 py-3 text-sm flex items-center justify-between gap-3">
-            <span><strong>{row.dueDate}</strong> · {row.reason}</span>
-            <button
-              type="button"
-              onClick={() => upsertReturn(officeId, { ...row, status: 'done' })}
-              className="text-xs font-bold text-sky-800 cursor-pointer"
-            >
-              {row.status === 'done' ? 'Concluído' : 'Marcar como feito'}
-            </button>
+      {upcoming.length > 0 ? (
+        <div className="space-y-2">
+          <h3 className="text-sm font-extrabold text-[#0B1E36]">Retornos próximos</h3>
+          <div className="bg-white rounded-2xl border border-slate-200 divide-y">
+            {upcoming.map(renderReturn)}
           </div>
-        ))}
-      </div>
+        </div>
+      ) : null}
+      {later.length > 0 ? (
+        <div className="space-y-2">
+          <h3 className="text-sm font-extrabold text-[#0B1E36]">Retornos pendentes</h3>
+          <div className="bg-white rounded-2xl border border-slate-200 divide-y">
+            {later.map(renderReturn)}
+          </div>
+        </div>
+      ) : null}
+      {scheduled.length === 0 ? <p className="text-sm text-slate-500">Nenhum retorno pendente.</p> : null}
+      {done.length > 0 ? (
+        <div className="space-y-2">
+          <h3 className="text-sm font-extrabold text-slate-500">Concluídos</h3>
+          <div className="bg-white rounded-2xl border border-slate-200 divide-y opacity-80">
+            {done.map(renderReturn)}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 };

@@ -88,7 +88,7 @@ export const ComoFuncionaView: React.FC<ComoFuncionaViewProps> = ({ onNavigate }
                 <span className="text-xs font-bold uppercase text-emerald-800 tracking-wider block">Auditoria do Proprietário</span>
                 <h3 className="text-xl font-bold text-[#0B1E36]">O Cliente Valida</h3>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  O cliente recebe o link da OS no celular. Ele pode <strong>validar</strong> o serviço ou <strong>contestar divergências</strong> (como peça diferente da combinada).
+                  O cliente consulta o registro no Diário Veicular. Ele pode <strong>validar</strong> o serviço ou <strong>contestar divergências</strong> (como peça diferente da combinada). Nesta fase o VEBOOK não envia mensagem automática.
                 </p>
               </div>
               <ul className="text-xs text-slate-600 space-y-1.5 pt-2 border-t border-emerald-100">
@@ -162,7 +162,7 @@ export const ComoFuncionaView: React.FC<ComoFuncionaViewProps> = ({ onNavigate }
                 <span>◷ Aguardando Validação</span>
               </div>
               <p className="text-xs text-slate-700 leading-relaxed">
-                O serviço foi registrado pela oficina credenciada e a notificação foi enviada ao cliente. Está dentro da janela temporal de resposta do proprietário.
+                O serviço foi registrado pela oficina credenciada e aguarda conferência do proprietário no Diário Veicular. Está dentro da janela temporal de resposta.
               </p>
             </div>
 

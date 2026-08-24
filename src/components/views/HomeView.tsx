@@ -182,7 +182,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
             <h3 className="text-xl font-bold text-[#0B1E36]">O Cliente Valida</h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              O cliente recebe o resumo no smartphone e tem o poder de <strong>confirmar</strong> as informações ou <strong>contestar divergências</strong> de forma pública e transparente.
+              O cliente consulta o registro no Diário Veicular e pode <strong>confirmar</strong> as informações ou <strong>contestar divergências</strong> de forma pública e transparente.
             </p>
           </div>
 

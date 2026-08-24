@@ -50,7 +50,7 @@ export const ValidacaoSimuladorView: React.FC<ValidacaoSimuladorViewProps> = ({ 
             Validação e Contestação de Serviço
           </h1>
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-            Experimente a interface que o cliente recebe em seu smartphone após realizar a manutenção em uma oficina credenciada.
+            Experimente a interface de consulta e validação do Diário Veicular, disponível ao proprietário após o registro do serviço pela oficina. Nesta fase o VEBOOK não envia mensagem automática.
           </p>
         </div>
 
@@ -63,7 +63,7 @@ export const ValidacaoSimuladorView: React.FC<ValidacaoSimuladorViewProps> = ({ 
               <div className="w-7 h-7 rounded-lg bg-sky-500 text-[#0B1E36] flex items-center justify-center font-black text-xs">
                 V
               </div>
-              <span className="font-bold text-sm tracking-wide">VEBOOK Notificações</span>
+              <span className="font-bold text-sm tracking-wide">Diário Veicular</span>
             </div>
             <span className="text-[11px] text-slate-300">OS #8941</span>
           </div>
