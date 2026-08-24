@@ -9,8 +9,13 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { COMMERCIAL_CONDITIONS } from '../../data/commercialTerms';
-import { OFFICE_PRICING, contractedAmountFor, planLabel, planSummaryLines, renewalAmountFor } from '../../data/officePlans';
+import {
+  PLAN_OFFERS,
+  contractSummaryFor,
+  planLabel,
+} from '../../data/officePlans';
 import { formatBRL } from '../../lib/currency';
+import { PlanOfferCard } from '../plans/PlanOfferCard';
 import {
   applyPaymentWebhook,
   createPendingOffice,
@@ -53,16 +58,18 @@ const SEGMENT_OPTIONS = [
 ];
 
 const STEPS = [
-  { id: 1, label: 'Você' },
-  { id: 2, label: 'Sua oficina' },
-  { id: 3, label: 'Seu endereço' },
-  { id: 4, label: 'Revisão' },
-  { id: 5, label: 'Pagamento' },
-  { id: 6, label: 'Ativação' },
+  { id: 1, label: 'Plano' },
+  { id: 2, label: 'Você' },
+  { id: 3, label: 'Oficina' },
+  { id: 4, label: 'Complementos' },
+  { id: 5, label: 'Revisão' },
+  { id: 6, label: 'Pagamento' },
+  { id: 7, label: 'Ativação' },
 ] as const;
 
 interface CadastroOficinaViewProps {
   initialModality?: PlanModality;
+  planPreselected?: boolean;
   onBackToOficinas: () => void;
   onOpenLegal: (type: 'termos' | 'privacidade' | 'comercial') => void;
   onViewPublicPage: (slug: string) => void;
@@ -82,13 +89,15 @@ function formatCnpj(value: string): string {
 
 export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
   initialModality = 'monthly',
+  planPreselected = false,
   onBackToOficinas,
   onOpenLegal,
   onViewPublicPage,
   onOpenPanel,
 }) => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(planPreselected ? 2 : 1);
   const [draft, setDraft] = useState<SignupDraft>(() => defaultSignupDraft(initialModality));
+  const [returnToReviewAfterPlanChange, setReturnToReviewAfterPlanChange] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [cepStatus, setCepStatus] = useState('');
@@ -109,9 +118,20 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
   const suggestedSlug = slugFromWorkshopName(draft.office.tradeName || draft.office.legalName);
   const alternatives = suggestSlugAlternatives(draft.office.tradeName || draft.office.legalName || draft.slug, taken);
 
-  const progressIndex = Math.min(step, 6);
+  const progressIndex = Math.min(step, 7);
+  const contractSummary = contractSummaryFor(draft.modality);
 
-  const validateStep1 = (): boolean => {
+  const selectPlan = (modality: PlanModality) => {
+    setDraft((current) => ({ ...current, modality }));
+    if (returnToReviewAfterPlanChange) {
+      setReturnToReviewAfterPlanChange(false);
+      setStep(5);
+      return;
+    }
+    setStep(2);
+  };
+
+  const validateStep2 = (): boolean => {
     const next: Record<string, string> = {};
     if (draft.owner.fullName.trim().length < 5) next.fullName = 'Informe o nome completo.';
     if (!isValidCpf(draft.owner.cpf)) next.cpf = 'CPF inválido.';
@@ -123,7 +143,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
     return Object.keys(next).length === 0;
   };
 
-  const validateStep2 = (): boolean => {
+  const validateStep3 = (): boolean => {
     const next: Record<string, string> = {};
     if (draft.office.legalName.trim().length < 3) next.legalName = 'Informe o nome da oficina.';
     if (!isValidPhone(draft.office.phone)) next.officePhone = 'Telefone inválido.';
@@ -141,7 +161,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
     return Object.keys(next).length === 0;
   };
 
-  const validateStep3 = (): boolean => {
+  const validateStep4 = (): boolean => {
     const slug = normalizeSlug(draft.slug || suggestedSlug);
     const next: Record<string, string> = {};
     if (!isValidSlugFormat(slug)) next.slug = 'Use 3 a 32 caracteres, sem espaços, iniciando por letra.';
@@ -153,13 +173,13 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
 
   const goNext = async () => {
     setFormError('');
-    if (step === 1 && !validateStep1()) return;
     if (step === 2 && !validateStep2()) return;
     if (step === 3 && !validateStep3()) return;
-    if (step === 2 && !draft.slug) {
+    if (step === 4 && !validateStep4()) return;
+    if (step === 4 && !draft.slug) {
       setDraft((current) => ({ ...current, slug: suggestedSlug }));
     }
-    setStep((current) => Math.min(current + 1, 6));
+    setStep((current) => Math.min(current + 1, 7));
   };
 
   const handleCepBlur = async () => {
@@ -199,7 +219,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
       const created = await createPendingOffice(draft, consent);
       setPendingOfficeId(created.office.officeId);
       setPaymentExternalId(created.payment.externalId ?? '');
-      setStep(5);
+      setStep(6);
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Não foi possível criar o cadastro.');
     } finally {
@@ -216,7 +236,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
       if (event === 'payment.paid' && payment?.status === 'paid') {
         await loginWithCpf(draft.owner.cpf, draft.owner.password);
         setActivatedSlug(draft.slug);
-        setStep(6);
+        setStep(7);
       } else {
         const latest = getLatestPayment(pendingOfficeId);
         setPaymentMessage(
@@ -257,7 +277,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
           </p>
         </div>
 
-        <ol className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        <ol className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           {STEPS.map((item) => {
             const active = item.id === progressIndex;
             const done = item.id < progressIndex;
@@ -280,6 +300,29 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
 
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
           {step === 1 && (
+            <section className="space-y-5">
+              <h2 className="text-xl font-extrabold text-[#0B1E36]">Escolha o plano da sua oficina.</h2>
+              <p className="text-sm text-slate-600">
+                O plano escolhido acompanha todo o cadastro. Os valores de renovação estão visíveis em cada card.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <PlanOfferCard
+                  modality="monthly"
+                  selected={draft.modality === 'monthly'}
+                  actionLabel="Selecionar plano mensal"
+                  onAction={() => selectPlan('monthly')}
+                />
+                <PlanOfferCard
+                  modality="annual"
+                  selected={draft.modality === 'annual'}
+                  actionLabel="Selecionar plano anual"
+                  onAction={() => selectPlan('annual')}
+                />
+              </div>
+            </section>
+          )}
+
+          {step === 2 && (
             <section className="space-y-5">
               <h2 className="text-xl font-extrabold text-[#0B1E36]">Primeiro, vamos identificar você.</h2>
               <Field label="Nome completo" error={errors.fullName}>
@@ -342,7 +385,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
             </section>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <section className="space-y-5">
               <h2 className="text-xl font-extrabold text-[#0B1E36]">Agora, vamos cadastrar sua oficina.</h2>
               <Field label="Nome da oficina" error={errors.legalName}>
@@ -443,9 +486,49 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
                   </select>
                 </Field>
               </div>
+            </section>
+          )}
+
+          {step === 4 && (
+            <section className="space-y-5">
+              <h2 className="text-xl font-extrabold text-[#0B1E36]">Dados complementares da oficina.</h2>
+              <p className="text-sm text-slate-600">Endereço público e informações opcionais. Você poderá completar depois no painel.</p>
+              <Field label="Endereço VEBOOK" error={errors.slug}>
+                <div className="flex items-center gap-2">
+                  <input
+                    className={`${inputClass} font-mono`}
+                    value={draft.slug}
+                    onChange={(e) => setDraft({ ...draft, slug: normalizeSlug(e.target.value) })}
+                    placeholder={suggestedSlug}
+                  />
+                  <span className="text-xs font-bold text-slate-500 shrink-0">.vebook.com.br</span>
+                </div>
+              </Field>
+              <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-mono text-[#0B1E36]">
+                {workshopHost(draft.slug || suggestedSlug)}
+              </div>
+              {draft.slug && isSlugAvailable(draft.slug) ? (
+                <p className="text-xs font-bold text-emerald-700">Endereço disponível.</p>
+              ) : null}
+              {draft.slug && !isSlugAvailable(draft.slug) ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-rose-700 font-bold">Indisponível. Sugestões:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {alternatives.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setDraft({ ...draft, slug: item })}
+                        className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold cursor-pointer"
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-3">
-                <p className="text-xs font-bold text-[#0B1E36]">Complementos (opcional)</p>
-                <p className="text-[11px] text-slate-500">Você poderá completar essas informações depois.</p>
+                <p className="text-xs font-bold text-[#0B1E36]">Segmentos e presença digital (opcional)</p>
                 <div className="flex flex-wrap gap-2">
                   {SEGMENT_OPTIONS.map((segment) => {
                     const selected = draft.extras.segments.includes(segment);
@@ -494,50 +577,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
             </section>
           )}
 
-          {step === 3 && (
-            <section className="space-y-5">
-              <h2 className="text-xl font-extrabold text-[#0B1E36]">Escolha o endereço digital da oficina.</h2>
-              <p className="text-sm text-slate-600">
-                Este será o endereço público da sua página no VEBOOK.
-              </p>
-              <Field label="Endereço VEBOOK" error={errors.slug}>
-                <div className="flex items-center gap-2">
-                  <input
-                    className={`${inputClass} font-mono`}
-                    value={draft.slug}
-                    onChange={(e) => setDraft({ ...draft, slug: normalizeSlug(e.target.value) })}
-                    placeholder={suggestedSlug}
-                  />
-                  <span className="text-xs font-bold text-slate-500 shrink-0">.vebook.com.br</span>
-                </div>
-              </Field>
-              <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-mono text-[#0B1E36]">
-                {workshopHost(draft.slug || suggestedSlug)}
-              </div>
-              {draft.slug && isSlugAvailable(draft.slug) ? (
-                <p className="text-xs font-bold text-emerald-700">Endereço disponível.</p>
-              ) : null}
-              {draft.slug && !isSlugAvailable(draft.slug) ? (
-                <div className="space-y-2">
-                  <p className="text-xs text-rose-700 font-bold">Indisponível. Sugestões:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {alternatives.map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => setDraft({ ...draft, slug: item })}
-                        className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold cursor-pointer"
-                      >
-                        {item}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </section>
-          )}
-
-          {step === 4 && (
+          {step === 5 && (
             <section className="space-y-5">
               <h2 className="text-xl font-extrabold text-[#0B1E36]">Revise os dados antes do pagamento.</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -560,11 +600,24 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Endereço VEBOOK</p>
                 <p className="font-mono font-bold text-[#0B1E36]">{workshopHost(draft.slug)}</p>
               </div>
-              <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4 space-y-1 text-sm">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-sky-800">{planLabel(draft.modality)}</p>
-                {planSummaryLines(draft.modality).map((line) => (
-                  <p key={line}>{line}</p>
-                ))}
+              <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4 space-y-2 text-sm">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-sky-800">Resumo da contratação</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReturnToReviewAfterPlanChange(true);
+                      setStep(1);
+                    }}
+                    className="text-xs font-bold text-sky-800 underline cursor-pointer"
+                  >
+                    Alterar plano
+                  </button>
+                </div>
+                <p><strong>Plano escolhido:</strong> {contractSummary.planTitle}</p>
+                <p><strong>{contractSummary.firstYearLabel}:</strong> {contractSummary.firstYearAmount}</p>
+                <p className="text-slate-600"><strong>{contractSummary.renewalLabel}:</strong> {contractSummary.renewalAmount}</p>
+                {contractSummary.savingsLabel ? <p className="text-[#0B1E36] font-semibold">{contractSummary.savingsLabel}</p> : null}
               </div>
               <div className="space-y-3 text-xs text-slate-700">
                 <label className="flex items-start gap-2">
@@ -582,9 +635,9 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
                 <label className="flex items-start gap-2">
                   <input type="checkbox" checked={consent.priceChange} onChange={(e) => setConsent({ ...consent, priceChange: e.target.checked })} />
                   <span>
-                    Estou ciente de que o primeiro ano custa {formatBRL(OFFICE_PRICING.year1Monthly)}/mês
-                    {draft.modality === 'annual' ? ` (${formatBRL(OFFICE_PRICING.year1Annual)} no anual)` : ''} e que, a partir do segundo ano, o valor vigente passa a {formatBRL(OFFICE_PRICING.year2Monthly)}/mês
-                    {draft.modality === 'annual' ? ` (${formatBRL(OFFICE_PRICING.year2Annual)} no anual)` : ''}.
+                    Estou ciente de que o primeiro ano custa {formatBRL(PLAN_OFFERS.monthly.firstYear)}/mês
+                    {draft.modality === 'annual' ? ` (${formatBRL(PLAN_OFFERS.annual.firstYear)} no anual)` : ''} e que, a partir do segundo ano, o valor vigente passa a {formatBRL(PLAN_OFFERS.monthly.renewal)}/mês
+                    {draft.modality === 'annual' ? ` (${formatBRL(PLAN_OFFERS.annual.renewal)} no anual)` : ''}.
                   </span>
                 </label>
               </div>
@@ -596,7 +649,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
             </section>
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <section className="space-y-5">
               <h2 className="text-xl font-extrabold text-[#0B1E36]">Pagamento da adesão</h2>
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 space-y-2">
@@ -612,11 +665,14 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
               <div className="rounded-2xl border border-slate-200 p-4 space-y-3">
                 <p className="text-sm font-bold text-[#0B1E36] flex items-center gap-2">
                   <CreditCard className="w-4 h-4" />
-                  {planLabel(draft.modality)} — {formatBRL(contractedAmountFor(draft.modality))}
+                  {contractSummary.planTitle}
                 </p>
-                <p className="text-xs text-slate-600">
-                  Renovação prevista: {formatBRL(renewalAmountFor(draft.modality))}
-                  {draft.modality === 'annual' ? '/ano' : '/mês'}.
+                <div className="space-y-1 text-sm">
+                  <p className="text-2xl font-black text-[#0B1E36]">{contractSummary.firstYearAmount}</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{contractSummary.firstYearLabel}</p>
+                </div>
+                <p className="text-xs text-slate-500 pt-2 border-t border-slate-100">
+                  Renovação: {contractSummary.renewalAmount} {contractSummary.renewalLabel.toLowerCase()}
                 </p>
                 <p className="text-xs text-slate-600">Cartão recorrente. Dados de cartão não são armazenados neste protótipo.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -648,7 +704,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
             </section>
           )}
 
-          {step === 6 && (
+          {step === 7 && (
             <section className="space-y-6 text-center">
               <div className="w-14 h-14 mx-auto rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center">
                 <CheckCircle2 className="w-8 h-8" />
@@ -692,21 +748,31 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
 
           {formError ? <p className="text-sm font-medium text-rose-700">{formError}</p> : null}
 
-          {step < 6 && (
+          {step < 7 && step !== 6 && (
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => {
                   setFormError('');
-                  if (step === 1) onBackToOficinas();
-                  else setStep((current) => current - 1);
+                  if (step === 1) {
+                    if (returnToReviewAfterPlanChange) {
+                      setReturnToReviewAfterPlanChange(false);
+                      setStep(5);
+                    } else {
+                      onBackToOficinas();
+                    }
+                  } else if (step === 2 && planPreselected) {
+                    setStep(1);
+                  } else {
+                    setStep((current) => current - 1);
+                  }
                 }}
                 className="inline-flex items-center gap-1 text-sm font-bold text-slate-600 cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Voltar
               </button>
-              {step < 4 && (
+              {step >= 2 && step <= 4 && (
                 <button
                   type="button"
                   onClick={() => void goNext()}
@@ -716,7 +782,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}
-              {step === 4 && (
+              {step === 5 && (
                 <button
                   type="button"
                   disabled={busy}

@@ -33,6 +33,7 @@ export default function App() {
   const [panelSection, setPanelSection] = useState<PanelSection>(initial.panelSection || 'inicio');
   const [panelTab, setPanelTab] = useState<string | undefined>(initial.panelTab);
   const [signupModality, setSignupModality] = useState<PlanModality>('monthly');
+  const [signupPlanPreselected, setSignupPlanPreselected] = useState(false);
 
   const [isCookieConfigModalOpen, setIsCookieConfigModalOpen] = useState(false);
   const [isPrivacidadeModalOpen, setIsPrivacidadeModalOpen] = useState(false);
@@ -140,7 +141,10 @@ export default function App() {
           <HomeView
             onNavigate={handleNavigate}
             onSearchPlate={handleSearchPlateFromHome}
-            onOpenCredenciamento={() => handleNavigate('cadastro-oficina')}
+            onOpenCredenciamento={() => {
+              setSignupPlanPreselected(false);
+              handleNavigate('cadastro-oficina');
+            }}
             onOpenJaCredenciado={() => handleNavigate('painel-oficina', { workshopSlug: undefined })}
           />
         )}
@@ -173,6 +177,7 @@ export default function App() {
             onNavigate={handleNavigate}
             onStartCadastro={(modality) => {
               setSignupModality(modality);
+              setSignupPlanPreselected(true);
               handleNavigate('cadastro-oficina');
             }}
             onOpenPainel={() => handleNavigate('painel-oficina', { workshopSlug: undefined })}
@@ -183,6 +188,7 @@ export default function App() {
         {currentView === 'cadastro-oficina' && (
           <CadastroOficinaView
             initialModality={signupModality}
+            planPreselected={signupPlanPreselected}
             onBackToOficinas={() => handleNavigate('oficinas')}
             onOpenLegal={(type) => setLegalModalType(type)}
             onViewPublicPage={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}

@@ -22,8 +22,9 @@ import {
 } from 'lucide-react';
 import { WORKSHOPS_MOCK } from '../../data/mockData';
 import { OFFICE_BENEFITS } from '../../data/commercialTerms';
-import { OFFICE_ANNUAL, OFFICE_PRICING, planCardsExplainer } from '../../data/officePlans';
+import { PLAN_OFFERS, planCardsExplainer } from '../../data/officePlans';
 import { formatBRL } from '../../lib/currency';
+import { PlanOfferCard } from '../plans/PlanOfferCard';
 import { searchPublicOffices } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { workshopHost } from '../../lib/slug';
@@ -44,17 +45,11 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
 }) => {
   useOfficeStore();
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string>('ws-01');
-  const [modality, setModality] = useState<PlanModality>('monthly');
   const [query, setQuery] = useState('');
   const [city, setCity] = useState('');
   const [uf, setUf] = useState('');
   const selectedWorkshop = WORKSHOPS_MOCK.find(w => w.id === selectedWorkshopId) || WORKSHOPS_MOCK[0];
   const publicOffices = searchPublicOffices(query, city, uf);
-
-  const planCardClass = (value: PlanModality) =>
-    value === modality
-      ? 'border-2 border-[#0B1E36] bg-sky-50 ring-2 ring-sky-300/60 shadow-lg'
-      : 'border border-slate-200 bg-white shadow-sm hover:border-sky-200 hover:bg-sky-50/40';
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -74,12 +69,12 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <button
-              onClick={() => onStartCadastro(modality)}
+            <a
+              href="#precos-oficinas"
               className="px-7 py-3.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-extrabold text-sm transition-all shadow-md cursor-pointer"
             >
-              Cadastrar minha oficina
-            </button>
+              Ver planos e cadastrar
+            </a>
             <button
               onClick={onOpenPainel}
               className="px-7 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm border border-slate-300 transition-all cursor-pointer"
@@ -114,82 +109,27 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B1E36]">Planos e valores</h2>
             <p className="text-sm text-slate-600">
-              Primeiro ano: {formatBRL(OFFICE_PRICING.year1Monthly)}/mês ou {formatBRL(OFFICE_PRICING.year1Annual)}/ano.
-              Após o primeiro ano: {formatBRL(OFFICE_PRICING.year2Monthly)}/mês ou {formatBRL(OFFICE_PRICING.year2Annual)}/ano.
+              Primeiro ano: {formatBRL(PLAN_OFFERS.monthly.firstYear)}/mês ou {formatBRL(PLAN_OFFERS.annual.firstYear)}/ano.
+              Após o primeiro ano: {formatBRL(PLAN_OFFERS.monthly.renewal)}/mês ou {formatBRL(PLAN_OFFERS.annual.renewal)}/ano.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <button
-              type="button"
-              onClick={() => setModality('monthly')}
-              aria-pressed={modality === 'monthly'}
-              className={`text-left rounded-3xl p-7 space-y-4 cursor-pointer transition-all ${planCardClass('monthly')}`}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano mensal</p>
-                {modality === 'monthly' ? (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white bg-[#0B1E36] px-2 py-1 rounded-full">Selecionado</span>
-                ) : (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Primeiro ano</span>
-                )}
-              </div>
-              <div>
-                <p className="text-4xl sm:text-5xl font-black text-[#0B1E36] leading-none">
-                  {formatBRL(OFFICE_PRICING.year1Monthly)}
-                </p>
-                <p className="text-base font-bold text-slate-500 mt-1">por mês</p>
-              </div>
-              <p className="text-sm text-slate-600">Cobrança mensal no cartão.</p>
-              <p className="text-sm text-slate-700 pt-2 border-t border-slate-100">
-                Renovação: <strong className="text-[#0B1E36]">{formatBRL(OFFICE_PRICING.year2Monthly)}/mês</strong>
-              </p>
-            </button>
-            <button
-              type="button"
-              onClick={() => setModality('annual')}
-              aria-pressed={modality === 'annual'}
-              className={`relative text-left rounded-3xl p-7 space-y-4 cursor-pointer transition-all ${planCardClass('annual')}`}
-            >
-              <span className="absolute -top-3 left-6 inline-flex items-center px-3 py-1 rounded-full bg-[#0B1E36] text-white text-[10px] font-bold uppercase tracking-wider">
-                Maior economia
-              </span>
-              <div className="flex items-center justify-between gap-3 pt-1">
-                <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano anual</p>
-                {modality === 'annual' ? (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white bg-[#0B1E36] px-2 py-1 rounded-full">Selecionado</span>
-                ) : (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Primeiro ano</span>
-                )}
-              </div>
-              <div>
-                <p className="text-4xl sm:text-5xl font-black text-[#0B1E36] leading-none">
-                  {formatBRL(OFFICE_PRICING.year1Annual)}
-                </p>
-                <p className="text-base font-bold text-slate-500 mt-1">por ano</p>
-              </div>
-              <p className="text-sm font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
-                Economize {formatBRL(OFFICE_ANNUAL.year1Savings)} no ano
-              </p>
-              <p className="text-sm text-slate-600">
-                Equivale a {formatBRL(OFFICE_ANNUAL.year1EquivalentMonthly)}/mês · pagamento antecipado de 12 meses.
-              </p>
-              <p className="text-sm text-slate-700 pt-2 border-t border-slate-100">
-                Renovação: <strong className="text-[#0B1E36]">{formatBRL(OFFICE_PRICING.year2Annual)}/ano</strong>
-              </p>
-            </button>
+            <PlanOfferCard
+              modality="monthly"
+              onAction={() => onStartCadastro('monthly')}
+            />
+            <PlanOfferCard
+              modality="annual"
+              onAction={() => onStartCadastro('annual')}
+            />
           </div>
           <div className="max-w-3xl mx-auto space-y-2 text-sm text-slate-600 text-center">
             {planCardsExplainer().map((line) => (
               <p key={line}>{line}</p>
             ))}
-          </div>
-          <div className="text-center">
-            <button
-              onClick={() => onStartCadastro(modality)}
-              className="px-8 py-3.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-extrabold text-sm cursor-pointer shadow-md transition-colors"
-            >
-              Começar cadastro
-            </button>
+            <p className="text-xs text-slate-500 pt-1">
+              O VEBOOK registra. A oficina se comunica. Nesta fase não há envio automático de mensagens ao cliente.
+            </p>
           </div>
         </section>
 
@@ -438,10 +378,13 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
 
           <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
             <button
-              onClick={() => onStartCadastro(modality)}
+              onClick={() => {
+                const el = document.getElementById('precos-oficinas');
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }}
               className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-[#0B1E36] font-extrabold text-sm transition-all cursor-pointer shadow-lg"
             >
-              Cadastrar minha oficina
+              Ver planos e cadastrar
             </button>
             <span className="text-xs text-slate-300">Valores visíveis antes do cadastro · Ativação após confirmação de pagamento</span>
           </div>
