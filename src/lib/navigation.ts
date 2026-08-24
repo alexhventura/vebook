@@ -9,12 +9,16 @@ export interface RouteState {
 
 export type PanelSection =
   | 'inicio'
-  | 'minha-oficina'
+  | 'atendimentos'
   | 'clientes'
   | 'veiculos'
-  | 'atendimentos'
+  | 'servicos'
+  | 'produtos'
+  | 'agenda'
   | 'retornos'
-  | 'agenda';
+  | 'minha-oficina'
+  | 'perfil'
+  | 'configuracoes';
 
 export function parseHash(hash = window.location.hash): RouteState {
   const raw = hash.replace(/^#/, '') || '/';

@@ -174,7 +174,15 @@ export type AttendanceStatus = 'open' | 'completed';
 
 export type ReturnStatus = 'scheduled' | 'done' | 'cancelled';
 
-export type AppointmentStatus = 'requested' | 'confirmed' | 'cancelled';
+/** Status operacionais da Agenda (solicitações/agendamentos). */
+export type AppointmentStatus =
+  | 'requested'
+  | 'confirmed'
+  | 'reschedule'
+  | 'cancelled'
+  | 'completed';
+
+export type CatalogStatus = 'active' | 'inactive';
 
 export type PaymentGatewayId = 'mock' | 'unset';
 
@@ -273,7 +281,38 @@ export interface OfficeVehicleRecord {
   plate: string;
   brand?: string;
   model?: string;
+  version?: string;
   year?: number;
+  mileageKm?: number;
+  notes?: string;
+  createdAt: string;
+}
+
+/** Catálogo de serviços da oficina (não confundir com atendimentos realizados). */
+export interface OfficeServiceCatalogItem {
+  id: string;
+  officeId: string;
+  name: string;
+  description?: string;
+  category?: string;
+  price: number;
+  durationMinutes?: number;
+  status: CatalogStatus;
+  publicVisible: boolean;
+  createdAt: string;
+}
+
+/** Catálogo de produtos utilizados pela oficina. */
+export interface OfficeProductCatalogItem {
+  id: string;
+  officeId: string;
+  name: string;
+  brand?: string;
+  category?: string;
+  unit: string;
+  price: number;
+  code?: string;
+  status: CatalogStatus;
   createdAt: string;
 }
 
@@ -285,6 +324,10 @@ export interface OfficeAttendance {
   date: string;
   mileageKm?: number;
   notes?: string;
+  laborAmount?: number;
+  servicesAmount?: number;
+  productsAmount?: number;
+  totalAmount?: number;
   status: AttendanceStatus;
   createdAt: string;
 }
@@ -293,16 +336,27 @@ export interface AttendanceServiceLine {
   id: string;
   officeId: string;
   attendanceId: string;
+  catalogServiceId?: string;
   title: string;
+  description?: string;
+  quantity?: number;
+  unitPrice?: number;
+  amount?: number;
+  notes?: string;
 }
 
 export interface AttendanceProductLine {
   id: string;
   officeId: string;
   attendanceId: string;
+  catalogProductId?: string;
   name: string;
   brand?: string;
   quantity?: number;
+  unit?: string;
+  unitPrice?: number;
+  amount?: number;
+  notes?: string;
 }
 
 export interface OfficeReturn {
@@ -310,12 +364,14 @@ export interface OfficeReturn {
   officeId: string;
   vehicleId?: string;
   customerId?: string;
-  dueDate: string;
+  attendanceId?: string;
+  dueDate?: string;
   reason: string;
   /** Serviço de origem do retorno, quando informado. */
   serviceTitle?: string;
   /** Quilometragem prevista para o próximo retorno. */
   nextMileageKm?: number;
+  notes?: string;
   status: ReturnStatus;
   createdAt: string;
 }
@@ -329,6 +385,7 @@ export interface OfficeAppointment {
   service?: string;
   date?: string;
   period?: string;
+  time?: string;
   notes?: string;
   status: AppointmentStatus;
   createdAt: string;

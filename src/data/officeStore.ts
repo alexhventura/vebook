@@ -22,7 +22,9 @@ import {
   OfficeConsent,
   OfficeCustomer,
   OfficePayment,
+  OfficeProductCatalogItem,
   OfficeReturn,
+  OfficeServiceCatalogItem,
   OfficeSession,
   OfficeSubscription,
   OfficeUser,
@@ -51,6 +53,8 @@ type StoreState = {
   consents: OfficeConsent[];
   customers: OfficeCustomer[];
   vehicles: OfficeVehicleRecord[];
+  serviceCatalog: OfficeServiceCatalogItem[];
+  productCatalog: OfficeProductCatalogItem[];
   attendances: OfficeAttendance[];
   attendanceServices: AttendanceServiceLine[];
   attendanceProducts: AttendanceProductLine[];
@@ -97,6 +101,8 @@ function emptyState(): StoreState {
     consents: [],
     customers: [],
     vehicles: [],
+    serviceCatalog: [],
+    productCatalog: [],
     attendances: [],
     attendanceServices: [],
     attendanceProducts: [],
@@ -123,6 +129,8 @@ function loadRaw(): StoreState {
       consents: parsed.consents ?? [],
       customers: parsed.customers ?? [],
       vehicles: parsed.vehicles ?? [],
+      serviceCatalog: parsed.serviceCatalog ?? [],
+      productCatalog: parsed.productCatalog ?? [],
       attendances: parsed.attendances ?? [],
       attendanceServices: parsed.attendanceServices ?? [],
       attendanceProducts: parsed.attendanceProducts ?? [],
@@ -187,7 +195,9 @@ async function ensureDemoOwner(): Promise<void> {
       plate: 'BRA2E19',
       brand: 'Toyota',
       model: 'Corolla',
+      version: 'XEi 2.0',
       year: 2023,
+      mileageKm: 48320,
       createdAt: nowIso(),
     };
     const attendance: OfficeAttendance = {
@@ -198,6 +208,10 @@ async function ensureDemoOwner(): Promise<void> {
       date: '2026-08-21',
       mileageKm: 48320,
       notes: 'Troca de óleo e filtros homologados.',
+      laborAmount: 80,
+      servicesAmount: 120,
+      productsAmount: 210,
+      totalAmount: 410,
       status: 'completed',
       createdAt: nowIso(),
     };
@@ -211,6 +225,9 @@ async function ensureDemoOwner(): Promise<void> {
         officeId: prisma.officeId,
         attendanceId: attendance.id,
         title: 'Troca de óleo e filtros',
+        quantity: 1,
+        unitPrice: 120,
+        amount: 120,
       },
     ];
     state.attendanceProducts = [
@@ -222,6 +239,49 @@ async function ensureDemoOwner(): Promise<void> {
         name: 'Super 3000 0W-20',
         brand: 'Mobil',
         quantity: 4.2,
+        unit: 'litro',
+        unitPrice: 50,
+        amount: 210,
+      },
+    ];
+    state.serviceCatalog = [
+      ...state.serviceCatalog,
+      {
+        id: 'svc_demo_oleo',
+        officeId: prisma.officeId,
+        name: 'Troca de óleo',
+        description: 'Troca de óleo e filtros com produtos homologados.',
+        category: 'Manutenção preventiva',
+        price: 120,
+        durationMinutes: 40,
+        status: 'active',
+        publicVisible: true,
+        createdAt: nowIso(),
+      },
+      {
+        id: 'svc_demo_alinhamento',
+        officeId: prisma.officeId,
+        name: 'Alinhamento',
+        category: 'Direção e suspensão',
+        price: 90,
+        durationMinutes: 30,
+        status: 'active',
+        publicVisible: true,
+        createdAt: nowIso(),
+      },
+    ];
+    state.productCatalog = [
+      ...state.productCatalog,
+      {
+        id: 'prd_demo_oleo',
+        officeId: prisma.officeId,
+        name: 'Óleo 0W-20',
+        brand: 'Mobil',
+        category: 'Lubrificantes',
+        unit: 'litro',
+        price: 50,
+        status: 'active',
+        createdAt: nowIso(),
       },
     ];
     state.returns = [
@@ -231,6 +291,7 @@ async function ensureDemoOwner(): Promise<void> {
         officeId: prisma.officeId,
         customerId: customer.id,
         vehicleId: vehicle.id,
+        attendanceId: attendance.id,
         dueDate: '2026-09-21',
         reason: 'Próxima troca de óleo',
         serviceTitle: 'Troca de óleo',
@@ -239,11 +300,30 @@ async function ensureDemoOwner(): Promise<void> {
         createdAt: nowIso(),
       },
     ];
+    state.appointments = [
+      ...state.appointments,
+      {
+        id: 'apt_demo_prisma',
+        officeId: prisma.officeId,
+        customerName: 'João Carlos da Silva',
+        phone: '11988880000',
+        plate: 'BRA2E19',
+        service: 'Troca de óleo',
+        date: '2026-08-28',
+        time: '14:00',
+        period: 'tarde',
+        status: 'requested',
+        createdAt: nowIso(),
+      },
+    ];
   }
   persist();
 }
 
 function enrichDemoOperationalRecords(): void {
+  const prisma = state.offices.find((office) => office.slug === 'prisma');
+  if (!prisma) return;
+
   state.customers = state.customers.map((row) => {
     if (row.id !== 'cust_demo_prisma') return row;
     return {
@@ -253,6 +333,42 @@ function enrichDemoOperationalRecords(): void {
       email: row.email || 'joao.silva@email.com',
     };
   });
+  state.vehicles = state.vehicles.map((row) => {
+    if (row.id !== 'veh_demo_prisma') return row;
+    return {
+      ...row,
+      version: row.version || 'XEi 2.0',
+      mileageKm: row.mileageKm ?? 48320,
+    };
+  });
+  state.attendances = state.attendances.map((row) => {
+    if (row.id !== 'att_demo_prisma') return row;
+    return {
+      ...row,
+      laborAmount: row.laborAmount ?? 80,
+      servicesAmount: row.servicesAmount ?? 120,
+      productsAmount: row.productsAmount ?? 210,
+      totalAmount: row.totalAmount ?? 410,
+    };
+  });
+  state.attendanceServices = state.attendanceServices.map((row) => {
+    if (row.id !== 'atts_demo_prisma') return row;
+    return {
+      ...row,
+      quantity: row.quantity ?? 1,
+      unitPrice: row.unitPrice ?? 120,
+      amount: row.amount ?? 120,
+    };
+  });
+  state.attendanceProducts = state.attendanceProducts.map((row) => {
+    if (row.id !== 'attp_demo_prisma') return row;
+    return {
+      ...row,
+      unit: row.unit || 'litro',
+      unitPrice: row.unitPrice ?? 50,
+      amount: row.amount ?? 210,
+    };
+  });
   state.returns = state.returns.map((row) => {
     if (row.id !== 'ret_demo_prisma') return row;
     return {
@@ -260,8 +376,93 @@ function enrichDemoOperationalRecords(): void {
       serviceTitle: row.serviceTitle || 'Troca de óleo',
       nextMileageKm: row.nextMileageKm ?? 58320,
       reason: row.reason || 'Próxima troca de óleo',
+      attendanceId: row.attendanceId || 'att_demo_prisma',
     };
   });
+
+  if (!state.serviceCatalog.some((row) => row.officeId === prisma.officeId)) {
+    state.serviceCatalog = [
+      ...state.serviceCatalog,
+      {
+        id: 'svc_demo_oleo',
+        officeId: prisma.officeId,
+        name: 'Troca de óleo',
+        description: 'Troca de óleo e filtros com produtos homologados.',
+        category: 'Manutenção preventiva',
+        price: 120,
+        durationMinutes: 40,
+        status: 'active',
+        publicVisible: true,
+        createdAt: nowIso(),
+      },
+      {
+        id: 'svc_demo_alinhamento',
+        officeId: prisma.officeId,
+        name: 'Alinhamento',
+        category: 'Direção e suspensão',
+        price: 90,
+        durationMinutes: 30,
+        status: 'active',
+        publicVisible: true,
+        createdAt: nowIso(),
+      },
+    ];
+  }
+  if (!state.productCatalog.some((row) => row.officeId === prisma.officeId)) {
+    state.productCatalog = [
+      ...state.productCatalog,
+      {
+        id: 'prd_demo_oleo',
+        officeId: prisma.officeId,
+        name: 'Óleo 0W-20',
+        brand: 'Mobil',
+        category: 'Lubrificantes',
+        unit: 'litro',
+        price: 50,
+        status: 'active',
+        createdAt: nowIso(),
+      },
+    ];
+  }
+  if (!state.appointments.some((row) => row.id === 'apt_demo_prisma')) {
+    state.appointments = [
+      ...state.appointments,
+      {
+        id: 'apt_demo_prisma',
+        officeId: prisma.officeId,
+        customerName: 'João Carlos da Silva',
+        phone: '11988880000',
+        plate: 'BRA2E19',
+        service: 'Troca de óleo',
+        date: '2026-08-28',
+        time: '14:00',
+        period: 'tarde',
+        status: 'requested',
+        createdAt: nowIso(),
+      },
+    ];
+  }
+  if (!state.subscriptions.some((row) => row.officeId === prisma.officeId)) {
+    state.subscriptions = [
+      ...state.subscriptions,
+      {
+        id: 'sub_demo_prisma',
+        officeId: prisma.officeId,
+        planId: OFFICE_PLAN_ID,
+        modality: 'monthly',
+        year1MonthlyAmount: OFFICE_PRICING.year1Monthly,
+        year2MonthlyAmount: OFFICE_PRICING.year2Monthly,
+        contractedAmount: OFFICE_PRICING.year1Monthly,
+        currentAmount: OFFICE_PRICING.year1Monthly,
+        currency: 'BRL',
+        status: 'active',
+        startsAt: prisma.activatedAt || prisma.createdAt,
+        renewsAt: '2026-09-21',
+        gateway: 'mock',
+        createdAt: prisma.createdAt,
+      },
+    ];
+  }
 }
 
 export function subscribeOfficeStore(listener: () => void): () => void {
@@ -687,10 +888,81 @@ export function upsertVehicle(
     plate: input.plate,
     brand: input.brand,
     model: input.model,
+    version: input.version,
     year: input.year,
+    mileageKm: input.mileageKm,
+    notes: input.notes,
     createdAt: nowIso(),
   };
   state.vehicles = [...state.vehicles, next];
+  persist();
+  return next;
+}
+
+export function listServiceCatalog(officeId: string): OfficeServiceCatalogItem[] {
+  return scoped(state.serviceCatalog, officeId);
+}
+
+export function upsertServiceCatalog(
+  officeId: string,
+  input: Omit<OfficeServiceCatalogItem, 'id' | 'officeId' | 'createdAt'> & { id?: string },
+): OfficeServiceCatalogItem {
+  if (input.id) {
+    const existing = state.serviceCatalog.find((row) => row.id === input.id);
+    if (!existing) throw new Error('Serviço não encontrado.');
+    assertOfficeScope(officeId, existing.officeId);
+    const next = { ...existing, ...input, officeId, id: existing.id };
+    state.serviceCatalog = state.serviceCatalog.map((row) => (row.id === existing.id ? next : row));
+    persist();
+    return next;
+  }
+  const next: OfficeServiceCatalogItem = {
+    id: createId('svc'),
+    officeId,
+    name: input.name,
+    description: input.description,
+    category: input.category,
+    price: input.price,
+    durationMinutes: input.durationMinutes,
+    status: input.status,
+    publicVisible: input.publicVisible,
+    createdAt: nowIso(),
+  };
+  state.serviceCatalog = [...state.serviceCatalog, next];
+  persist();
+  return next;
+}
+
+export function listProductCatalog(officeId: string): OfficeProductCatalogItem[] {
+  return scoped(state.productCatalog, officeId);
+}
+
+export function upsertProductCatalog(
+  officeId: string,
+  input: Omit<OfficeProductCatalogItem, 'id' | 'officeId' | 'createdAt'> & { id?: string },
+): OfficeProductCatalogItem {
+  if (input.id) {
+    const existing = state.productCatalog.find((row) => row.id === input.id);
+    if (!existing) throw new Error('Produto não encontrado.');
+    assertOfficeScope(officeId, existing.officeId);
+    const next = { ...existing, ...input, officeId, id: existing.id };
+    state.productCatalog = state.productCatalog.map((row) => (row.id === existing.id ? next : row));
+    persist();
+    return next;
+  }
+  const next: OfficeProductCatalogItem = {
+    id: createId('prd'),
+    officeId,
+    name: input.name,
+    brand: input.brand,
+    category: input.category,
+    unit: input.unit,
+    price: input.price,
+    code: input.code,
+    status: input.status,
+    createdAt: nowIso(),
+  };
+  state.productCatalog = [...state.productCatalog, next];
   persist();
   return next;
 }
@@ -699,13 +971,97 @@ export function listAttendances(officeId: string): OfficeAttendance[] {
   return scoped(state.attendances, officeId);
 }
 
+export type AttendanceServiceInput = {
+  catalogServiceId?: string;
+  title: string;
+  description?: string;
+  quantity?: number;
+  unitPrice?: number;
+  amount?: number;
+  notes?: string;
+};
+
+export type AttendanceProductInput = {
+  catalogProductId?: string;
+  name: string;
+  brand?: string;
+  quantity?: number;
+  unit?: string;
+  unitPrice?: number;
+  amount?: number;
+  notes?: string;
+};
+
+export type AttendanceReturnInput = {
+  dueDate?: string;
+  nextMileageKm?: number;
+  serviceTitle?: string;
+  reason?: string;
+  notes?: string;
+};
+
 export function createAttendance(
   officeId: string,
   input: Omit<OfficeAttendance, 'id' | 'officeId' | 'createdAt'> & {
-    services?: string[];
-    products?: Array<{ name: string; brand?: string; quantity?: number }>;
+    services?: Array<string | AttendanceServiceInput>;
+    products?: AttendanceProductInput[];
+    returnPlan?: AttendanceReturnInput;
   },
 ): OfficeAttendance {
+  const serviceLines: AttendanceServiceLine[] = [];
+  for (const item of input.services ?? []) {
+    if (typeof item === 'string') {
+      if (!item.trim()) continue;
+      serviceLines.push({
+        id: createId('atts'),
+        officeId,
+        attendanceId: '',
+        title: item.trim(),
+      });
+      continue;
+    }
+    if (!item.title.trim()) continue;
+    const quantity = item.quantity ?? 1;
+    const unitPrice = item.unitPrice ?? 0;
+    serviceLines.push({
+      id: createId('atts'),
+      officeId,
+      attendanceId: '',
+      catalogServiceId: item.catalogServiceId,
+      title: item.title.trim(),
+      description: item.description,
+      quantity,
+      unitPrice,
+      amount: item.amount ?? quantity * unitPrice,
+      notes: item.notes,
+    });
+  }
+
+  const productLines: AttendanceProductLine[] = [];
+  for (const product of input.products ?? []) {
+    if (!product.name.trim()) continue;
+    const quantity = product.quantity ?? 1;
+    const unitPrice = product.unitPrice ?? 0;
+    productLines.push({
+      id: createId('attp'),
+      officeId,
+      attendanceId: '',
+      catalogProductId: product.catalogProductId,
+      name: product.name.trim(),
+      brand: product.brand,
+      quantity,
+      unit: product.unit,
+      unitPrice,
+      amount: product.amount ?? quantity * unitPrice,
+      notes: product.notes,
+    });
+  }
+
+  const servicesAmount = input.servicesAmount ?? serviceLines.reduce((sum, row) => sum + (row.amount ?? 0), 0);
+  const productsAmount = input.productsAmount ?? productLines.reduce((sum, row) => sum + (row.amount ?? 0), 0);
+  const laborAmount = input.laborAmount ?? 0;
+  const totalAmount = input.totalAmount ?? servicesAmount + productsAmount + laborAmount;
+
   const attendance: OfficeAttendance = {
     id: createId('att'),
     officeId,
@@ -714,31 +1070,53 @@ export function createAttendance(
     date: input.date,
     mileageKm: input.mileageKm,
     notes: input.notes,
+    laborAmount,
+    servicesAmount,
+    productsAmount,
+    totalAmount,
     status: input.status,
     createdAt: nowIso(),
   };
+
   state.attendances = [...state.attendances, attendance];
-  for (const title of input.services ?? []) {
-    if (!title.trim()) continue;
-    state.attendanceServices = [
-      ...state.attendanceServices,
-      { id: createId('atts'), officeId, attendanceId: attendance.id, title: title.trim() },
-    ];
+  state.attendanceServices = [
+    ...state.attendanceServices,
+    ...serviceLines.map((row) => ({ ...row, attendanceId: attendance.id })),
+  ];
+  state.attendanceProducts = [
+    ...state.attendanceProducts,
+    ...productLines.map((row) => ({ ...row, attendanceId: attendance.id })),
+  ];
+
+  if (input.vehicleId && input.mileageKm != null) {
+    state.vehicles = state.vehicles.map((row) =>
+      row.id === input.vehicleId && row.officeId === officeId
+        ? { ...row, mileageKm: Math.max(row.mileageKm ?? 0, input.mileageKm ?? 0) }
+        : row,
+    );
   }
-  for (const product of input.products ?? []) {
-    if (!product.name.trim()) continue;
-    state.attendanceProducts = [
-      ...state.attendanceProducts,
+
+  const plan = input.returnPlan;
+  if (plan && (plan.dueDate || plan.nextMileageKm)) {
+    state.returns = [
+      ...state.returns,
       {
-        id: createId('attp'),
+        id: createId('ret'),
         officeId,
+        customerId: input.customerId,
+        vehicleId: input.vehicleId,
         attendanceId: attendance.id,
-        name: product.name.trim(),
-        brand: product.brand,
-        quantity: product.quantity,
+        dueDate: plan.dueDate,
+        nextMileageKm: plan.nextMileageKm,
+        serviceTitle: plan.serviceTitle || serviceLines[0]?.title,
+        reason: plan.reason || plan.serviceTitle || serviceLines[0]?.title || 'Retorno previsto',
+        notes: plan.notes,
+        status: 'scheduled',
+        createdAt: nowIso(),
       },
     ];
   }
+
   persist();
   return attendance;
 }
@@ -773,10 +1151,12 @@ export function upsertReturn(
     officeId,
     vehicleId: input.vehicleId,
     customerId: input.customerId,
+    attendanceId: input.attendanceId,
     dueDate: input.dueDate,
     reason: input.reason,
     serviceTitle: input.serviceTitle,
     nextMileageKm: input.nextMileageKm,
+    notes: input.notes,
     status: input.status,
     createdAt: nowIso(),
   };
@@ -802,6 +1182,7 @@ export function createAppointment(
     service: input.service,
     date: input.date,
     period: input.period,
+    time: input.time,
     notes: input.notes,
     status: input.status ?? 'requested',
     createdAt: nowIso(),
@@ -811,12 +1192,79 @@ export function createAppointment(
   return next;
 }
 
-export function updateAppointmentStatus(officeId: string, appointmentId: string, status: OfficeAppointment['status']): void {
+export function updateAppointment(
+  officeId: string,
+  appointmentId: string,
+  patch: Partial<Omit<OfficeAppointment, 'id' | 'officeId' | 'createdAt'>>,
+): OfficeAppointment {
   const existing = state.appointments.find((row) => row.id === appointmentId);
   if (!existing) throw new Error('Agendamento não encontrado.');
   assertOfficeScope(officeId, existing.officeId);
-  state.appointments = state.appointments.map((row) => (row.id === appointmentId ? { ...row, status } : row));
+  const next = { ...existing, ...patch, id: existing.id, officeId: existing.officeId, createdAt: existing.createdAt };
+  state.appointments = state.appointments.map((row) => (row.id === appointmentId ? next : row));
   persist();
+  return next;
+}
+
+export function updateAppointmentStatus(officeId: string, appointmentId: string, status: OfficeAppointment['status']): void {
+  updateAppointment(officeId, appointmentId, { status });
+}
+
+export function getConsent(officeId: string): OfficeConsent | undefined {
+  return scoped(state.consents, officeId)[0];
+}
+
+export function listPayments(officeId: string): OfficePayment[] {
+  return scoped(state.payments, officeId);
+}
+
+export async function updateOfficeUserProfile(
+  userId: string,
+  patch: { fullName?: string; phone?: string; email?: string },
+): Promise<OfficeUser> {
+  const existing = state.users.find((row) => row.id === userId);
+  if (!existing) throw new Error('Usuário não encontrado.');
+  const next: OfficeUser = {
+    ...existing,
+    fullName: patch.fullName?.trim() || existing.fullName,
+    phone: patch.phone ? onlyDigits(patch.phone) : existing.phone,
+    email: patch.email?.trim().toLowerCase() || existing.email,
+  };
+  state.users = state.users.map((row) => (row.id === userId ? next : row));
+  persist();
+  return next;
+}
+
+export async function changeOfficeUserPassword(userId: string, currentPassword: string, nextPassword: string): Promise<void> {
+  const existing = state.users.find((row) => row.id === userId);
+  if (!existing) throw new Error('Usuário não encontrado.');
+  const currentHash = await hashPassword(existing.cpf, currentPassword);
+  if (currentHash !== existing.passwordHash) {
+    throw new Error('Senha atual incorreta.');
+  }
+  if (nextPassword.trim().length < 8) {
+    throw new Error('A nova senha deve ter ao menos 8 caracteres.');
+  }
+  const passwordHash = await hashPassword(existing.cpf, nextPassword);
+  state.users = state.users.map((row) => (row.id === userId ? { ...row, passwordHash } : row));
+  persist();
+}
+
+export function attendanceTotal(attendance: OfficeAttendance): number {
+  if (attendance.totalAmount != null) return attendance.totalAmount;
+  return (attendance.servicesAmount ?? 0) + (attendance.productsAmount ?? 0) + (attendance.laborAmount ?? 0);
+}
+
+export function lastAttendanceForVehicle(officeId: string, vehicleId: string): OfficeAttendance | undefined {
+  return listAttendances(officeId)
+    .filter((row) => row.vehicleId === vehicleId)
+    .sort((a, b) => b.date.localeCompare(a.date))[0];
+}
+
+export function lastAttendanceForCustomer(officeId: string, customerId: string): OfficeAttendance | undefined {
+  return listAttendances(officeId)
+    .filter((row) => row.customerId === customerId)
+    .sort((a, b) => b.date.localeCompare(a.date))[0];
 }
 
 export function onboardingProgress(officeId: string): { items: Array<{ id: string; label: string; done: boolean }>; percent: number } {
@@ -829,7 +1277,7 @@ export function onboardingProgress(officeId: string): { items: Array<{ id: strin
     { id: 'logo', label: 'Logo', done: Boolean(office?.logoUrl) },
     { id: 'descricao', label: 'Descrição', done: Boolean(office?.description && office.description.length > 40) },
     { id: 'horarios', label: 'Horários', done: Boolean(office?.businessHoursDetail) },
-    { id: 'servicos', label: 'Serviços', done: Boolean(office?.servicesList && office.servicesList.length > 0) },
+    { id: 'servicos', label: 'Serviços', done: listServiceCatalog(officeId).length > 0 || Boolean(office?.servicesList && office.servicesList.length > 0) },
     { id: 'contato', label: 'Contato', done: Boolean(office?.whatsapp && office.phone) },
     { id: 'cliente', label: 'Primeiro cliente', done: customers.length > 0 },
     { id: 'veiculo', label: 'Primeiro veículo', done: vehicles.length > 0 },
