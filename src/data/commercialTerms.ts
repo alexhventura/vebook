@@ -1,7 +1,10 @@
+import { formatBRL } from '../lib/currency';
+import { OFFICE_ANNUAL, OFFICE_PRICING } from './officePlans';
+
 export const COMMERCIAL_CONDITIONS = [
   'A adesão da oficina ao VEBOOK é contratual e onerosa, com cobrança recorrente no cartão de crédito.',
-  'No primeiro ano o valor vigente é de R$ 49,90 por mês (ou R$ 538,92 no plano anual, com 10% de desconto).',
-  'A partir do segundo ano o valor vigente passa a R$ 99,90 por mês (ou R$ 1.078,92 no plano anual, com 10% de desconto sobre o valor vigente).',
+  `No primeiro ano o valor vigente é de ${formatBRL(OFFICE_PRICING.year1Monthly)} por mês ou ${formatBRL(OFFICE_PRICING.year1Annual)} no plano anual (pagamento antecipado de 12 meses, com economia de ${formatBRL(OFFICE_ANNUAL.year1Savings)} em relação ao mensal).`,
+  `A partir do segundo ano o valor vigente passa a ${formatBRL(OFFICE_PRICING.year2Monthly)} por mês ou ${formatBRL(OFFICE_PRICING.year2Annual)} no plano anual.`,
   'A alteração de preço do segundo ano é condição comercial conhecida e aceita no momento da contratação.',
   'A oficina permanece pendente até a confirmação do pagamento. Somente após a confirmação ela é ativada, recebe página pública e acesso ao painel.',
   'O cadastro inicial exige apenas os dados essenciais. Informações complementares podem ser preenchidas depois, no painel.',

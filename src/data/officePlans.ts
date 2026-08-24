@@ -3,24 +3,35 @@ import { PlanModality } from '../types';
 
 export const OFFICE_PLAN_ID = 'vebook-oficina';
 
+/** Fonte única de verdade dos valores comerciais VEBOOK para oficinas. */
 export const OFFICE_PRICING = {
   year1Monthly: 49.9,
+  year1Annual: 499,
   year2Monthly: 99.9,
-  annualDiscount: 0.1,
+  year2Annual: 999,
 } as const;
 
-const year1AnnualGross = OFFICE_PRICING.year1Monthly * 12;
-const year2AnnualGross = OFFICE_PRICING.year2Monthly * 12;
+const year1MonthlyGross = Number((OFFICE_PRICING.year1Monthly * 12).toFixed(2));
 
 export const OFFICE_ANNUAL = {
-  year1Gross: Number(year1AnnualGross.toFixed(2)),
-  year1Net: Number((year1AnnualGross * (1 - OFFICE_PRICING.annualDiscount)).toFixed(2)),
-  year2Gross: Number(year2AnnualGross.toFixed(2)),
-  year2Net: Number((year2AnnualGross * (1 - OFFICE_PRICING.annualDiscount)).toFixed(2)),
+  /** Soma de 12 meses no plano mensal do primeiro ano (referência de comparação). */
+  year1Gross: year1MonthlyGross,
+  /** Valor fixo do plano anual no primeiro ano. */
+  year1Amount: OFFICE_PRICING.year1Annual,
+  /** Economia em relação a 12 × mensal no primeiro ano. */
+  year1Savings: Number((year1MonthlyGross - OFFICE_PRICING.year1Annual).toFixed(2)),
+  /** Equivalente mensal do plano anual no primeiro ano. */
+  year1EquivalentMonthly: Number((OFFICE_PRICING.year1Annual / 12).toFixed(2)),
+  /** Valor fixo da renovação anual. */
+  year2Amount: OFFICE_PRICING.year2Annual,
 };
 
 export function contractedAmountFor(modality: PlanModality): number {
-  return modality === 'annual' ? OFFICE_ANNUAL.year1Net : OFFICE_PRICING.year1Monthly;
+  return modality === 'annual' ? OFFICE_PRICING.year1Annual : OFFICE_PRICING.year1Monthly;
+}
+
+export function renewalAmountFor(modality: PlanModality): number {
+  return modality === 'annual' ? OFFICE_PRICING.year2Annual : OFFICE_PRICING.year2Monthly;
 }
 
 export function currentAmountFor(modality: PlanModality): number {
@@ -34,14 +45,26 @@ export function planLabel(modality: PlanModality): string {
 export function planSummaryLines(modality: PlanModality): string[] {
   if (modality === 'annual') {
     return [
-      `${formatBRL(OFFICE_ANNUAL.year1Net)} no primeiro ano (${formatBRL(OFFICE_PRICING.year1Monthly)} × 12, com 10% de desconto).`,
-      `A partir do segundo ano: ${formatBRL(OFFICE_ANNUAL.year2Net)}/ano (${formatBRL(OFFICE_PRICING.year2Monthly)} × 12, com 10% de desconto).`,
-      'Cobrança recorrente no cartão. 10% de desconto sobre o valor vigente.',
+      `${formatBRL(OFFICE_PRICING.year1Annual)} no primeiro ano — pagamento antecipado de 12 meses.`,
+      `Economize ${formatBRL(OFFICE_ANNUAL.year1Savings)} em relação a 12 meses no plano mensal.`,
+      `Equivale a aproximadamente ${formatBRL(OFFICE_ANNUAL.year1EquivalentMonthly)}/mês.`,
+      `Renovação: ${formatBRL(OFFICE_PRICING.year2Annual)}/ano.`,
     ];
   }
   return [
-    `${formatBRL(OFFICE_PRICING.year1Monthly)}/mês no primeiro ano.`,
-    `A partir do segundo ano: ${formatBRL(OFFICE_PRICING.year2Monthly)}/mês.`,
+    `${formatBRL(OFFICE_PRICING.year1Monthly)}/mês no primeiro ano. Cobrança mensal.`,
+    `Renovação: ${formatBRL(OFFICE_PRICING.year2Monthly)}/mês.`,
     'Cobrança recorrente no cartão.',
   ];
+}
+
+export function planCardsExplainer(): string[] {
+  return [
+    `Escolha como deseja pagar. O plano mensal tem cobrança recorrente. No plano anual, você garante 12 meses de acesso antecipadamente por ${formatBRL(OFFICE_PRICING.year1Annual)} no primeiro ano.`,
+    'Os valores de renovação são apresentados antes da contratação.',
+  ];
+}
+
+export function planPricingFootnote(): string {
+  return `Primeiro ano: ${formatBRL(OFFICE_PRICING.year1Monthly)}/mês ou ${formatBRL(OFFICE_PRICING.year1Annual)}/ano. Após o primeiro ano: ${formatBRL(OFFICE_PRICING.year2Monthly)}/mês ou ${formatBRL(OFFICE_PRICING.year2Annual)}/ano. Valores não são alterados pelo painel.`;
 }

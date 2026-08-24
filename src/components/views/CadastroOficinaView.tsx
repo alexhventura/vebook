@@ -9,7 +9,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { COMMERCIAL_CONDITIONS } from '../../data/commercialTerms';
-import { OFFICE_ANNUAL, OFFICE_PRICING, planLabel, planSummaryLines } from '../../data/officePlans';
+import { OFFICE_PRICING, contractedAmountFor, planLabel, planSummaryLines, renewalAmountFor } from '../../data/officePlans';
 import { formatBRL } from '../../lib/currency';
 import {
   applyPaymentWebhook,
@@ -583,8 +583,8 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
                   <input type="checkbox" checked={consent.priceChange} onChange={(e) => setConsent({ ...consent, priceChange: e.target.checked })} />
                   <span>
                     Estou ciente de que o primeiro ano custa {formatBRL(OFFICE_PRICING.year1Monthly)}/mês
-                    {draft.modality === 'annual' ? ` (${formatBRL(OFFICE_ANNUAL.year1Net)} no anual)` : ''} e que, a partir do segundo ano, o valor vigente passa a {formatBRL(OFFICE_PRICING.year2Monthly)}/mês
-                    {draft.modality === 'annual' ? ` (${formatBRL(OFFICE_ANNUAL.year2Net)} no anual)` : ''}.
+                    {draft.modality === 'annual' ? ` (${formatBRL(OFFICE_PRICING.year1Annual)} no anual)` : ''} e que, a partir do segundo ano, o valor vigente passa a {formatBRL(OFFICE_PRICING.year2Monthly)}/mês
+                    {draft.modality === 'annual' ? ` (${formatBRL(OFFICE_PRICING.year2Annual)} no anual)` : ''}.
                   </span>
                 </label>
               </div>
@@ -612,7 +612,11 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
               <div className="rounded-2xl border border-slate-200 p-4 space-y-3">
                 <p className="text-sm font-bold text-[#0B1E36] flex items-center gap-2">
                   <CreditCard className="w-4 h-4" />
-                  {planLabel(draft.modality)} — {formatBRL(draft.modality === 'annual' ? OFFICE_ANNUAL.year1Net : OFFICE_PRICING.year1Monthly)}
+                  {planLabel(draft.modality)} — {formatBRL(contractedAmountFor(draft.modality))}
+                </p>
+                <p className="text-xs text-slate-600">
+                  Renovação prevista: {formatBRL(renewalAmountFor(draft.modality))}
+                  {draft.modality === 'annual' ? '/ano' : '/mês'}.
                 </p>
                 <p className="text-xs text-slate-600">Cartão recorrente. Dados de cartão não são armazenados neste protótipo.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

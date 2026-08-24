@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { WORKSHOPS_MOCK } from '../../data/mockData';
 import { OFFICE_BENEFITS } from '../../data/commercialTerms';
-import { OFFICE_ANNUAL, OFFICE_PRICING } from '../../data/officePlans';
+import { OFFICE_ANNUAL, OFFICE_PRICING, planCardsExplainer } from '../../data/officePlans';
 import { formatBRL } from '../../lib/currency';
 import { searchPublicOffices } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
@@ -107,50 +107,81 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
         {/* PREÇO E CONDIÇÕES — visíveis antes de iniciar o cadastro */}
         <section id="precos-oficinas" className="space-y-6">
           <div className="text-center max-w-2xl mx-auto space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B1E36]">Preço e condições</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B1E36]">Planos e valores</h2>
             <p className="text-sm text-slate-600">
-              Primeiro ano: {formatBRL(OFFICE_PRICING.year1Monthly)}/mês. A partir do segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)}/mês.
+              Primeiro ano: {formatBRL(OFFICE_PRICING.year1Monthly)}/mês ou {formatBRL(OFFICE_PRICING.year1Annual)}/ano.
+              Após o primeiro ano: {formatBRL(OFFICE_PRICING.year2Monthly)}/mês ou {formatBRL(OFFICE_PRICING.year2Annual)}/ano.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <button
               type="button"
               onClick={() => setModality('monthly')}
-              className={`text-left bg-white rounded-3xl border p-6 space-y-3 cursor-pointer ${
-                modality === 'monthly' ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/15' : 'border-slate-200'
+              className={`text-left bg-white rounded-3xl border p-7 space-y-4 cursor-pointer transition-all ${
+                modality === 'monthly'
+                  ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/10 shadow-md'
+                  : 'border-slate-200 shadow-sm hover:border-slate-300'
               }`}
             >
-              <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano mensal</p>
-              <p className="text-3xl font-black text-[#0B1E36]">{formatBRL(OFFICE_PRICING.year1Monthly)}<span className="text-base font-bold text-slate-500">/mês</span></p>
-              <p className="text-sm text-slate-600">Cobrança recorrente no cartão no primeiro ano.</p>
-              <p className="text-sm font-bold text-slate-800">A partir do segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)}/mês.</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano mensal</p>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Primeiro ano</span>
+              </div>
+              <div>
+                <p className="text-4xl sm:text-5xl font-black text-[#0B1E36] leading-none">
+                  {formatBRL(OFFICE_PRICING.year1Monthly)}
+                </p>
+                <p className="text-base font-bold text-slate-500 mt-1">por mês</p>
+              </div>
+              <p className="text-sm text-slate-600">Cobrança mensal no cartão.</p>
+              <p className="text-sm text-slate-700 pt-2 border-t border-slate-100">
+                Renovação: <strong className="text-[#0B1E36]">{formatBRL(OFFICE_PRICING.year2Monthly)}/mês</strong>
+              </p>
             </button>
             <button
               type="button"
               onClick={() => setModality('annual')}
-              className={`text-left bg-white rounded-3xl border p-6 space-y-3 cursor-pointer ${
-                modality === 'annual' ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/15' : 'border-slate-200'
+              className={`relative text-left bg-white rounded-3xl border-2 p-7 space-y-4 cursor-pointer transition-all ${
+                modality === 'annual'
+                  ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/15 shadow-xl'
+                  : 'border-[#0B1E36]/70 shadow-lg hover:shadow-xl'
               }`}
             >
-              <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano anual · 10% de desconto</p>
-              <p className="text-3xl font-black text-[#0B1E36]">{formatBRL(OFFICE_ANNUAL.year1Net)}<span className="text-base font-bold text-slate-500">/ano</span></p>
-              <p className="text-sm text-slate-600">
-                {formatBRL(OFFICE_PRICING.year1Monthly)} × 12 = {formatBRL(OFFICE_ANNUAL.year1Gross)}. Com 10% de desconto: {formatBRL(OFFICE_ANNUAL.year1Net)}.
+              <span className="absolute -top-3 left-6 inline-flex items-center px-3 py-1 rounded-full bg-[#0B1E36] text-white text-[10px] font-bold uppercase tracking-wider">
+                Maior economia
+              </span>
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano anual</p>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Primeiro ano</span>
+              </div>
+              <div>
+                <p className="text-4xl sm:text-5xl font-black text-[#0B1E36] leading-none">
+                  {formatBRL(OFFICE_PRICING.year1Annual)}
+                </p>
+                <p className="text-base font-bold text-slate-500 mt-1">por ano</p>
+              </div>
+              <p className="text-sm font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                Economize {formatBRL(OFFICE_ANNUAL.year1Savings)} no ano
               </p>
-              <p className="text-sm font-bold text-slate-800">
-                Segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)} × 12 = {formatBRL(OFFICE_ANNUAL.year2Gross)}; com 10% = {formatBRL(OFFICE_ANNUAL.year2Net)}/ano.
+              <p className="text-sm text-slate-600">
+                Equivale a {formatBRL(OFFICE_ANNUAL.year1EquivalentMonthly)}/mês · pagamento antecipado de 12 meses.
+              </p>
+              <p className="text-sm text-slate-700 pt-2 border-t border-slate-100">
+                Renovação: <strong className="text-[#0B1E36]">{formatBRL(OFFICE_PRICING.year2Annual)}/ano</strong>
               </p>
             </button>
           </div>
-          <p className="text-xs text-slate-500 text-center">
-            Plano anual com 10% de desconto sobre o valor vigente. A alteração de preço do segundo ano permanece visível antes da contratação.
-          </p>
+          <div className="max-w-3xl mx-auto space-y-2 text-sm text-slate-600 text-center">
+            {planCardsExplainer().map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
           <div className="text-center">
             <button
               onClick={() => onStartCadastro(modality)}
-              className="px-8 py-3.5 rounded-xl bg-[#0B1E36] text-white font-extrabold text-sm cursor-pointer"
+              className="px-8 py-3.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-extrabold text-sm cursor-pointer shadow-md transition-colors"
             >
-              Cadastrar minha oficina
+              Começar cadastro
             </button>
           </div>
         </section>

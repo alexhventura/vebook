@@ -13,7 +13,7 @@ import { formatBRL } from '../../lib/currency';
 import { formatCpf } from '../../lib/cpf';
 import { formatPhone } from '../../lib/phone';
 import { workshopHost } from '../../lib/slug';
-import { planLabel, planSummaryLines } from '../../data/officePlans';
+import { planLabel, planPricingFootnote, planSummaryLines } from '../../data/officePlans';
 import { Office, OfficeUser, PanelModule, TeamJobRole } from '../../types';
 import { Field, inputClass } from '../ui/Field';
 import { SectionTitle, formatIsoDate } from './shared';
@@ -259,7 +259,7 @@ export const ConfiguracoesSection: React.FC<{
               <p>Status: {subscription.status}</p>
               <p>Contratação: {formatIsoDate(subscription.createdAt)}</p>
               <p>Próxima renovação: {subscription.renewsAt ? formatIsoDate(subscription.renewsAt) : 'conforme ciclo do plano'}</p>
-              <p className="text-xs text-slate-500">Primeiro ano: R$ 49,90/mês · Anos seguintes: R$ 99,90/mês · Plano anual: 10% de desconto. Valores não são alterados pelo painel.</p>
+              <p className="text-xs text-slate-500">{planPricingFootnote()}</p>
             </>
           ) : (
             <p className="text-slate-600">Nenhuma assinatura local registrada para esta oficina seed.</p>
