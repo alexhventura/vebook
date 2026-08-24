@@ -28,7 +28,10 @@ import {
   returnSituation,
 } from './shared';
 
-export const DashboardSection: React.FC<{ office: Office; onSectionChange: (section: PanelSection) => void }> = ({
+export const DashboardSection: React.FC<{
+  office: Office;
+  onSectionChange: (section: PanelSection, tab?: string) => void;
+}> = ({
   office,
   onSectionChange,
 }) => {
@@ -118,16 +121,16 @@ export const DashboardSection: React.FC<{ office: Office; onSectionChange: (sect
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {[
           { label: 'Atendimentos', value: String(periodAttendances.length), go: 'atendimentos' as PanelSection },
-          { label: 'Faturamento', value: formatBRL(revenue), go: 'atendimentos' as PanelSection },
+          { label: 'Faturamento', value: formatBRL(revenue), go: 'financeiro' as PanelSection },
           { label: 'Clientes', value: String(customers.length), go: 'clientes' as PanelSection },
           { label: 'Veículos', value: String(vehicles.length), go: 'veiculos' as PanelSection },
-          { label: 'Retornos', value: String(pendingReturns.length), go: 'retornos' as PanelSection },
+          { label: 'Retornos', value: String(pendingReturns.length), go: 'agenda' as PanelSection, tab: 'retornos' },
           { label: 'Agendamentos', value: String(periodAppointments.length), go: 'agenda' as PanelSection },
         ].map((card) => (
           <button
             key={card.label}
             type="button"
-            onClick={() => onSectionChange(card.go)}
+            onClick={() => onSectionChange(card.go, 'tab' in card ? card.tab : undefined)}
             className="bg-white rounded-2xl border border-slate-200 p-4 text-left cursor-pointer"
           >
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{card.label}</p>
@@ -163,7 +166,7 @@ export const DashboardSection: React.FC<{ office: Office; onSectionChange: (sect
         <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
           <div className="flex items-center justify-between gap-3">
             <h3 className="font-extrabold text-[#0B1E36]">Próximos retornos</h3>
-            <button type="button" onClick={() => onSectionChange('retornos')} className="text-xs font-bold text-sky-800 cursor-pointer">Ver retornos</button>
+            <button type="button" onClick={() => onSectionChange('agenda', 'retornos')} className="text-xs font-bold text-sky-800 cursor-pointer">Ver retornos</button>
           </div>
           {upcomingReturns.length === 0 ? <p className="text-sm text-slate-500">Nenhum retorno pendente.</p> : null}
           <ul className="space-y-3">

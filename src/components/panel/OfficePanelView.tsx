@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Bell,
   Calendar,
   Car,
   ClipboardList,
   Download,
+  DollarSign,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -37,17 +37,18 @@ import { AtendimentosSection } from './AtendimentosSection';
 import { ClientesSection } from './ClientesSection';
 import { ConfiguracoesSection } from './ConfiguracoesSection';
 import { DashboardSection } from './DashboardSection';
+import { FinanceiroSection } from './FinanceiroSection';
 import { MinhaOficinaSection } from './MinhaOficinaSection';
 import { PerfilSection } from './PerfilSection';
 import { ProdutosSection } from './ProdutosSection';
-import { RetornosSection } from './RetornosSection';
 import { ServicosSection } from './ServicosSection';
 import { VeiculosSection } from './VeiculosSection';
 
 interface OfficePanelViewProps {
   requestedSlug?: string;
   section: PanelSection;
-  onSectionChange: (section: PanelSection) => void;
+  panelTab?: string;
+  onSectionChange: (section: PanelSection, tab?: string) => void;
   onViewPublicPage: (slug: string) => void;
   onGoHome: () => void;
 }
@@ -61,16 +62,16 @@ const NAV_GROUPS: Array<{ title?: string; items: NavItem[] }> = [
   {
     items: [
       { id: 'atendimentos', label: 'Atendimentos', icon: <Wrench className="w-4 h-4" /> },
-      { id: 'clientes', label: 'Clientes', icon: <Users className="w-4 h-4" /> },
-      { id: 'veiculos', label: 'Veículos', icon: <Car className="w-4 h-4" /> },
-      { id: 'servicos', label: 'Serviços', icon: <ClipboardList className="w-4 h-4" /> },
-      { id: 'produtos', label: 'Produtos', icon: <Package className="w-4 h-4" /> },
+      { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
     ],
   },
   {
     items: [
-      { id: 'agenda', label: 'Agenda', icon: <Calendar className="w-4 h-4" /> },
-      { id: 'retornos', label: 'Retornos', icon: <Bell className="w-4 h-4" /> },
+      { id: 'clientes', label: 'Clientes', icon: <Users className="w-4 h-4" /> },
+      { id: 'veiculos', label: 'Veículos', icon: <Car className="w-4 h-4" /> },
+      { id: 'servicos', label: 'Serviços', icon: <ClipboardList className="w-4 h-4" /> },
+      { id: 'produtos', label: 'Produtos', icon: <Package className="w-4 h-4" /> },
+      { id: 'financeiro', label: 'Financeiro', icon: <DollarSign className="w-4 h-4" /> },
     ],
   },
   {
@@ -87,6 +88,7 @@ const NAV_GROUPS: Array<{ title?: string; items: NavItem[] }> = [
 export const OfficePanelView: React.FC<OfficePanelViewProps> = ({
   requestedSlug,
   section,
+  panelTab,
   onSectionChange,
   onViewPublicPage,
   onGoHome,
@@ -121,6 +123,7 @@ export const OfficePanelView: React.FC<OfficePanelViewProps> = ({
       office={office}
       user={user}
       section={section}
+      panelTab={panelTab}
       onSectionChange={onSectionChange}
       onViewPublicPage={onViewPublicPage}
       onGoHome={onGoHome}
@@ -207,10 +210,11 @@ const PanelShell: React.FC<{
   office: Office;
   user: OfficeUser;
   section: PanelSection;
-  onSectionChange: (section: PanelSection) => void;
+  panelTab?: string;
+  onSectionChange: (section: PanelSection, tab?: string) => void;
   onViewPublicPage: (slug: string) => void;
   onGoHome: () => void;
-}> = ({ office, user, section, onSectionChange, onViewPublicPage, onGoHome }) => {
+}> = ({ office, user, section, panelTab, onSectionChange, onViewPublicPage, onGoHome }) => {
   const pending = office.status !== 'active';
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -232,11 +236,23 @@ const PanelShell: React.FC<{
     }
   }, []);
 
-  const go = (next: PanelSection) => {
-    onSectionChange(next);
+  const go = (next: PanelSection, tab?: string) => {
+    onSectionChange(next, tab);
     setMenuOpen(false);
     setAccountOpen(false);
   };
+
+  const agendaTab = section === 'agenda' && panelTab === 'retornos' ? 'retornos' : 'agendamentos';
+  const configTab =
+    section === 'configuracoes' && panelTab === 'equipe'
+      ? 'equipe'
+      : section === 'configuracoes' && panelTab === 'assinatura'
+        ? 'assinatura'
+        : section === 'configuracoes' && panelTab === 'privacidade'
+          ? 'privacidade'
+          : section === 'configuracoes' && panelTab === 'pagina-publica'
+            ? 'pagina-publica'
+            : 'conta';
 
   const nav = (
     <nav className="bg-white rounded-2xl border border-slate-200 p-2 space-y-3">
@@ -351,17 +367,22 @@ const PanelShell: React.FC<{
         </aside>
 
         <main className="min-w-0">
-          {section === 'inicio' && <DashboardSection office={office} onSectionChange={onSectionChange} />}
+          {section === 'inicio' && (
+            <DashboardSection
+              office={office}
+              onSectionChange={(next, tab) => go(next, tab)}
+            />
+          )}
           {section === 'atendimentos' && <AtendimentosSection officeId={office.officeId} />}
+          {section === 'agenda' && <AgendaSection officeId={office.officeId} initialTab={agendaTab} />}
           {section === 'clientes' && <ClientesSection officeId={office.officeId} />}
           {section === 'veiculos' && <VeiculosSection officeId={office.officeId} />}
           {section === 'servicos' && <ServicosSection officeId={office.officeId} />}
           {section === 'produtos' && <ProdutosSection officeId={office.officeId} />}
-          {section === 'agenda' && <AgendaSection officeId={office.officeId} />}
-          {section === 'retornos' && <RetornosSection officeId={office.officeId} />}
+          {section === 'financeiro' && <FinanceiroSection officeId={office.officeId} />}
           {section === 'minha-oficina' && <MinhaOficinaSection office={office} onViewPublicPage={onViewPublicPage} />}
           {section === 'perfil' && <PerfilSection user={user} />}
-          {section === 'configuracoes' && <ConfiguracoesSection office={office} user={user} />}
+          {section === 'configuracoes' && <ConfiguracoesSection office={office} user={user} initialTab={configTab} />}
         </main>
       </div>
     </div>

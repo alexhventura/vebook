@@ -2,9 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { listCustomers, listReturns, listVehicles, upsertReturn } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { Field, inputClass } from '../ui/Field';
-import { CommunicationNotice, SectionTitle, daysUntilIso, formatIsoDate, formatKm, returnSituation } from './shared';
+import { daysUntilIso, formatIsoDate, formatKm, returnSituation } from './shared';
 
-export const RetornosSection: React.FC<{ officeId: string }> = ({ officeId }) => {
+/** Painel de retornos reutilizado dentro de Agenda (sem aba independente no menu). */
+export const RetornosPanel: React.FC<{ officeId: string }> = ({ officeId }) => {
   useOfficeStore();
   const rows = listReturns(officeId);
   const customers = listCustomers(officeId);
@@ -32,12 +33,10 @@ export const RetornosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
   }, [rows, filter]);
 
   return (
-    <section className="space-y-4">
-      <SectionTitle
-        title="Retornos"
-        subtitle="Controle interno de previsão de retorno do veículo. Não confundir com Agenda. O VEBOOK não avisa o cliente."
-      />
-      <CommunicationNotice />
+    <div className="space-y-4">
+      <p className="text-sm text-slate-600">
+        Retorno é acompanhamento interno. Pode ser criado durante um atendimento ou registrado manualmente. O VEBOOK não envia lembretes ao cliente.
+      </p>
       <form
         className="bg-white rounded-2xl border border-slate-200 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3"
         onSubmit={(e) => {
@@ -84,7 +83,7 @@ export const RetornosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
         {([
           ['proximos', 'Próximos'],
           ['atrasados', 'Atrasados'],
-          ['concluidos', 'Concluídos'],
+          ['concluidos', 'Realizados'],
           ['todos', 'Todos'],
         ] as const).map(([key, label]) => (
           <button
@@ -124,6 +123,6 @@ export const RetornosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 };

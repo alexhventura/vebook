@@ -16,6 +16,7 @@ import { isValidSlugFormat, normalizeSlug, slugFromWorkshopName, workshopHost } 
 import {
   AttendanceProductLine,
   AttendanceServiceLine,
+  ModulePermissions,
   Office,
   OfficeAppointment,
   OfficeAttendance,
@@ -29,8 +30,11 @@ import {
   OfficeSubscription,
   OfficeUser,
   OfficeVehicleRecord,
+  PanelModule,
   PlanModality,
   SignupDraft,
+  TeamJobRole,
+  TeamMemberStatus,
   Workshop,
 } from '../types';
 
@@ -174,6 +178,10 @@ async function ensureDemoOwner(): Promise<void> {
     email: DEMO_OWNER.email,
     passwordHash: await hashPassword(DEMO_OWNER.cpf, DEMO_OWNER.password),
     role: 'owner',
+    jobRole: 'owner',
+    jobTitle: 'Proprietária',
+    status: 'active',
+    permissions: defaultPermissionsForJobRole('owner'),
     createdAt: prisma.createdAt,
   };
   prisma.ownerUserId = owner.id;
@@ -1253,6 +1261,171 @@ export async function changeOfficeUserPassword(userId: string, currentPassword: 
 export function attendanceTotal(attendance: OfficeAttendance): number {
   if (attendance.totalAmount != null) return attendance.totalAmount;
   return (attendance.servicesAmount ?? 0) + (attendance.productsAmount ?? 0) + (attendance.laborAmount ?? 0);
+}
+
+const ALL_PANEL_MODULES: PanelModule[] = [
+  'inicio',
+  'atendimentos',
+  'agenda',
+  'clientes',
+  'veiculos',
+  'servicos',
+  'produtos',
+  'financeiro',
+  'minha-oficina',
+  'perfil',
+  'configuracoes',
+];
+
+export function defaultPermissionsForJobRole(jobRole: TeamJobRole): ModulePermissions {
+  const all = Object.fromEntries(ALL_PANEL_MODULES.map((mod) => [mod, true])) as ModulePermissions;
+  if (jobRole === 'owner' || jobRole === 'manager') return all;
+  if (jobRole === 'attendant') {
+    return {
+      inicio: true,
+      atendimentos: true,
+      agenda: true,
+      clientes: true,
+      veiculos: true,
+      servicos: true,
+      produtos: true,
+      financeiro: false,
+      'minha-oficina': false,
+      perfil: true,
+      configuracoes: false,
+    };
+  }
+  if (jobRole === 'mechanic') {
+    return {
+      inicio: true,
+      atendimentos: true,
+      agenda: true,
+      clientes: true,
+      veiculos: true,
+      servicos: true,
+      produtos: true,
+      financeiro: false,
+      'minha-oficina': false,
+      perfil: true,
+      configuracoes: false,
+    };
+  }
+  return all;
+}
+
+export function listTeamMembers(officeId: string): OfficeUser[] {
+  return scoped(state.users, officeId).slice().sort((a, b) => a.fullName.localeCompare(b.fullName));
+}
+
+export type TeamMemberInput = {
+  id?: string;
+  fullName: string;
+  cpf?: string;
+  phone?: string;
+  email?: string;
+  jobRole?: TeamJobRole;
+  jobTitle?: string;
+  status?: TeamMemberStatus;
+  permissions?: ModulePermissions;
+};
+
+export async function upsertTeamMember(officeId: string, input: TeamMemberInput): Promise<OfficeUser> {
+  const office = getOfficeById(officeId);
+  if (!office) throw new Error('Oficina não encontrada.');
+
+  if (input.id) {
+    const existing = state.users.find((row) => row.id === input.id);
+    if (!existing) throw new Error('Membro não encontrado.');
+    assertOfficeScope(officeId, existing.officeId);
+    if (existing.role === 'owner' && input.status === 'inactive') {
+      throw new Error('O proprietário principal não pode ser desativado.');
+    }
+    const jobRole = input.jobRole ?? existing.jobRole ?? 'custom';
+    const next: OfficeUser = {
+      ...existing,
+      fullName: input.fullName.trim() || existing.fullName,
+      phone: input.phone ? onlyDigits(input.phone) : existing.phone,
+      email: input.email?.trim().toLowerCase() || existing.email,
+      jobRole,
+      jobTitle: input.jobTitle?.trim() || existing.jobTitle,
+      status: input.status ?? existing.status ?? 'active',
+      permissions: input.permissions ?? existing.permissions ?? defaultPermissionsForJobRole(jobRole),
+    };
+    state.users = state.users.map((row) => (row.id === existing.id ? next : row));
+    persist();
+    return next;
+  }
+
+  const cpf = input.cpf ? onlyDigits(input.cpf) : '';
+  if (cpf.length !== 11) throw new Error('Informe um CPF válido para o novo membro.');
+  if (state.users.some((user) => user.cpf === cpf)) {
+    throw new Error('CPF já cadastrado nesta conta.');
+  }
+  const jobRole = input.jobRole ?? 'attendant';
+  const passwordHash = await hashPassword(cpf, 'Alterar123!');
+  const next: OfficeUser = {
+    id: createId('user'),
+    officeId,
+    fullName: input.fullName.trim(),
+    cpf,
+    phone: input.phone ? onlyDigits(input.phone) : '',
+    email: input.email?.trim().toLowerCase() || '',
+    passwordHash,
+    role: 'staff',
+    jobRole,
+    jobTitle: input.jobTitle?.trim(),
+    status: input.status ?? 'active',
+    permissions: input.permissions ?? defaultPermissionsForJobRole(jobRole),
+    createdAt: nowIso(),
+  };
+  state.users = [...state.users, next];
+  persist();
+  return next;
+}
+
+export function removeTeamMemberAccess(officeId: string, userId: string): void {
+  const existing = state.users.find((row) => row.id === userId);
+  if (!existing) throw new Error('Membro não encontrado.');
+  assertOfficeScope(officeId, existing.officeId);
+  if (existing.role === 'owner') {
+    throw new Error('O proprietário principal não pode ser removido.');
+  }
+  state.users = state.users.filter((row) => row.id !== userId);
+  persist();
+}
+
+export function financialSummary(
+  officeId: string,
+  from: Date,
+  to: Date,
+): {
+  revenue: number;
+  servicesAmount: number;
+  productsAmount: number;
+  laborAmount: number;
+  ticketAverage: number;
+  attendanceCount: number;
+  attendances: OfficeAttendance[];
+} {
+  const attendances = listAttendances(officeId).filter((row) => {
+    const iso = row.date;
+    if (!iso) return false;
+    const value = new Date(`${iso.slice(0, 10)}T12:00:00`);
+    return value >= from && value <= to;
+  });
+  const revenue = attendances.reduce((sum, row) => sum + attendanceTotal(row), 0);
+  const servicesAmount = attendances.reduce((sum, row) => sum + (row.servicesAmount ?? 0), 0);
+  const productsAmount = attendances.reduce((sum, row) => sum + (row.productsAmount ?? 0), 0);
+  const laborAmount = attendances.reduce((sum, row) => sum + (row.laborAmount ?? 0), 0);
+  return {
+    revenue,
+    servicesAmount,
+    productsAmount,
+    laborAmount,
+    ticketAverage: attendances.length ? revenue / attendances.length : 0,
+    attendanceCount: attendances.length,
+    attendances: attendances.slice().sort((a, b) => b.date.localeCompare(a.date)),
+  };
 }
 
 export function lastAttendanceForVehicle(officeId: string, vehicleId: string): OfficeAttendance | undefined {

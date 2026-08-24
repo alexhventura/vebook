@@ -170,6 +170,27 @@ export type PlanModality = 'monthly' | 'annual';
 
 export type OfficeUserRole = 'owner' | 'staff';
 
+/** Função operacional do membro da equipe (distinta de role de autenticação). */
+export type TeamJobRole = 'owner' | 'manager' | 'attendant' | 'mechanic' | 'custom';
+
+export type TeamMemberStatus = 'active' | 'inactive';
+
+/** Módulos do painel para permissões granulares. */
+export type PanelModule =
+  | 'inicio'
+  | 'atendimentos'
+  | 'agenda'
+  | 'clientes'
+  | 'veiculos'
+  | 'servicos'
+  | 'produtos'
+  | 'financeiro'
+  | 'minha-oficina'
+  | 'perfil'
+  | 'configuracoes';
+
+export type ModulePermissions = Partial<Record<PanelModule, boolean>>;
+
 export type AttendanceStatus = 'open' | 'completed';
 
 export type ReturnStatus = 'scheduled' | 'done' | 'cancelled';
@@ -214,6 +235,11 @@ export interface OfficeUser {
   email: string;
   passwordHash: string;
   role: OfficeUserRole;
+  /** Função exibida na equipe (gerente, atendente, etc.). */
+  jobRole?: TeamJobRole;
+  jobTitle?: string;
+  status?: TeamMemberStatus;
+  permissions?: ModulePermissions;
   createdAt: string;
   passwordResetRequestedAt?: string;
 }

@@ -4,25 +4,31 @@ export interface RouteState {
   view: AppView;
   workshopSlug?: string;
   panelSection?: PanelSection;
+  panelTab?: string;
   transparenciaSection?: TransparenciaSection;
 }
 
 export type PanelSection =
   | 'inicio'
   | 'atendimentos'
+  | 'agenda'
   | 'clientes'
   | 'veiculos'
   | 'servicos'
   | 'produtos'
-  | 'agenda'
-  | 'retornos'
+  | 'financeiro'
   | 'minha-oficina'
   | 'perfil'
   | 'configuracoes';
 
+/** @deprecated Retornos integrados em Agenda — redireciona para agenda?tab=retornos */
+export type LegacyPanelSection = 'retornos';
+
 export function parseHash(hash = window.location.hash): RouteState {
   const raw = hash.replace(/^#/, '') || '/';
-  const path = raw.split('?')[0];
+  const [pathPart, queryPart] = raw.split('?');
+  const path = pathPart;
+  const params = new URLSearchParams(queryPart || '');
   const parts = path.split('/').filter(Boolean);
 
   if (parts[0] === 'diario') return { view: 'diario' };
@@ -38,14 +44,27 @@ export function parseHash(hash = window.location.hash): RouteState {
   }
   if (parts[0] === 'oficinas') return { view: 'oficinas' };
   if (parts[0] === 'painel') {
-    return { view: 'painel-oficina', panelSection: (parts[1] as PanelSection) || 'inicio' };
+    const sectionRaw = parts[1] || 'inicio';
+    if (sectionRaw === 'retornos') {
+      return { view: 'painel-oficina', panelSection: 'agenda', panelTab: 'retornos' };
+    }
+    return {
+      view: 'painel-oficina',
+      panelSection: (sectionRaw as PanelSection) || 'inicio',
+      panelTab: params.get('tab') || undefined,
+    };
   }
   if (parts[0] === 'o' && parts[1]) {
     if (parts[2] === 'painel') {
+      const sectionRaw = parts[3] || 'inicio';
+      if (sectionRaw === 'retornos') {
+        return { view: 'painel-oficina', workshopSlug: parts[1], panelSection: 'agenda', panelTab: 'retornos' };
+      }
       return {
         view: 'painel-oficina',
         workshopSlug: parts[1],
-        panelSection: (parts[3] as PanelSection) || 'inicio',
+        panelSection: (sectionRaw as PanelSection) || 'inicio',
+        panelTab: params.get('tab') || undefined,
       };
     }
     return { view: 'site-oficina', workshopSlug: parts[1] };
@@ -78,7 +97,10 @@ export function toHash(state: RouteState): string {
       return state.workshopSlug ? `#/o/${state.workshopSlug}` : '#/o/prisma';
     case 'painel-oficina': {
       const section = state.panelSection && state.panelSection !== 'inicio' ? `/${state.panelSection}` : '';
-      return state.workshopSlug ? `#/o/${state.workshopSlug}/painel${section}` : `#/painel${section}`;
+      const tab = state.panelTab ? `?tab=${encodeURIComponent(state.panelTab)}` : '';
+      return state.workshopSlug
+        ? `#/o/${state.workshopSlug}/painel${section}${tab}`
+        : `#/painel${section}${tab}`;
     }
     default:
       return '#/';

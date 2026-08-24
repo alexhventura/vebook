@@ -31,6 +31,7 @@ export default function App() {
   const [legalModalType, setLegalModalType] = useState<'termos' | 'privacidade' | 'contato' | 'comercial' | null>(null);
   const [workshopSlug, setWorkshopSlug] = useState<string | undefined>(initial.workshopSlug);
   const [panelSection, setPanelSection] = useState<PanelSection>(initial.panelSection || 'inicio');
+  const [panelTab, setPanelTab] = useState<string | undefined>(initial.panelTab);
   const [signupModality, setSignupModality] = useState<PlanModality>('monthly');
 
   const [isCookieConfigModalOpen, setIsCookieConfigModalOpen] = useState(false);
@@ -50,6 +51,7 @@ export default function App() {
       setCurrentView(next.view);
       if (next.workshopSlug) setWorkshopSlug(next.workshopSlug);
       if (next.panelSection) setPanelSection(next.panelSection);
+      setPanelTab(next.panelTab);
       if (next.transparenciaSection) setTransparenciaSection(next.transparenciaSection);
     };
     window.addEventListener('hashchange', sync);
@@ -59,17 +61,24 @@ export default function App() {
     return () => window.removeEventListener('hashchange', sync);
   }, []);
 
-  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection }) => {
+  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string }) => {
     if (extra && 'workshopSlug' in extra) {
       setWorkshopSlug(extra.workshopSlug);
     }
     if (extra?.panelSection) setPanelSection(extra.panelSection);
+    if (extra && 'panelTab' in extra) {
+      setPanelTab(extra.panelTab);
+    } else if (extra?.panelSection) {
+      setPanelTab(undefined);
+    }
     setCurrentView(view);
     const slug = extra && 'workshopSlug' in extra ? extra.workshopSlug : workshopSlug;
+    const nextTab = extra && 'panelTab' in extra ? extra.panelTab : extra?.panelSection ? undefined : panelTab;
     applyHash({
       view,
       workshopSlug: view === 'site-oficina' ? slug || 'prisma' : view === 'painel-oficina' ? slug : undefined,
       panelSection: extra?.panelSection ?? (view === 'painel-oficina' ? panelSection : undefined),
+      panelTab: view === 'painel-oficina' ? nextTab : undefined,
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -194,7 +203,8 @@ export default function App() {
           <OfficePanelView
             requestedSlug={workshopSlug}
             section={panelSection}
-            onSectionChange={(section) => handleNavigate('painel-oficina', { workshopSlug, panelSection: section })}
+            panelTab={panelTab}
+            onSectionChange={(section, tab) => handleNavigate('painel-oficina', { workshopSlug, panelSection: section, panelTab: tab })}
             onViewPublicPage={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}
             onGoHome={() => handleNavigate('home')}
           />
