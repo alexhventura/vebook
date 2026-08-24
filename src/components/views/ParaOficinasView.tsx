@@ -51,6 +51,11 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
   const selectedWorkshop = WORKSHOPS_MOCK.find(w => w.id === selectedWorkshopId) || WORKSHOPS_MOCK[0];
   const publicOffices = searchPublicOffices(query, city, uf);
 
+  const planCardClass = (value: PlanModality) =>
+    value === modality
+      ? 'border-2 border-[#0B1E36] bg-sky-50 ring-2 ring-sky-300/60 shadow-lg'
+      : 'border border-slate-200 bg-white shadow-sm hover:border-sky-200 hover:bg-sky-50/40';
+
   return (
     <div className="bg-[#F8FAFC] min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-16">
@@ -117,15 +122,16 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
             <button
               type="button"
               onClick={() => setModality('monthly')}
-              className={`text-left bg-white rounded-3xl border p-7 space-y-4 cursor-pointer transition-all ${
-                modality === 'monthly'
-                  ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/10 shadow-md'
-                  : 'border-slate-200 shadow-sm hover:border-slate-300'
-              }`}
+              aria-pressed={modality === 'monthly'}
+              className={`text-left rounded-3xl p-7 space-y-4 cursor-pointer transition-all ${planCardClass('monthly')}`}
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano mensal</p>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Primeiro ano</span>
+                {modality === 'monthly' ? (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-white bg-[#0B1E36] px-2 py-1 rounded-full">Selecionado</span>
+                ) : (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Primeiro ano</span>
+                )}
               </div>
               <div>
                 <p className="text-4xl sm:text-5xl font-black text-[#0B1E36] leading-none">
@@ -141,18 +147,19 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
             <button
               type="button"
               onClick={() => setModality('annual')}
-              className={`relative text-left bg-white rounded-3xl border-2 p-7 space-y-4 cursor-pointer transition-all ${
-                modality === 'annual'
-                  ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/15 shadow-xl'
-                  : 'border-[#0B1E36]/70 shadow-lg hover:shadow-xl'
-              }`}
+              aria-pressed={modality === 'annual'}
+              className={`relative text-left rounded-3xl p-7 space-y-4 cursor-pointer transition-all ${planCardClass('annual')}`}
             >
               <span className="absolute -top-3 left-6 inline-flex items-center px-3 py-1 rounded-full bg-[#0B1E36] text-white text-[10px] font-bold uppercase tracking-wider">
                 Maior economia
               </span>
               <div className="flex items-center justify-between gap-3 pt-1">
                 <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano anual</p>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Primeiro ano</span>
+                {modality === 'annual' ? (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-white bg-[#0B1E36] px-2 py-1 rounded-full">Selecionado</span>
+                ) : (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Primeiro ano</span>
+                )}
               </div>
               <div>
                 <p className="text-4xl sm:text-5xl font-black text-[#0B1E36] leading-none">
