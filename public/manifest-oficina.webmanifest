@@ -1,0 +1,19 @@
+{
+  "name": "VEBOOK — Gestão da Oficina",
+  "short_name": "VEBOOK Gestão",
+  "description": "Painel de gestão da oficina no VEBOOK. O mesmo sistema web, instalável no computador, celular ou tablet.",
+  "start_url": "/#/painel",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#0B1E36",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

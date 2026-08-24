@@ -39,11 +39,15 @@
 | `diario` | `views/DiarioVeicularView.tsx` | Histórico do veículo |
 | `como-funciona` | `views/ComoFuncionaView.tsx` | Explicação do fluxo |
 | `certidao` | `views/CertidaoView.tsx` | Emissão / prévia da certidão |
-| `oficinas` | `views/ParaOficinasView.tsx` | Aquisição de oficinas |
+| `oficinas` | `views/ParaOficinasView.tsx` | Aquisição, preços e busca pública de oficinas |
+| `cadastro-oficina` | `views/CadastroOficinaView.tsx` | Cadastro em etapas + pagamento simulado |
+| `painel-oficina` | `panel/OfficePanelView.tsx` | Login CPF, gestão e PWA |
 | `site-oficina` | `workshop/WorkshopSiteView.tsx` | Vitrine da oficina credenciada |
 | `validacao` | `views/ValidacaoSimuladorView.tsx` | Simulador de validação pelo cliente |
 | `transparencia` | `views/TransparenciaView.tsx` | LGPD, termos, FAQ, regras |
 
+Hashes correspondentes: `#/`, `#/oficinas`, `#/oficinas/cadastro`, `#/o/:slug`, `#/o/:slug/painel`, `#/painel`.
+
 ## Dados de demonstração
 
-Placa de exemplo usada na home e na certidão: **BRA2E19**. Oficinas e serviços estão em `WORKSHOPS_MOCK`, `VEHICLES_MOCK` e `SERVICES_MOCK`.
+Placa de exemplo usada na home e na certidão: **BRA2E19**. Oficinas e serviços estão em `WORKSHOPS_MOCK`, `VEHICLES_MOCK` e `SERVICES_MOCK`. O ecossistema operacional (cadastro, assinatura, painel) persiste em `localStorage` via `src/data/officeStore.ts`. Login demo Prisma: CPF `529.982.247-25` / senha `Prisma2026!`.

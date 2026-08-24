@@ -1,33 +1,38 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 
-// Views
 import { HomeView } from './components/views/HomeView';
 import { DiarioVeicularView } from './components/views/DiarioVeicularView';
 import { ComoFuncionaView } from './components/views/ComoFuncionaView';
 import { CertidaoView } from './components/views/CertidaoView';
 import { ParaOficinasView } from './components/views/ParaOficinasView';
+import { CadastroOficinaView } from './components/views/CadastroOficinaView';
 import { ValidacaoSimuladorView } from './components/views/ValidacaoSimuladorView';
 import { WorkshopSiteView } from './components/workshop/WorkshopSiteView';
 import { TransparenciaView } from './components/views/TransparenciaView';
+import { OfficePanelView } from './components/panel/OfficePanelView';
 
-// Modals
-import { CredenciamentoModal } from './components/modals/CredenciamentoModal';
 import { LegalModal } from './components/modals/LegalModal';
 import { CookieBanner } from './components/cookies/CookieBanner';
 import { MinhaPrivacidadeModal } from './components/privacy/MinhaPrivacidadeModal';
 import { ContestacaoModal } from './components/contestation/ContestacaoModal';
-import { AppView, TransparenciaSection, ServiceRecord } from './types';
+import { AppView, PlanModality, ServiceRecord, TransparenciaSection } from './types';
+import { applyHash, parseHash, PanelSection } from './lib/navigation';
+import { initOfficeStore } from './data/officeStore';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<AppView>('home');
-  const [transparenciaSection, setTransparenciaSection] = useState<TransparenciaSection>('como-tratamos');
+  const initial = parseHash();
+  const [currentView, setCurrentView] = useState<AppView>(initial.view);
+  const [transparenciaSection, setTransparenciaSection] = useState<TransparenciaSection>(
+    initial.transparenciaSection || 'como-tratamos',
+  );
   const [selectedPlateForCertidao, setSelectedPlateForCertidao] = useState<string>('BRA2E19');
-  const [credenciamentoMode, setCredenciamentoMode] = useState<'cadastro' | 'login' | null>(null);
-  const [legalModalType, setLegalModalType] = useState<'termos' | 'privacidade' | 'contato' | null>(null);
-  
-  // Modais de Governança e Transparência
+  const [legalModalType, setLegalModalType] = useState<'termos' | 'privacidade' | 'contato' | 'comercial' | null>(null);
+  const [workshopSlug, setWorkshopSlug] = useState<string | undefined>(initial.workshopSlug);
+  const [panelSection, setPanelSection] = useState<PanelSection>(initial.panelSection || 'inicio');
+  const [signupModality, setSignupModality] = useState<PlanModality>('monthly');
+
   const [isCookieConfigModalOpen, setIsCookieConfigModalOpen] = useState(false);
   const [isPrivacidadeModalOpen, setIsPrivacidadeModalOpen] = useState(false);
   const [isContestacaoModalOpen, setIsContestacaoModalOpen] = useState(false);
@@ -35,26 +40,55 @@ export default function App() {
 
   const consultaInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleNavigate = (view: AppView) => {
+  useEffect(() => {
+    void initOfficeStore();
+  }, []);
+
+  useEffect(() => {
+    const sync = () => {
+      const next = parseHash();
+      setCurrentView(next.view);
+      if (next.workshopSlug) setWorkshopSlug(next.workshopSlug);
+      if (next.panelSection) setPanelSection(next.panelSection);
+      if (next.transparenciaSection) setTransparenciaSection(next.transparenciaSection);
+    };
+    window.addEventListener('hashchange', sync);
+    if (!window.location.hash) {
+      applyHash({ view: 'home' });
+    }
+    return () => window.removeEventListener('hashchange', sync);
+  }, []);
+
+  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection }) => {
+    if (extra && 'workshopSlug' in extra) {
+      setWorkshopSlug(extra.workshopSlug);
+    }
+    if (extra?.panelSection) setPanelSection(extra.panelSection);
     setCurrentView(view);
+    const slug = extra && 'workshopSlug' in extra ? extra.workshopSlug : workshopSlug;
+    applyHash({
+      view,
+      workshopSlug: view === 'site-oficina' ? slug || 'prisma' : view === 'painel-oficina' ? slug : undefined,
+      panelSection: extra?.panelSection ?? (view === 'painel-oficina' ? panelSection : undefined),
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleNavigateTransparencia = (section: TransparenciaSection) => {
     setTransparenciaSection(section);
     setCurrentView('transparencia');
+    applyHash({ view: 'transparencia', transparenciaSection: section });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSearchPlateFromHome = (plate: string) => {
     setSelectedPlateForCertidao(plate);
-    setCurrentView('diario');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    handleNavigate('diario');
   };
 
   const handleFocusConsulta = () => {
     if (currentView !== 'diario') {
-      setCurrentView('diario');
+      handleNavigate('diario');
     }
     setTimeout(() => {
       const input = consultaInputRef.current;
@@ -67,8 +101,7 @@ export default function App() {
 
   const handleEmitirCertidaoForPlate = (plate: string) => {
     setSelectedPlateForCertidao(plate);
-    setCurrentView('certidao');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    handleNavigate('certidao');
   };
 
   const handleOpenContestacaoForRecord = (record: ServiceRecord) => {
@@ -81,24 +114,25 @@ export default function App() {
     setIsContestacaoModalOpen(true);
   };
 
+  const immersive = currentView === 'site-oficina' || currentView === 'painel-oficina' || currentView === 'cadastro-oficina';
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#071A33] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#0B1E36] selection:text-white">
-      
-      {/* HEADER INSTITUCIONAL COM NAVEGAÇÃO ENTRE VISÕES */}
-      <Header
-        currentView={currentView}
-        onNavigate={handleNavigate}
-        onFocusConsulta={handleFocusConsulta}
-      />
+      {!immersive && (
+        <Header
+          currentView={currentView}
+          onNavigate={handleNavigate}
+          onFocusConsulta={handleFocusConsulta}
+        />
+      )}
 
-      {/* CONTEÚDO DINÂMICO CONFORME A VISÃO SELECIONADA */}
       <main className="flex-1">
         {currentView === 'home' && (
           <HomeView
             onNavigate={handleNavigate}
             onSearchPlate={handleSearchPlateFromHome}
-            onOpenCredenciamento={() => setCredenciamentoMode('cadastro')}
-            onOpenJaCredenciado={() => setCredenciamentoMode('login')}
+            onOpenCredenciamento={() => handleNavigate('cadastro-oficina')}
+            onOpenJaCredenciado={() => handleNavigate('painel-oficina', { workshopSlug: undefined })}
           />
         )}
 
@@ -128,8 +162,22 @@ export default function App() {
         {currentView === 'oficinas' && (
           <ParaOficinasView
             onNavigate={handleNavigate}
-            onOpenCredenciamentoModal={() => setCredenciamentoMode('cadastro')}
-            onOpenJaCredenciadoModal={() => setCredenciamentoMode('login')}
+            onStartCadastro={(modality) => {
+              setSignupModality(modality);
+              handleNavigate('cadastro-oficina');
+            }}
+            onOpenPainel={() => handleNavigate('painel-oficina', { workshopSlug: undefined })}
+            onOpenWorkshop={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}
+          />
+        )}
+
+        {currentView === 'cadastro-oficina' && (
+          <CadastroOficinaView
+            initialModality={signupModality}
+            onBackToOficinas={() => handleNavigate('oficinas')}
+            onOpenLegal={(type) => setLegalModalType(type)}
+            onViewPublicPage={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}
+            onOpenPanel={(slug) => handleNavigate('painel-oficina', { workshopSlug: slug })}
           />
         )}
 
@@ -137,7 +185,18 @@ export default function App() {
           <WorkshopSiteView
             onNavigate={handleNavigate}
             onSearchPlate={handleSearchPlateFromHome}
-            initialWorkshopId="ws-prisma"
+            workshopSlug={workshopSlug || 'prisma'}
+            onOpenPanel={(slug) => handleNavigate('painel-oficina', { workshopSlug: slug })}
+          />
+        )}
+
+        {currentView === 'painel-oficina' && (
+          <OfficePanelView
+            requestedSlug={workshopSlug}
+            section={panelSection}
+            onSectionChange={(section) => handleNavigate('painel-oficina', { workshopSlug, panelSection: section })}
+            onViewPublicPage={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}
+            onGoHome={() => handleNavigate('home')}
           />
         )}
 
@@ -159,23 +218,22 @@ export default function App() {
         )}
       </main>
 
-      {/* RODAPÉ INSTITUCIONAL */}
-      <Footer
-        onNavigate={handleNavigate}
-        onNavigateTransparencia={handleNavigateTransparencia}
-        onOpenCookiesConfig={() => setIsCookieConfigModalOpen(true)}
-        onOpenPrivacidadeModal={() => setIsPrivacidadeModalOpen(true)}
-        onOpenContestacaoModal={handleOpenContestacaoGeneric}
-        onOpenContato={() => setLegalModalType('contato')}
-      />
+      {!immersive && (
+        <Footer
+          onNavigate={handleNavigate}
+          onNavigateTransparencia={handleNavigateTransparencia}
+          onOpenCookiesConfig={() => setIsCookieConfigModalOpen(true)}
+          onOpenPrivacidadeModal={() => setIsPrivacidadeModalOpen(true)}
+          onOpenContestacaoModal={handleOpenContestacaoGeneric}
+          onOpenContato={() => setLegalModalType('contato')}
+        />
+      )}
 
-      {/* BANNER E MODAL DE PREFERÊNCIAS DE COOKIES */}
       <CookieBanner
         isOpenModalExternally={isCookieConfigModalOpen}
         onCloseExternalModal={() => setIsCookieConfigModalOpen(false)}
       />
 
-      {/* PAINEL MINHA PRIVACIDADE (LGPD ART. 18) */}
       <MinhaPrivacidadeModal
         isOpen={isPrivacidadeModalOpen}
         onClose={() => setIsPrivacidadeModalOpen(false)}
@@ -185,7 +243,6 @@ export default function App() {
         }}
       />
 
-      {/* MODAL FORMAL DE CONTESTAÇÃO DE REGISTRO */}
       <ContestacaoModal
         isOpen={isContestacaoModalOpen}
         onClose={() => {
@@ -195,23 +252,12 @@ export default function App() {
         targetRecord={targetContestationRecord}
       />
 
-      {/* MODAL DE CREDENCIAMENTO / ACESSO DA OFICINA */}
-      {credenciamentoMode && (
-        <CredenciamentoModal
-          mode={credenciamentoMode}
-          onClose={() => setCredenciamentoMode(null)}
-        />
-      )}
-
-      {/* MODAIS LEGAIS E INSTITUCIONAIS RESUMIDOS */}
       {legalModalType && (
         <LegalModal
           type={legalModalType}
           onClose={() => setLegalModalType(null)}
         />
       )}
-
     </div>
   );
 }
-

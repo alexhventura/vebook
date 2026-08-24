@@ -9,6 +9,8 @@ export type AppView =
   | 'como-funciona'
   | 'certidao'
   | 'oficinas'
+  | 'cadastro-oficina'
+  | 'painel-oficina'
   | 'site-oficina'
   | 'validacao'
   | 'transparencia';
@@ -145,6 +147,223 @@ export interface Workshop {
   certifiedSince: string;
   description: string;
   credentialStatus?: 'credenciada' | 'verificada' | 'parceira_premium';
+}
+
+/**
+ * ECOSSISTEMA DE OFICINAS — cadastro, assinatura, painel e isolamento por office_id
+ */
+
+export type OfficeStatus = 'pending' | 'active' | 'inactive' | 'suspended';
+
+export type PaymentStatus =
+  | 'pending'
+  | 'processing'
+  | 'paid'
+  | 'failed'
+  | 'cancelled'
+  | 'expired'
+  | 'refunded';
+
+export type SubscriptionStatus = 'pending' | 'active' | 'past_due' | 'cancelled' | 'expired';
+
+export type PlanModality = 'monthly' | 'annual';
+
+export type OfficeUserRole = 'owner' | 'staff';
+
+export type AttendanceStatus = 'open' | 'completed';
+
+export type ReturnStatus = 'scheduled' | 'done' | 'cancelled';
+
+export type AppointmentStatus = 'requested' | 'confirmed' | 'cancelled';
+
+export type PaymentGatewayId = 'mock' | 'unset';
+
+/** Registro operacional da oficina. Estende o perfil público `Workshop`. */
+export interface Office extends Workshop {
+  officeId: string;
+  legalName: string;
+  tradeName?: string;
+  cnpj?: string;
+  street: string;
+  streetNumber: string;
+  complement?: string;
+  status: OfficeStatus;
+  publicVisible: boolean;
+  slug: string;
+  ownerUserId?: string;
+  createdAt: string;
+  activatedAt?: string;
+  segments?: string[];
+  source: 'seed' | 'signup';
+}
+
+export interface OfficeUser {
+  id: string;
+  officeId: string;
+  fullName: string;
+  cpf: string;
+  phone: string;
+  email: string;
+  passwordHash: string;
+  role: OfficeUserRole;
+  createdAt: string;
+  passwordResetRequestedAt?: string;
+}
+
+export interface OfficeSubscription {
+  id: string;
+  officeId: string;
+  planId: 'vebook-oficina';
+  modality: PlanModality;
+  year1MonthlyAmount: number;
+  year2MonthlyAmount: number;
+  contractedAmount: number;
+  currentAmount: number;
+  currency: 'BRL';
+  status: SubscriptionStatus;
+  startsAt?: string;
+  renewsAt?: string;
+  gateway: PaymentGatewayId;
+  externalId?: string;
+  createdAt: string;
+}
+
+export interface OfficePayment {
+  id: string;
+  officeId: string;
+  subscriptionId: string;
+  amount: number;
+  currency: 'BRL';
+  status: PaymentStatus;
+  gateway: PaymentGatewayId;
+  externalId?: string;
+  createdAt: string;
+  paidAt?: string;
+  failureReason?: string;
+  webhookReceivedAt?: string;
+}
+
+export interface OfficeConsent {
+  id: string;
+  officeId: string;
+  userId: string;
+  termsAcceptedAt: string;
+  privacyAcceptedAt: string;
+  commercialAcceptedAt: string;
+  priceChangeAcknowledgedAt: string;
+  userAgent: string;
+}
+
+export interface OfficeCustomer {
+  id: string;
+  officeId: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface OfficeVehicleRecord {
+  id: string;
+  officeId: string;
+  customerId?: string;
+  plate: string;
+  brand?: string;
+  model?: string;
+  year?: number;
+  createdAt: string;
+}
+
+export interface OfficeAttendance {
+  id: string;
+  officeId: string;
+  customerId?: string;
+  vehicleId?: string;
+  date: string;
+  mileageKm?: number;
+  notes?: string;
+  status: AttendanceStatus;
+  createdAt: string;
+}
+
+export interface AttendanceServiceLine {
+  id: string;
+  officeId: string;
+  attendanceId: string;
+  title: string;
+}
+
+export interface AttendanceProductLine {
+  id: string;
+  officeId: string;
+  attendanceId: string;
+  name: string;
+  brand?: string;
+  quantity?: number;
+}
+
+export interface OfficeReturn {
+  id: string;
+  officeId: string;
+  vehicleId?: string;
+  customerId?: string;
+  dueDate: string;
+  reason: string;
+  status: ReturnStatus;
+  createdAt: string;
+}
+
+export interface OfficeAppointment {
+  id: string;
+  officeId: string;
+  customerName: string;
+  phone: string;
+  plate?: string;
+  service?: string;
+  date?: string;
+  period?: string;
+  notes?: string;
+  status: AppointmentStatus;
+  createdAt: string;
+}
+
+export interface OfficeSession {
+  userId: string;
+  officeId: string;
+  expiresAt: number;
+}
+
+export interface SignupDraft {
+  owner: {
+    fullName: string;
+    cpf: string;
+    phone: string;
+    email: string;
+    password: string;
+  };
+  office: {
+    legalName: string;
+    tradeName: string;
+    cnpj: string;
+    phone: string;
+    whatsapp: string;
+    zipCode: string;
+    street: string;
+    streetNumber: string;
+    complement: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+  };
+  slug: string;
+  extras: {
+    segments: string[];
+    instagram: string;
+    website: string;
+    shortDescription: string;
+  };
+  modality: PlanModality;
 }
 
 export interface Certificate {

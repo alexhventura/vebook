@@ -8,8 +8,8 @@ alwaysApply: true
 Plataforma nacional de Diário Veicular. A oficina registra, o cliente valida, a VEBOOK preserva.
 
 - UI em pt-BR, tom institucional.
-- Navegação atual: estado `AppView` em `src/App.tsx`.
-- Dados mock: `src/data/mockData.ts` e `src/data/governanceData.ts`.
+- Navegação atual: estado `AppView` em `src/App.tsx` (hashes `#/oficinas`, `#/o/:slug`, `#/painel`).
+- Dados mock: `src/data/mockData.ts`, `src/data/governanceData.ts` e `src/data/officeStore.ts`.
 - Tipos: `src/types.ts`.
 - Layout: `src/components/layout/`.
-- Telas: `src/components/views/`.
+- Telas: `src/components/views/`, painel em `src/components/panel/`.

@@ -20,22 +20,36 @@ import {
   Star,
   FileSpreadsheet
 } from 'lucide-react';
-import { WORKSHOPS_MOCK, SERVICES_MOCK } from '../../data/mockData';
-import { AppView } from '../../types';
+import { WORKSHOPS_MOCK } from '../../data/mockData';
+import { OFFICE_BENEFITS } from '../../data/commercialTerms';
+import { OFFICE_ANNUAL, OFFICE_PRICING } from '../../data/officePlans';
+import { formatBRL } from '../../lib/currency';
+import { searchPublicOffices } from '../../data/officeStore';
+import { useOfficeStore } from '../../hooks/useOfficeStore';
+import { workshopHost } from '../../lib/slug';
+import { AppView, PlanModality } from '../../types';
 
 interface ParaOficinasViewProps {
   onNavigate: (view: AppView) => void;
-  onOpenCredenciamentoModal: () => void;
-  onOpenJaCredenciadoModal: () => void;
+  onStartCadastro: (modality: PlanModality) => void;
+  onOpenPainel: () => void;
+  onOpenWorkshop: (slug: string) => void;
 }
 
 export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
   onNavigate,
-  onOpenCredenciamentoModal,
-  onOpenJaCredenciadoModal,
+  onStartCadastro,
+  onOpenPainel,
+  onOpenWorkshop,
 }) => {
+  useOfficeStore();
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string>('ws-01');
+  const [modality, setModality] = useState<PlanModality>('monthly');
+  const [query, setQuery] = useState('');
+  const [city, setCity] = useState('');
+  const [uf, setUf] = useState('');
   const selectedWorkshop = WORKSHOPS_MOCK.find(w => w.id === selectedWorkshopId) || WORKSHOPS_MOCK[0];
+  const publicOffices = searchPublicOffices(query, city, uf);
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -56,63 +70,34 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <button
-              onClick={onOpenCredenciamentoModal}
+              onClick={() => onStartCadastro(modality)}
               className="px-7 py-3.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-extrabold text-sm transition-all shadow-md cursor-pointer"
             >
-              Credenciar Minha Oficina
+              Cadastrar minha oficina
             </button>
             <button
-              onClick={onOpenJaCredenciadoModal}
+              onClick={onOpenPainel}
               className="px-7 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm border border-slate-300 transition-all cursor-pointer"
             >
-              Já sou Credenciado (Acesso)
+              Já sou credenciado (acessar painel)
             </button>
           </div>
         </div>
 
-        {/* OS 4 PILARES DE VALOR PARA A OFICINA */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-sky-50 text-[#0B1E36] flex items-center justify-center font-bold">
-              <FileSpreadsheet className="w-6 h-6 text-sky-700" />
-            </div>
-            <h3 className="text-lg font-bold text-[#0B1E36]">1. Sistema de Gestão Completo</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Ordens de serviço, cadastro de clientes, controle de veículos, estoque de peças e histórico financeiro em uma única plataforma em nuvem.
-            </p>
+        {/* O QUE A OFICINA RECEBE — apenas recursos desta etapa */}
+        <div className="space-y-6">
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <h2 className="text-2xl font-extrabold text-[#0B1E36]">O que a oficina recebe</h2>
+            <p className="text-sm text-slate-600">Recursos disponíveis nesta etapa do ecossistema. Sem promessas de módulos ainda não implementados.</p>
           </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-sky-50 text-[#0B1E36] flex items-center justify-center font-bold">
-              <Globe className="w-6 h-6 text-sky-700" />
-            </div>
-            <h3 className="text-lg font-bold text-[#0B1E36]">2. Página Pública Própria</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Sua oficina ganha um endereço próprio (ex: <code>suaoficina.vebook.com.br</code>) com fotos, serviços, horários e botão de WhatsApp.
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {OFFICE_BENEFITS.map((item) => (
+              <div key={item.title} className="bg-white p-5 rounded-2xl border border-slate-200 space-y-1">
+                <h3 className="font-bold text-[#0B1E36] text-sm">{item.title}</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">{item.detail}</p>
+              </div>
+            ))}
           </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-sky-50 text-[#0B1E36] flex items-center justify-center font-bold">
-              <ShieldCheck className="w-6 h-6 text-sky-700" />
-            </div>
-            <h3 className="text-lg font-bold text-[#0B1E36]">3. Autoridade e Transparência</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Ao alimentar o Diário Veicular com peças e marcas originais, sua oficina se diferencia das amadoras e ganha a confiança do cliente.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-sky-50 text-[#0B1E36] flex items-center justify-center font-bold">
-              <Smartphone className="w-6 h-6 text-sky-700" />
-            </div>
-            <h3 className="text-lg font-bold text-[#0B1E36]">4. Fidelização e Retorno</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              O cliente recebe o link da OS direto no WhatsApp e valida o serviço. O sistema alerta automaticamente as próximas revisões preventivas.
-            </p>
-          </div>
-
         </div>
 
         {/* DEMONSTRAÇÃO INTERATIVA: A PÁGINA PÚBLICA DA OFICINA */}
@@ -147,7 +132,7 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
                 </div>
 
                 <button
-                  onClick={() => onNavigate('site-oficina')}
+                  onClick={() => onOpenWorkshop(selectedWorkshop.subdomain.split('.')[0])}
                   className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
                 >
                   <span>Abrir Site Oficial Completo da Oficina</span>
@@ -308,14 +293,117 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
 
           <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
             <button
-              onClick={onOpenCredenciamentoModal}
+              onClick={() => onStartCadastro(modality)}
               className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-[#0B1E36] font-extrabold text-sm transition-all cursor-pointer shadow-lg"
             >
-              Iniciar Credenciamento Gratuito
+              Cadastrar minha oficina
             </button>
-            <span className="text-xs text-slate-300">Sem taxa de adesão · Suporte técnico e homologação inclusos</span>
+            <span className="text-xs text-slate-300">Valores visíveis antes do cadastro · Ativação após confirmação de pagamento</span>
           </div>
         </div>
+
+        {/* PREÇO E CONDIÇÕES — visíveis antes de iniciar o cadastro */}
+        <section id="precos-oficinas" className="space-y-6">
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B1E36]">Preço e condições</h2>
+            <p className="text-sm text-slate-600">
+              Primeiro ano: {formatBRL(OFFICE_PRICING.year1Monthly)}/mês. A partir do segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)}/mês.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <button
+              type="button"
+              onClick={() => setModality('monthly')}
+              className={`text-left bg-white rounded-3xl border p-6 space-y-3 cursor-pointer ${
+                modality === 'monthly' ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/15' : 'border-slate-200'
+              }`}
+            >
+              <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano mensal</p>
+              <p className="text-3xl font-black text-[#0B1E36]">{formatBRL(OFFICE_PRICING.year1Monthly)}<span className="text-base font-bold text-slate-500">/mês</span></p>
+              <p className="text-sm text-slate-600">Cobrança recorrente no cartão no primeiro ano.</p>
+              <p className="text-sm font-bold text-slate-800">A partir do segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)}/mês.</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setModality('annual')}
+              className={`text-left bg-white rounded-3xl border p-6 space-y-3 cursor-pointer ${
+                modality === 'annual' ? 'border-[#0B1E36] ring-2 ring-[#0B1E36]/15' : 'border-slate-200'
+              }`}
+            >
+              <p className="text-xs font-bold uppercase tracking-wider text-sky-800">Plano anual · 10% de desconto</p>
+              <p className="text-3xl font-black text-[#0B1E36]">{formatBRL(OFFICE_ANNUAL.year1Net)}<span className="text-base font-bold text-slate-500">/ano</span></p>
+              <p className="text-sm text-slate-600">
+                {formatBRL(OFFICE_PRICING.year1Monthly)} × 12 = {formatBRL(OFFICE_ANNUAL.year1Gross)}. Com 10% de desconto: {formatBRL(OFFICE_ANNUAL.year1Net)}.
+              </p>
+              <p className="text-sm font-bold text-slate-800">
+                Segundo ano: {formatBRL(OFFICE_PRICING.year2Monthly)} × 12 = {formatBRL(OFFICE_ANNUAL.year2Gross)}; com 10% = {formatBRL(OFFICE_ANNUAL.year2Net)}/ano.
+              </p>
+            </button>
+          </div>
+          <p className="text-xs text-slate-500 text-center">
+            Plano anual com 10% de desconto sobre o valor vigente. A alteração de preço do segundo ano permanece visível antes da contratação.
+          </p>
+          <div className="text-center">
+            <button
+              onClick={() => onStartCadastro(modality)}
+              className="px-8 py-3.5 rounded-xl bg-[#0B1E36] text-white font-extrabold text-sm cursor-pointer"
+            >
+              Cadastrar minha oficina
+            </button>
+          </div>
+        </section>
+
+        {/* BUSCA PÚBLICA DE OFICINAS ATIVAS */}
+        <section className="space-y-5">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-extrabold text-[#0B1E36]">Encontre oficinas da rede VEBOOK</h2>
+            <p className="text-sm text-slate-600">Somente oficinas ativas, com pagamento confirmado e autorização para publicação. Dados privados do responsável não são exibidos.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Pesquisar por nome ou serviço"
+              className="px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm"
+            />
+            <input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="Cidade ou região"
+              className="px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm"
+            />
+            <input
+              value={uf}
+              onChange={(e) => setUf(e.target.value.toUpperCase().slice(0, 2))}
+              placeholder="UF"
+              className="px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm uppercase"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {publicOffices.map((office) => (
+              <article key={office.officeId} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+                <div>
+                  <h3 className="font-extrabold text-[#0B1E36]">{office.name}</h3>
+                  <p className="text-xs text-slate-600">{office.city} — {office.state}</p>
+                  <p className="text-xs text-slate-500 mt-1">{(office.specialties || office.segments || []).slice(0, 4).join(' · ')}</p>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[11px] font-mono text-slate-500">{workshopHost(office.slug)}</span>
+                  <button
+                    type="button"
+                    onClick={() => onOpenWorkshop(office.slug)}
+                    className="px-3 py-2 rounded-lg bg-[#0B1E36] text-white text-xs font-bold cursor-pointer"
+                  >
+                    Ver oficina
+                  </button>
+                </div>
+              </article>
+            ))}
+            {publicOffices.length === 0 ? (
+              <p className="text-sm text-slate-500">Nenhuma oficina ativa encontrada com esses filtros.</p>
+            ) : null}
+          </div>
+        </section>
 
       </div>
     </div>

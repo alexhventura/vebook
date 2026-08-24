@@ -26,22 +26,31 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { Workshop, WorkshopServiceItem } from '../../types';
-import { WORKSHOPS_MOCK } from '../../data/mockData';
+import { getOfficeBySlug, listWorkshopsForPublicSite, createAppointment, toPublicWorkshop } from '../../data/officeStore';
+import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { AppView } from '../../types';
-import { Logo } from '../layout/Logo';
 
 interface WorkshopSiteViewProps {
   onNavigate: (view: AppView) => void;
   onSearchPlate?: (plate: string) => void;
   initialWorkshopId?: string;
+  workshopSlug?: string;
+  onOpenPanel?: (slug: string) => void;
 }
 
 export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
   onNavigate,
   onSearchPlate,
   initialWorkshopId = 'ws-prisma',
+  workshopSlug,
+  onOpenPanel,
 }) => {
-  const [currentWorkshopId, setCurrentWorkshopId] = useState<string>(initialWorkshopId);
+  useOfficeStore();
+  const publicWorkshops = listWorkshopsForPublicSite();
+  const officeFromSlug = workshopSlug ? getOfficeBySlug(workshopSlug) : undefined;
+  const [currentWorkshopId, setCurrentWorkshopId] = useState<string>(
+    officeFromSlug?.id || initialWorkshopId,
+  );
   const [selectedServiceCategory, setSelectedServiceCategory] = useState<string>('todos');
   const [activeTabNav, setActiveTabNav] = useState<'inicio' | 'servicos' | 'sobre' | 'localizacao' | 'vebook' | 'contato'>('inicio');
   
@@ -66,7 +75,20 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
     notes: '',
   });
 
-  const workshop = WORKSHOPS_MOCK.find(w => w.id === currentWorkshopId) || WORKSHOPS_MOCK[0];
+  const workshop =
+    (officeFromSlug ? toPublicWorkshop(officeFromSlug) : undefined) ||
+    publicWorkshops.find((item) => item.id === currentWorkshopId) ||
+    publicWorkshops[0];
+
+  if (!workshop) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-slate-600">
+        Oficina não encontrada ou ainda não publicada.
+      </div>
+    );
+  }
+
+  const officeRecord = officeFromSlug || getOfficeBySlug(workshop.subdomain.split('.')[0] || '');
 
   // Helper color mappings
   const themeClasses = {
@@ -134,7 +156,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
 
   const handleWorkshopChange = (id: string) => {
     setCurrentWorkshopId(id);
-    const selected = WORKSHOPS_MOCK.find(w => w.id === id);
+    const selected = publicWorkshops.find(w => w.id === id);
     if (selected?.themeColor) {
       setCustomColor(selected.themeColor);
     }
@@ -150,6 +172,17 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
 
   const handleScheduleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (officeRecord) {
+      createAppointment(officeRecord.officeId, {
+        customerName: scheduleForm.name,
+        phone: scheduleForm.phone,
+        plate: scheduleForm.plate,
+        service: scheduleForm.service,
+        date: scheduleForm.date,
+        period: scheduleForm.period,
+        notes: scheduleForm.notes,
+      });
+    }
     setScheduleModalOpen(false);
     setScheduleSuccessToast(true);
     setTimeout(() => {
@@ -230,7 +263,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 onChange={(e) => handleWorkshopChange(e.target.value)}
                 className="bg-transparent text-white font-bold text-xs focus:outline-none cursor-pointer"
               >
-                {WORKSHOPS_MOCK.map((w) => (
+                {publicWorkshops.map((w) => (
                   <option key={w.id} value={w.id} className="bg-[#0B1E36] text-white">
                     {w.name}
                   </option>
@@ -951,10 +984,16 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               <div>
                 © {new Date().getFullYear()} {workshop.name}. Todos os direitos reservados.
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <span>Powered by</span>
                 <span className="text-white font-bold tracking-wider">VEBOOK</span>
-                <span className="text-slate-600">· Infraestrutura Nacional de Histórico Veicular</span>
+                <button
+                  type="button"
+                  onClick={() => onOpenPanel?.(workshop.subdomain.split('.')[0] || '')}
+                  className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                >
+                  Área restrita
+                </button>
               </div>
             </div>
           </footer>

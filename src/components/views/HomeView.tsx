@@ -392,68 +392,68 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </section>
 
-      {/* 5. PARA OFICINAS PARCEIRAS */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      {/* 5. CONVITE INSTITUCIONAL PARA OFICINAS — coexistindo com a home do histórico */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <span className="text-xs font-bold uppercase tracking-wider text-sky-800 bg-sky-50 px-3 py-1 rounded-full border border-sky-200">
             Rede Credenciada Nacional
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B1E36]">
-            Sua oficina como referência técnica e digital
+            Sua oficina também pode fazer parte do VEBOOK
           </h2>
-          <p className="text-base text-slate-600">
-            Diferencie sua empresa no mercado, fidelize clientes e ganhe um endereço próprio na internet com o ecossistema VEBOOK.
+          <p className="text-base text-slate-600 leading-relaxed">
+            Registre sua oficina, tenha uma página profissional no VEBOOK e mantenha os serviços realizados conectados ao histórico dos veículos atendidos.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
             <Globe className="w-8 h-8 text-sky-700" />
-            <h3 className="font-bold text-[#0B1E36] text-base">Página Própria na Internet</h3>
+            <h3 className="font-bold text-[#0B1E36] text-base">Página profissional no VEBOOK</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Sua oficina ganha um endereço personalizado (ex: <code>suaoficina.vebook.com.br</code>) para exibir serviços, horários e WhatsApp.
+              Endereço próprio no formato <code>suaoficina.vebook.com.br</code>, com identidade, contato e serviços.
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
             <Wrench className="w-8 h-8 text-sky-700" />
-            <h3 className="font-bold text-[#0B1E36] text-base">Sistema de Gestão Completo</h3>
+            <h3 className="font-bold text-[#0B1E36] text-base">Painel de gestão da oficina</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Ordens de serviço, controle de peças, histórico do cliente e emissão de orçamentos em menos de 2 minutos.
+              Clientes, veículos, atendimentos, produtos, retornos e agenda no mesmo ambiente da página pública.
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
             <ShieldCheck className="w-8 h-8 text-sky-700" />
-            <h3 className="font-bold text-[#0B1E36] text-base">Autoridade Comprovada</h3>
+            <h3 className="font-bold text-[#0B1E36] text-base">Histórico conectado ao veículo</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Mostre ao mercado que sua oficina aplica peças genuínas com aprovação auditada pelos proprietários dos veículos.
+              Os serviços registrados pela oficina passam a integrar o Diário Veicular consultado pelo cliente.
             </p>
           </div>
         </div>
 
-        <div className="p-8 rounded-3xl bg-slate-100 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="space-y-1 text-center sm:text-left">
+        <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="space-y-1 text-center lg:text-left">
             <h4 className="font-extrabold text-[#0B1E36] text-lg sm:text-xl">
-              Deseja credenciar seu centro automotivo ou oficina?
+              Cadastro rápido. Personalização depois.
             </h4>
             <p className="text-xs sm:text-sm text-slate-600">
-              Processo de adesão rápido, gratuito e com suporte técnico para implantação.
+              Valores, condições e benefícios estão descritos com clareza na área Para Oficinas, antes de qualquer pagamento.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3 shrink-0">
+          <div className="flex flex-wrap gap-3 shrink-0 justify-center">
             <button
               onClick={onOpenCredenciamento}
               className="px-6 py-3 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-extrabold text-xs sm:text-sm transition-all cursor-pointer shadow-xs"
             >
-              Credenciar Minha Oficina
+              Cadastrar minha oficina
             </button>
             <button
               onClick={() => onNavigate('oficinas')}
               className="px-5 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm border border-slate-300 transition-all cursor-pointer"
             >
-              Ver Benefícios e Perfil Demo
+              Conhecer para oficinas
             </button>
           </div>
         </div>

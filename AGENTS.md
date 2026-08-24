@@ -8,10 +8,11 @@ Protótipo institucional da plataforma **VEBOOK** (Diário Veicular e Certidão 
 
 ## Estado atual
 
-- SPA com navegação por `currentView` em `src/App.tsx` (ainda sem router).
+- SPA com navegação por `currentView` em `src/App.tsx` e hashes (`#/oficinas`, `#/o/:slug`, `#/painel`).
 - Dados de veículos, serviços e oficinas em `src/data/mockData.ts`.
+- Ecossistema operacional de oficinas (cadastro, pagamento mock, painel) em `src/data/officeStore.ts`.
 - Textos de transparência, LGPD e FAQ em `src/data/governanceData.ts`.
-- Tipos canônicos em `src/types.ts` (`AppView`, `Vehicle`, `ServiceRecord`, `Workshop`, etc.).
+- Tipos canônicos em `src/types.ts` (`AppView`, `Vehicle`, `ServiceRecord`, `Workshop`, `Office`, etc.).
 - `src/components/onboarding/` contém rascunhos `Etapa*` **não ligados** ao `App`. Não apague sem conferir se o conteúdo ainda é útil.
 
 ## Regras de edição

@@ -2,8 +2,10 @@ import React from 'react';
 import { X, Shield, FileText, Mail } from 'lucide-react';
 import { Logo } from '../layout/Logo';
 
+import { COMMERCIAL_CONDITIONS } from '../../data/commercialTerms';
+
 interface LegalModalProps {
-  type: 'termos' | 'privacidade' | 'contato';
+  type: 'termos' | 'privacidade' | 'contato' | 'comercial';
   onClose: () => void;
 }
 
@@ -21,6 +23,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ type, onClose }) => {
               {type === 'termos' && 'Termos de Uso'}
               {type === 'privacidade' && 'Política de Privacidade'}
               {type === 'contato' && 'Contato Institucional'}
+              {type === 'comercial' && 'Condições Comerciais'}
             </span>
           </div>
 
@@ -90,6 +93,22 @@ export const LegalModal: React.FC<LegalModalProps> = ({ type, onClose }) => {
               <p>
                 Ações operacionais na plataforma são registradas para viabilizar auditoria interna e assegurar a integridade dos registros.
               </p>
+            </div>
+          )}
+
+          {type === 'comercial' && (
+            <div className="space-y-4">
+              <div className="border-b border-slate-100 pb-2">
+                <h3 className="text-lg font-bold text-[#0B1E36]">Condições comerciais da adesão de oficinas</h3>
+              </div>
+              <p>
+                Estas condições descrevem preço, renovação e ativação da oficina no VEBOOK. O aceite é registrado no momento da contratação e não vem pré-marcado.
+              </p>
+              <ul className="space-y-2 text-sm">
+                {COMMERCIAL_CONDITIONS.map((item) => (
+                  <li key={item}>• {item}</li>
+                ))}
+              </ul>
             </div>
           )}
 
