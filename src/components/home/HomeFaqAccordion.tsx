@@ -32,7 +32,7 @@ export const HomeFaqAccordion: React.FC = () => {
         return (
           <div
             key={item.id}
-            className="rounded-vebook-md border border-vebook-navy-mid bg-vebook-navy/40 overflow-hidden transition-colors hover:border-vebook-blue/40"
+            className="rounded-vebook-md border border-vebook-mustard/65 bg-vebook-navy/40 overflow-hidden transition-[border-color,box-shadow,transform] duration-200 hover:border-vebook-mustard hover:shadow-[0_6px_18px_rgba(196,163,90,0.14)]"
           >
             <button
               type="button"
@@ -42,12 +42,12 @@ export const HomeFaqAccordion: React.FC = () => {
             >
               <span className="text-sm font-semibold text-vebook-white">{item.question}</span>
               <ChevronDown
-                className={`w-4 h-4 shrink-0 text-vebook-blue transition-transform ${open ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 shrink-0 text-vebook-mustard transition-transform ${open ? 'rotate-180' : ''}`}
                 aria-hidden
               />
             </button>
             {open && (
-              <div className="px-4 sm:px-5 pb-4 text-sm text-vebook-blue-muted leading-relaxed border-t border-vebook-navy-mid/80 pt-3">
+              <div className="px-4 sm:px-5 pb-4 text-sm text-vebook-blue-muted leading-relaxed border-t border-vebook-mustard/35 pt-3">
                 {item.answer}
               </div>
             )}

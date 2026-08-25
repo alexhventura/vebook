@@ -92,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, onFocus
                 setTimeout(() => onFocusConsulta(), 100);
               }}
             >
-              <Search className="w-3.5 h-3.5 text-vebook-blue-muted" aria-hidden />
+              <Search className="w-3.5 h-3.5 text-vebook-mustard" aria-hidden />
               Consultar
             </Button>
           </div>
@@ -101,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, onFocus
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-vebook-text hover:text-vebook-navy focus:outline-none focus-visible:ring-2 focus-visible:ring-vebook-blue/40 rounded-vebook-sm cursor-pointer"
+              className="p-2 text-vebook-text hover:text-vebook-navy focus:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40 rounded-vebook-sm cursor-pointer"
               aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
               aria-expanded={mobileMenuOpen}
             >

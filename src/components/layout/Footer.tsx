@@ -146,7 +146,7 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
         </div>
 
-        <div className="p-4 rounded-vebook-md bg-vebook-navy/40 border border-vebook-navy-mid text-[11px] text-vebook-subtle space-y-1.5 leading-relaxed">
+        <div className="p-4 rounded-vebook-md bg-vebook-navy/40 border border-vebook-mustard/55 text-[11px] text-vebook-subtle space-y-1.5 leading-relaxed">
           <div className="flex items-center gap-1.5 font-semibold text-vebook-blue-muted">
             <Info className="w-3.5 h-3.5 text-vebook-blue" aria-hidden />
             <span>Aviso legal</span>

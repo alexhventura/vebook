@@ -7,17 +7,23 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   fullWidth?: boolean;
 };
 
+/**
+ * Identidade CTA VEBOOK = mostarda.
+ * Primary: fundo marinho + texto/borda mostarda (assinatura).
+ * Accent: fundo mostarda sólido.
+ * Secondary: superfície clara + contorno/texto mostarda.
+ */
 const variantClass: Record<VebookButtonVariant, string> = {
   primary:
-    'bg-vebook-navy text-vebook-white hover:bg-vebook-navy-mid border border-transparent',
+    'bg-vebook-navy text-vebook-mustard border border-vebook-mustard hover:bg-vebook-mustard hover:text-vebook-navy-deep hover:border-vebook-mustard',
   secondary:
-    'bg-vebook-white text-vebook-navy border border-vebook-border hover:bg-vebook-gray hover:border-vebook-border-strong',
+    'bg-vebook-white text-vebook-mustard-deep border border-vebook-mustard hover:bg-vebook-mustard-soft hover:border-vebook-mustard-deep hover:text-vebook-navy',
   ghost:
-    'bg-transparent text-vebook-muted border border-vebook-border-strong/60 hover:border-vebook-subtle hover:text-vebook-white',
+    'bg-transparent text-vebook-mustard border border-vebook-mustard/50 hover:border-vebook-mustard hover:bg-vebook-mustard/10 hover:text-vebook-mustard',
   accent:
-    'bg-vebook-mustard text-vebook-navy-deep hover:bg-vebook-mustard-deep hover:text-vebook-white border border-transparent',
+    'bg-vebook-mustard text-vebook-navy-deep border border-vebook-mustard hover:bg-vebook-mustard-deep hover:text-vebook-white hover:border-vebook-mustard-deep',
   inverse:
-    'bg-vebook-white text-vebook-navy hover:bg-vebook-gray border border-transparent',
+    'bg-vebook-white text-vebook-mustard-deep border border-vebook-mustard hover:bg-vebook-mustard hover:text-vebook-navy-deep',
 };
 
 const sizeClass: Record<VebookButtonSize, string> = {
@@ -40,7 +46,7 @@ export const Button: React.FC<ButtonProps> = ({
       type={type}
       className={[
         'inline-flex items-center justify-center gap-2 rounded-vebook font-semibold transition-colors cursor-pointer',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-blue/40 focus-visible:ring-offset-2',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40 focus-visible:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variantClass[variant],
         sizeClass[size],

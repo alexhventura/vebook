@@ -3,10 +3,11 @@
  * Espelho dos tokens CSS em `src/index.css` (@theme).
  *
  * Hierarquia visual:
- * 1. Azul-marinho (marca / ações primárias)
- * 2. Branco / cinza-claro (estrutura)
+ * 1. Azul-marinho (fundos / autoridade)
+ * 2. Cinza-claro (superfícies / respiro)
  * 3. Azul-claro (informação secundária)
- * 4. Mostarda (acento estratégico — uso contido)
+ * 4. Mostarda (assinatura — bordas de cards e CTAs)
+ * 5. Branco / preto (neutros)
  */
 
 export const vebookColors = {

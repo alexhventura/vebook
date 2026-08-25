@@ -90,7 +90,14 @@ body {
   }
 
   .vebook-card {
-    @apply bg-vebook-white border border-vebook-border rounded-vebook-md shadow-vebook;
+    @apply bg-vebook-white border border-vebook-mustard/70 rounded-vebook-md shadow-vebook;
+    @apply transition-[transform,box-shadow,border-color] duration-200 ease-out;
+  }
+
+  .vebook-card:hover {
+    @apply border-vebook-mustard;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgb(196 163 90 / 0.18);
   }
 
   .vebook-card-pad {
@@ -110,12 +117,13 @@ body {
   }
 
   .vebook-card-lift {
-    @apply transition-[transform,box-shadow] duration-200 ease-out;
+    @apply border border-vebook-mustard/70 transition-[transform,box-shadow,border-color] duration-200 ease-out;
   }
 
   .vebook-card-lift:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
+    border-color: var(--color-vebook-mustard);
+    box-shadow: 0 8px 24px rgb(196 163 90 / 0.18);
   }
 
   .vebook-reveal {

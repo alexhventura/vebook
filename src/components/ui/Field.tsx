@@ -25,7 +25,7 @@ export const Field: React.FC<FieldProps> = ({ label, htmlFor, hint, error, optio
 
 /** Classe canônica de input — preferir o componente `Input` em telas novas. */
 export const inputClass = [
-  'w-full px-3.5 py-2.5 rounded-vebook border border-vebook-border bg-vebook-white',
+  'w-full px-3.5 py-2.5 rounded-vebook border border-vebook-mustard/55 bg-vebook-white',
   'text-sm text-vebook-text placeholder:text-vebook-subtle',
-  'focus:outline-none focus:ring-2 focus:ring-vebook-blue/30 focus:border-vebook-navy',
+  'focus:outline-none focus:ring-2 focus:ring-vebook-mustard/25 focus:border-vebook-mustard',
 ].join(' ');

@@ -14,10 +14,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           'w-full px-4 py-3 text-base text-vebook-navy bg-vebook-surface',
           'border rounded-vebook transition-colors',
           'placeholder:text-vebook-subtle placeholder:font-normal',
-          'focus:outline-none focus:ring-2 focus:ring-vebook-blue/30 focus:border-vebook-navy',
+          'focus:outline-none focus:ring-2 focus:ring-vebook-mustard/25 focus:border-vebook-mustard',
           invalid
             ? 'border-vebook-error focus:ring-vebook-error/20 focus:border-vebook-error'
-            : 'border-vebook-border',
+            : 'border-vebook-mustard/55',
           className,
         ]
           .filter(Boolean)
