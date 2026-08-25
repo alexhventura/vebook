@@ -12,7 +12,7 @@ interface FooterProps {
 }
 
 /**
- * Rodapé compacto — navegação completa sem ocupar meia tela.
+ * Rodapé baixo: links em faixa horizontal, sem colunas altas.
  */
 export const Footer: React.FC<FooterProps> = ({
   onNavigate,
@@ -33,127 +33,73 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   const linkClass =
-    'hover:text-vebook-white transition-colors cursor-pointer text-left text-xs text-vebook-subtle leading-snug';
+    'hover:text-vebook-white transition-colors cursor-pointer text-left text-[11px] sm:text-xs text-vebook-subtle whitespace-nowrap';
+
+  const navLinks: { label: string; onClick: () => void }[] = [
+    { label: 'Início', onClick: () => handleNav('home') },
+    { label: 'Diário Veicular', onClick: () => handleNav('diario') },
+    { label: 'Como Funciona', onClick: () => handleNav('como-funciona') },
+    { label: 'Certidão VEBOOK', onClick: () => handleNav('certidao') },
+    { label: 'Para Oficinas', onClick: () => handleNav('oficinas') },
+    { label: 'Site da Oficina', onClick: () => handleNav('site-oficina') },
+    { label: 'Validar Serviço', onClick: () => handleNav('validacao') },
+    { label: 'Transparência', onClick: () => handleNav('transparencia') },
+  ];
+
+  const institutionalLinks: { label: string; onClick: () => void }[] = [
+    { label: 'Termos', onClick: () => handleTransparencia('termos') },
+    { label: 'Privacidade', onClick: () => handleTransparencia('privacidade') },
+    { label: 'Segurança', onClick: () => handleTransparencia('seguranca') },
+    { label: 'Contato', onClick: onOpenContato },
+    { label: 'Acesso administrativo', onClick: () => handleNav('painel-oficina') },
+  ];
 
   return (
     <footer
       id="footer-institucional-vebook"
-      className="bg-vebook-navy-deep text-vebook-subtle py-7 sm:py-8 px-4 sm:px-6 lg:px-8 border-t border-vebook-navy-mid"
+      className="bg-vebook-navy-deep text-vebook-subtle py-4 sm:py-5 px-4 sm:px-6 lg:px-8 border-t border-vebook-navy-mid"
     >
-      <div className="max-w-6xl mx-auto space-y-5">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5 pb-5 border-b border-vebook-navy-mid">
-          <div className="col-span-2 sm:col-span-3 lg:col-span-1 space-y-2">
+      <div className="max-w-6xl mx-auto space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="flex items-center gap-3 min-w-0 shrink-0">
             <Logo size="sm" variant="light" />
-            <p className="text-[11px] text-vebook-blue-muted leading-snug max-w-[16rem]">
+            <p className="hidden md:block text-[11px] text-vebook-blue-muted leading-snug max-w-[14rem]">
               A oficina registra. O cliente valida. A VEBOOK preserva.
             </p>
           </div>
 
-          <div className="space-y-2">
-            <h4 className="text-[10px] font-semibold uppercase text-vebook-white tracking-wider">
-              Navegação
-            </h4>
-            <ul className="space-y-1">
-              <li>
-                <button type="button" onClick={() => handleNav('home')} className={linkClass}>
-                  Início
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleNav('diario')} className={linkClass}>
-                  Diário Veicular
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleNav('como-funciona')} className={linkClass}>
-                  Como Funciona
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleNav('certidao')} className={linkClass}>
-                  Certidão VEBOOK
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleNav('oficinas')} className={linkClass}>
-                  Para Oficinas
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleNav('site-oficina')} className={linkClass}>
-                  Site da Oficina
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleNav('validacao')} className={linkClass}>
-                  Validar Serviço
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleNav('transparencia')} className={linkClass}>
-                  Transparência
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-[10px] font-semibold uppercase text-vebook-white tracking-wider">
-              Institucional
-            </h4>
-            <ul className="space-y-1">
-              <li>
-                <button type="button" onClick={() => handleTransparencia('termos')} className={linkClass}>
-                  Termos
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => handleTransparencia('privacidade')}
-                  className={linkClass}
-                >
-                  Privacidade
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => handleTransparencia('seguranca')}
-                  className={linkClass}
-                >
-                  Segurança
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={onOpenContato} className={linkClass}>
-                  Contato
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-[10px] font-semibold uppercase text-vebook-subtle/70 tracking-wider">
-              Área restrita
-            </h4>
-            <ul className="space-y-1">
-              <li>
-                <button
-                  type="button"
-                  onClick={() => handleNav('painel-oficina')}
-                  className="text-vebook-subtle/70 hover:text-vebook-subtle transition-colors cursor-pointer text-left text-[11px]"
-                >
-                  Acesso administrativo
-                </button>
-              </li>
-            </ul>
-          </div>
+          <nav
+            aria-label="Navegação do rodapé"
+            className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:justify-end"
+          >
+            {navLinks.map((item) => (
+              <button key={item.label} type="button" onClick={item.onClick} className={linkClass}>
+                {item.label}
+              </button>
+            ))}
+          </nav>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-vebook-subtle/80">
-          <div>© 2026 VEBOOK</div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-vebook-navy-mid pt-3">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {institutionalLinks.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={item.onClick}
+                className={
+                  item.label === 'Acesso administrativo'
+                    ? 'text-vebook-subtle/60 hover:text-vebook-subtle transition-colors cursor-pointer text-left text-[10px] sm:text-[11px] whitespace-nowrap'
+                    : linkClass
+                }
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] sm:text-[11px] text-vebook-subtle/75">
+            <span>© 2026 VEBOOK</span>
             <button
               type="button"
               onClick={() => handleTransparencia('cookies')}
@@ -166,7 +112,7 @@ export const Footer: React.FC<FooterProps> = ({
               onClick={onOpenCookiesConfig}
               className="hover:text-vebook-blue-muted transition-colors cursor-pointer"
             >
-              Preferências de cookies
+              Preferências
             </button>
           </div>
         </div>
