@@ -3,29 +3,19 @@ import {
   Search,
   Car,
   Wrench,
-  History,
-  RefreshCw,
-  Eye,
-  Link2,
   FileCheck2,
+  Shield,
   Lock,
   Building2,
-  LayoutDashboard,
-  Globe2,
-  Users,
-  Sparkles,
-  Shield,
-  Fingerprint,
-  Layers,
+  ArrowRight,
+  ChevronRight,
   Mail,
-  ArrowDown,
 } from 'lucide-react';
 import { formatPlate, isValidPlateFormat } from '../../lib/utils';
 import { formatBRL } from '../../lib/currency';
 import { PLAN_OFFERS, planPricingFootnote } from '../../data/officePlans';
 import { AppView, PlanModality } from '../../types';
-import { Button, Card, Input } from '../ui';
-import { Logo } from '../layout/Logo';
+import { Button, Input } from '../ui';
 import { HomeAtmosphere } from '../home/HomeAtmosphere';
 import { HomeFaqAccordion } from '../home/HomeFaqAccordion';
 
@@ -38,48 +28,50 @@ interface HomeViewProps {
   onOpenContato?: () => void;
 }
 
-const ProntuarioDemo: React.FC = () => (
+/** Spine vertical — metáfora do “fio” que une o histórico do veículo */
+const Spine: React.FC<{ className?: string }> = ({ className = '' }) => (
   <div
-    className="vebook-card-lift bg-vebook-white/95 backdrop-blur-sm rounded-vebook-lg border border-vebook-border shadow-vebook-md overflow-hidden"
-    aria-hidden="true"
-  >
-    <div className="bg-gradient-to-r from-vebook-navy to-vebook-navy-mid px-5 py-4 flex items-center justify-between gap-3">
-      <div className="space-y-0.5 min-w-0">
-        <p className="text-[10px] uppercase tracking-wider text-vebook-blue-muted font-semibold">Prontuário veicular</p>
-        <p className="text-sm font-semibold text-vebook-white">Identificação do veículo</p>
-      </div>
-      <span className="shrink-0 px-2.5 py-1 rounded-vebook-sm bg-vebook-navy-deep/60 border border-vebook-blue/30 text-[10px] font-mono text-vebook-blue-muted">
-        PLACA
-      </span>
-    </div>
-    <div className="px-5 py-5 space-y-4">
-      <p className="text-[10px] uppercase tracking-wider text-vebook-subtle font-semibold">Linha do tempo</p>
-      {[
-        { title: 'Atendimento registrado', tag: 'Atendimento' },
-        { title: 'Manutenção registrada', tag: 'Manutenção' },
-        { title: 'Atendimento registrado', tag: 'Atendimento' },
-        { title: 'Manutenção registrada', tag: 'Manutenção' },
-      ].map((row, i) => (
-        <div key={`${row.title}-${i}`} className="flex gap-3">
-          <div className="flex flex-col items-center pt-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-vebook-blue" />
-            {i < 3 && <span className="w-px flex-1 min-h-7 bg-vebook-border mt-1" />}
-          </div>
-          <div className="flex-1 space-y-1.5 pb-1">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-vebook-navy">{row.title}</p>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-vebook-sm bg-vebook-blue-soft text-vebook-navy">
-                {row.tag}
-              </span>
-            </div>
-            <p className="text-[11px] text-vebook-subtle uppercase tracking-wide">Data</p>
-            <div className="h-2 rounded-vebook-sm bg-vebook-gray w-[75%]" />
-          </div>
+    className={`hidden lg:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-vebook-blue/35 to-transparent ${className}`}
+    aria-hidden
+  />
+);
+
+const LedgerPage: React.FC = () => (
+  <div className="relative rounded-vebook-lg overflow-hidden border border-vebook-border bg-vebook-white shadow-vebook-md" aria-hidden>
+    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-vebook-mustard via-vebook-blue to-vebook-navy" />
+    <div className="pl-5 pr-5 py-5 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-vebook-blue">Prontuário</p>
+          <p className="text-sm font-bold text-vebook-navy mt-1">Linha do tempo do veículo</p>
         </div>
-      ))}
-      <p className="text-[10px] text-vebook-subtle pt-1 border-t border-vebook-border">
-        Representação conceitual da interface — sem dados reais.
-      </p>
+        <span className="font-mono text-[10px] px-2 py-1 rounded-vebook-sm border border-vebook-border text-vebook-subtle bg-vebook-gray">
+          PLACA
+        </span>
+      </div>
+      <div className="space-y-0">
+        {[
+          { k: 'Atendimento', tone: 'bg-vebook-blue' },
+          { k: 'Manutenção', tone: 'bg-vebook-navy' },
+          { k: 'Atendimento', tone: 'bg-vebook-blue' },
+          { k: 'Registro', tone: 'bg-vebook-mustard' },
+        ].map((row, i) => (
+          <div key={`${row.k}-${i}`} className="flex gap-3 py-3 border-t border-vebook-border/80">
+            <div className="pt-1.5">
+              <span className={`block w-2 h-2 rounded-full ${row.tone}`} />
+            </div>
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-vebook-navy">{row.k} registrado</p>
+                <span className="text-[10px] uppercase tracking-wider text-vebook-subtle">Data</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-vebook-gray w-[72%]" />
+              <div className="h-1.5 rounded-full bg-vebook-gray/70 w-[44%]" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="text-[10px] text-vebook-subtle">Representação conceitual — sem dados reais.</p>
     </div>
   </div>
 );
@@ -100,13 +92,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
     else onOpenCredenciamento();
   };
 
-  const scrollToConsulta = () => {
-    document.getElementById('home-consulta')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(() => document.getElementById('home-plate-input')?.focus(), 400);
-  };
-
-  const scrollToOficinas = () => {
-    document.getElementById('home-oficinas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollTo = (id: string, focusInput = false) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (focusInput) {
+      setTimeout(() => document.getElementById('home-plate-input')?.focus(), 420);
+    }
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -121,106 +111,132 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   return (
-    <div className="relative isolate overflow-x-hidden pb-0">
+    <div className="relative isolate overflow-x-hidden">
       <HomeAtmosphere />
 
-      {/* ========== 01 ENTRADA ========== */}
-      <section className="relative bg-gradient-to-b from-vebook-navy-deep via-vebook-navy to-vebook-navy-mid text-vebook-white">
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-28 space-y-12">
-          <div className="vebook-reveal text-center space-y-5 max-w-3xl mx-auto">
-            <div className="flex justify-center">
-              <Logo size="lg" variant="light" />
-            </div>
-            <p className="text-base sm:text-lg text-vebook-blue-muted font-medium leading-relaxed">
+      {/* ===== ABERTURA: identidade + portal dual ===== */}
+      <section className="relative min-h-[88vh] flex flex-col justify-center bg-vebook-navy-deep text-vebook-white">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(19,44,77,0.9),rgba(7,21,39,1)_70%)]" />
+        <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
+          <div className="vebook-reveal max-w-3xl mx-auto text-center space-y-6">
+            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-vebook-blue">
+              Infraestrutura de histórico veicular
+            </p>
+            <h1 className="text-[clamp(2.75rem,8vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.95] text-vebook-white">
+              VEBOOK
+            </h1>
+            <p className="text-base sm:text-xl text-vebook-blue-muted font-medium max-w-xl mx-auto leading-relaxed">
               A oficina registra. O cliente valida. A VEBOOK preserva.
             </p>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-vebook-white leading-snug pt-2">
-              Você quer fazer uma consulta ou você é uma oficina?
-            </h1>
+            <p className="text-sm sm:text-base text-vebook-subtle max-w-lg mx-auto leading-relaxed">
+              O histórico técnico do veículo — organizado, consultável e contínuo ao longo da vida útil.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 max-w-4xl mx-auto">
-            <article className="vebook-reveal vebook-reveal-delay-1 vebook-card-lift rounded-vebook-lg border border-vebook-blue/25 bg-gradient-to-br from-vebook-white to-vebook-blue-soft p-6 sm:p-8 space-y-5 shadow-vebook-md text-vebook-navy">
-              <div className="flex items-center gap-3">
-                <span className="w-11 h-11 rounded-vebook bg-vebook-navy text-vebook-white flex items-center justify-center">
-                  <Car className="w-5 h-5" aria-hidden />
+          {/* Portal dual — duas portas, um eixo */}
+          <div className="vebook-reveal vebook-reveal-delay-1 mt-12 sm:mt-16 relative max-w-4xl mx-auto">
+            <div className="hidden md:block absolute left-1/2 top-6 bottom-6 w-px -translate-x-1/2 bg-vebook-blue/25" aria-hidden />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+              <button
+                type="button"
+                onClick={() => scrollTo('home-ledger', true)}
+                className="group text-left rounded-vebook-lg border border-vebook-blue/30 bg-gradient-to-br from-vebook-white to-vebook-blue-soft p-6 sm:p-8 shadow-vebook-md transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(15,23,42,0.18)] cursor-pointer"
+              >
+                <div className="flex items-center gap-3 text-vebook-navy">
+                  <span className="w-10 h-10 rounded-vebook bg-vebook-navy text-vebook-white flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Car className="w-5 h-5" aria-hidden />
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-vebook-blue">Consulta</span>
+                </div>
+                <h2 className="mt-5 text-xl sm:text-2xl font-bold text-vebook-navy tracking-tight">
+                  Quero consultar um veículo
+                </h2>
+                <p className="mt-2 text-sm text-vebook-muted leading-relaxed">
+                  Verifique se existe histórico registrado e, se precisar, solicite a Certidão VEBOOK.
+                </p>
+                <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-vebook-navy">
+                  Ir para a consulta
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" aria-hidden />
                 </span>
-                <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wide">Quero consultar</h2>
-              </div>
-              <p className="text-sm text-vebook-muted leading-relaxed">
-                Consulte o histórico disponível de um veículo.
-              </p>
-              <Button variant="primary" size="lg" fullWidth onClick={scrollToConsulta}>
-                Consultar veículo
-              </Button>
-            </article>
+              </button>
 
-            <article className="vebook-reveal vebook-reveal-delay-2 vebook-card-lift rounded-vebook-lg border border-vebook-mustard/40 bg-gradient-to-br from-vebook-white to-vebook-mustard-soft p-6 sm:p-8 space-y-5 shadow-vebook-md text-vebook-navy">
-              <div className="flex items-center gap-3">
-                <span className="w-11 h-11 rounded-vebook bg-vebook-navy text-vebook-mustard flex items-center justify-center">
-                  <Wrench className="w-5 h-5" aria-hidden />
+              <button
+                type="button"
+                onClick={() => scrollTo('home-oficinas')}
+                className="group text-left rounded-vebook-lg border border-vebook-mustard/45 bg-gradient-to-br from-vebook-white to-vebook-mustard-soft p-6 sm:p-8 shadow-vebook-md transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(15,23,42,0.18)] cursor-pointer"
+              >
+                <div className="flex items-center gap-3 text-vebook-navy">
+                  <span className="w-10 h-10 rounded-vebook bg-vebook-navy text-vebook-mustard flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Wrench className="w-5 h-5" aria-hidden />
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-vebook-mustard-deep">Oficina</span>
+                </div>
+                <h2 className="mt-5 text-xl sm:text-2xl font-bold text-vebook-navy tracking-tight">
+                  Sou uma oficina
+                </h2>
+                <p className="mt-2 text-sm text-vebook-muted leading-relaxed">
+                  Credencie-se, registre atendimentos e participe da construção do prontuário veicular.
+                </p>
+                <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-vebook-navy">
+                  Conhecer para oficinas
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" aria-hidden />
                 </span>
-                <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wide">Sou uma oficina</h2>
-              </div>
-              <p className="text-sm text-vebook-muted leading-relaxed">
-                Conheça o sistema e torne sua oficina credenciada.
-              </p>
-              <Button variant="primary" size="lg" fullWidth onClick={scrollToOficinas}>
-                Sou oficina
-              </Button>
-            </article>
-          </div>
-
-          <div className="flex justify-center text-vebook-blue-muted/70">
-            <ArrowDown className="w-5 h-5 animate-bounce" aria-hidden />
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ========== 02 MOTORISTA / USUÁRIO ========== */}
-      <section className="relative bg-gradient-to-b from-vebook-blue-soft via-vebook-surface to-vebook-blue-soft/40 border-y border-vebook-border">
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-12 sm:space-y-16">
-          <div className="max-w-2xl space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-vebook-blue">Para quem consulta</p>
-            <h2 className="vebook-section-title">O histórico do veículo também conta a sua história.</h2>
-            <p className="vebook-section-lead">
-              O VEBOOK organiza registros técnicos de manutenção e atendimento associados ao veículo —
-              com consulta clara e continuidade ao longo do tempo.
-            </p>
-          </div>
+      {/* ===== LEDGER: produto em cena ===== */}
+      <section id="home-ledger" className="relative bg-vebook-surface border-b border-vebook-border">
+        <Spine />
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+            <div className="lg:col-span-5 space-y-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-blue">O livro do veículo</p>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
+                Cada atendimento pode se tornar memória.
+              </h2>
+              <p className="text-sm sm:text-base text-vebook-muted leading-relaxed">
+                Oficinas participantes registram serviços. O VEBOOK organiza esses registros em um
+                histórico associado ao veículo — consultável e, quando necessário, documentável.
+              </p>
+              <ol className="space-y-3 pt-2">
+                {[
+                  'Oficina realiza o atendimento',
+                  'Registro entra no prontuário',
+                  'Histórico acompanha o veículo',
+                  'Certidão documenta o disponível',
+                ].map((step, i) => (
+                  <li key={step} className="flex items-start gap-3 text-sm text-vebook-text">
+                    <span className="mt-0.5 w-6 h-6 rounded-full bg-vebook-navy text-vebook-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                      {i + 1}
+                    </span>
+                    <span className="leading-relaxed pt-0.5">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {[
-              { icon: History, title: 'Histórico', text: 'O veículo pode acumular registros de manutenções e atendimentos realizados por oficinas participantes.' },
-              { icon: RefreshCw, title: 'Continuidade', text: 'O histórico acompanha o veículo ao longo de sua vida útil.' },
-              { icon: Eye, title: 'Transparência', text: 'A consulta permite verificar a existência de registros antes de solicitar uma certidão.' },
-              { icon: Link2, title: 'Rastreabilidade', text: 'Os registros possuem origem e identificação dentro da plataforma.' },
-              { icon: FileCheck2, title: 'Certidão', text: 'Quando necessário, o usuário pode solicitar uma Certidão VEBOOK com o histórico disponível.' },
-              { icon: Lock, title: 'Privacidade', text: 'Dados pessoais do cliente não fazem parte do prontuário público.' },
-            ].map((card) => (
-              <Card key={card.title} as="article" className="vebook-card-lift space-y-3 h-full bg-gradient-to-b from-vebook-white to-vebook-blue-soft/30">
-                <card.icon className="w-5 h-5 text-vebook-blue" aria-hidden />
-                <h3 className="text-base font-semibold text-vebook-navy">{card.title}</h3>
-                <p className="text-sm text-vebook-muted leading-relaxed">{card.text}</p>
-              </Card>
-            ))}
-          </div>
+            <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-5">
+              <LedgerPage />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-            <ProntuarioDemo />
-
-            <div id="home-consulta" className="vebook-card-lift rounded-vebook-lg border border-vebook-border bg-vebook-white shadow-vebook-md p-6 sm:p-8 space-y-5">
-              <div className="space-y-2">
-                <h3 className="text-xl sm:text-2xl font-bold text-vebook-navy tracking-tight">Consulte um veículo</h3>
-                <p className="text-sm text-vebook-muted leading-relaxed">
-                  Informe a placa para verificar o histórico disponível no VEBOOK. A consulta inicial é gratuita.
-                </p>
-              </div>
-              <form onSubmit={handleSearchSubmit} className="space-y-4">
-                <label htmlFor="home-plate-input" className="vebook-label">
-                  Digite a placa
-                </label>
-                <div className="flex flex-col sm:flex-row gap-3">
+              <form
+                id="home-consulta"
+                onSubmit={handleSearchSubmit}
+                className="rounded-vebook-lg border border-vebook-navy/15 bg-vebook-navy text-vebook-white p-6 sm:p-7 space-y-5 shadow-vebook-md"
+              >
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-vebook-blue">Consulta</p>
+                  <h3 className="text-xl font-bold tracking-tight">Informe a placa</h3>
+                  <p className="text-sm text-vebook-blue-muted leading-relaxed">
+                    Consulta inicial gratuita. A Certidão apresenta os registros disponíveis no momento da emissão.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <label htmlFor="home-plate-input" className="block text-sm font-medium text-vebook-blue-muted">
+                    Digite a placa
+                  </label>
                   <Input
                     id="home-plate-input"
                     type="text"
@@ -234,288 +250,227 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     autoComplete="off"
                     invalid={Boolean(plateError)}
                     aria-describedby={plateError ? 'home-plate-error' : 'home-plate-hint'}
-                    className="font-semibold tracking-widest uppercase placeholder:tracking-normal"
+                    className="bg-vebook-white font-semibold tracking-widest uppercase placeholder:tracking-normal"
                   />
-                  <Button type="submit" variant="primary" size="lg" className="shrink-0">
-                    <Search className="w-4 h-4 text-vebook-blue-muted" aria-hidden />
-                    Consultar
+                  <Button type="submit" variant="inverse" size="lg" fullWidth>
+                    <Search className="w-4 h-4 text-vebook-navy" aria-hidden />
+                    Consultar veículo
                   </Button>
-                </div>
-                <p id="home-plate-hint" className="vebook-hint">
-                  A consulta utiliza o fluxo real do Diário Veicular. O exemplo no campo é apenas de formato.
-                </p>
-                {plateError && (
-                  <p id="home-plate-error" className="vebook-error-text" role="alert">
-                    {plateError}
+                  <p id="home-plate-hint" className="text-xs text-vebook-blue-muted/90">
+                    Fluxo real do Diário Veicular. O exemplo é apenas de formato.
                   </p>
-                )}
+                  {plateError && (
+                    <p id="home-plate-error" className="text-xs text-rose-200" role="alert">
+                      {plateError}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('certidao')}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-vebook-blue hover:text-vebook-white transition-colors cursor-pointer"
+                >
+                  <FileCheck2 className="w-4 h-4" aria-hidden />
+                  O que é a Certidão VEBOOK
+                  <ChevronRight className="w-4 h-4" aria-hidden />
+                </button>
               </form>
-              <button
-                type="button"
-                onClick={() => onNavigate('certidao')}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-vebook-navy hover:text-vebook-blue transition-colors cursor-pointer"
-              >
-                <FileCheck2 className="w-4 h-4" aria-hidden />
-                Conhecer a Certidão VEBOOK
-              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ========== 03 OFICINAS ========== */}
-      <section id="home-oficinas" className="relative bg-vebook-gray border-b border-vebook-border">
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-12 sm:space-y-14">
-          <div className="max-w-2xl space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-vebook-muted">Para oficinas</p>
-            <h2 className="vebook-section-title">O VEBOOK também é infraestrutura para a sua oficina.</h2>
-            <p className="vebook-section-lead">
-              Organize atendimentos, registre o histórico dos veículos, fortaleça a credibilidade e
-              participe da rede VEBOOK.
+      {/* ===== O QUE ENTRA NO HISTÓRICO — fita editorial ===== */}
+      <section className="relative bg-vebook-blue-soft/50 border-b border-vebook-border">
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
+            <div className="max-w-xl space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-blue">Para quem consulta</p>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
+                Clareza antes da certidão.
+              </h2>
+            </div>
+            <p className="text-sm text-vebook-muted max-w-sm leading-relaxed lg:text-right">
+              O prontuário é sobre o veículo e seus registros técnicos — não um cadastro público de proprietários.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: Building2, title: 'Oficina credenciada', text: 'Faça parte da rede VEBOOK.' },
-              { icon: History, title: 'Histórico', text: 'Registre os atendimentos realizados e contribua para a continuidade do prontuário do veículo.' },
-              { icon: LayoutDashboard, title: 'Gestão', text: 'Tenha ferramentas para organizar clientes, veículos, serviços, agenda e retornos.' },
-              { icon: Globe2, title: 'Visibilidade', text: 'Tenha uma presença própria dentro do ecossistema VEBOOK.' },
-              { icon: Users, title: 'Relacionamento', text: 'Acompanhe clientes e veículos atendidos pela oficina.' },
-              { icon: Sparkles, title: 'Oportunidades', text: 'Faça parte de uma infraestrutura que conecta oficinas e usuários de veículos.' },
-            ].map((card) => (
-              <Card key={card.title} as="article" className="vebook-card-lift space-y-3 h-full bg-gradient-to-b from-vebook-white to-vebook-gray">
-                <card.icon className="w-5 h-5 text-vebook-navy" aria-hidden />
-                <h3 className="text-base font-semibold text-vebook-navy">{card.title}</h3>
-                <p className="text-sm text-vebook-muted leading-relaxed">{card.text}</p>
-              </Card>
+              { t: 'Histórico', d: 'Registros de manutenções e atendimentos de oficinas participantes.' },
+              { t: 'Continuidade', d: 'O histórico acompanha o veículo ao longo da vida útil.' },
+              { t: 'Transparência', d: 'Verifique a existência de registros antes de documentar.' },
+              { t: 'Privacidade', d: 'Dados pessoais do cliente ficam no controle da oficina.' },
+            ].map((item, i) => (
+              <article
+                key={item.t}
+                className="group rounded-vebook-lg border border-vebook-border bg-vebook-white/90 p-5 sm:p-6 shadow-vebook transition-all duration-300 hover:-translate-y-1 hover:border-vebook-blue/40 hover:shadow-vebook-md"
+              >
+                <span className="text-[11px] font-mono font-semibold text-vebook-blue">0{i + 1}</span>
+                <h3 className="mt-3 text-lg font-bold text-vebook-navy">{item.t}</h3>
+                <p className="mt-2 text-sm text-vebook-muted leading-relaxed">{item.d}</p>
+              </article>
             ))}
           </div>
 
-          {/* Fluxo visual oficina → prontuário */}
-          <div className="rounded-vebook-lg border border-vebook-border bg-vebook-white p-5 sm:p-8 shadow-vebook">
-            <p className="text-xs font-semibold uppercase tracking-wider text-vebook-muted mb-5">
-              Participação da oficina no histórico
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button variant="primary" onClick={() => onNavigate('como-funciona')}>
+              Como o histórico é construído
+            </Button>
+            <Button variant="secondary" onClick={() => onNavigate('transparencia')}>
+              Transparência e LGPD
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== OFICINAS — infraestrutura, não pitch ===== */}
+      <section id="home-oficinas" className="relative bg-vebook-gray border-b border-vebook-border">
+        <Spine />
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-12">
+          <div className="max-w-2xl space-y-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-muted">Para oficinas</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
+              A oficina escreve. O VEBOOK preserva.
+            </h2>
+            <p className="text-sm sm:text-base text-vebook-muted leading-relaxed">
+              Credenciamento, página própria, painel de gestão e registro de atendimentos que alimentam
+              o prontuário do veículo.
             </p>
-            <div className="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap items-stretch sm:items-center gap-3 sm:gap-2">
-              {['Oficina', 'Atendimento', 'Registro', 'Prontuário', 'Cliente / Veículo'].map((label, i, arr) => (
-                <React.Fragment key={label}>
-                  <div className="flex-1 min-w-[7rem] rounded-vebook bg-vebook-navy text-vebook-white text-center px-3 py-3 text-xs sm:text-sm font-semibold">
-                    {label}
-                  </div>
-                  {i < arr.length - 1 && (
-                    <span className="hidden sm:block text-vebook-blue font-bold px-1" aria-hidden>
-                      →
-                    </span>
-                  )}
-                </React.Fragment>
+          </div>
+
+          {/* Trilho de valor — composição horizontal densa */}
+          <div className="rounded-vebook-lg border border-vebook-border bg-vebook-white p-2 sm:p-3 shadow-vebook overflow-hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-vebook-border">
+              {[
+                { icon: Building2, t: 'Rede', d: 'Presença na infraestrutura VEBOOK.' },
+                { icon: Wrench, t: 'Registro', d: 'Atendimentos no prontuário do veículo.' },
+                { icon: Car, t: 'Gestão', d: 'Clientes, veículos, agenda e retornos.' },
+                { icon: Shield, t: 'Credibilidade', d: 'Histórico com origem identificável.' },
+              ].map((cell) => (
+                <div key={cell.t} className="p-5 sm:p-6 space-y-3">
+                  <cell.icon className="w-5 h-5 text-vebook-navy" aria-hidden />
+                  <h3 className="text-base font-bold text-vebook-navy">{cell.t}</h3>
+                  <p className="text-sm text-vebook-muted leading-relaxed">{cell.d}</p>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Valores reais */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-xl sm:text-2xl font-bold text-vebook-navy tracking-tight">
-                Seja uma oficina credenciada
-              </h3>
-              <p className="text-sm text-vebook-muted">{planPricingFootnote()}</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Card className="vebook-card-lift space-y-4 bg-gradient-to-b from-vebook-white to-vebook-surface">
-                <p className="text-xs font-semibold uppercase tracking-wider text-vebook-blue">Plano mensal</p>
-                <div>
-                  <p className="text-sm text-vebook-muted">Primeiro ano</p>
-                  <p className="text-3xl font-bold text-vebook-navy">
-                    {formatBRL(PLAN_OFFERS.monthly.firstYear)}
-                    <span className="text-base font-semibold text-vebook-muted">/mês</span>
-                  </p>
-                </div>
-                <div className="rounded-vebook bg-vebook-gray px-3 py-2 text-sm text-vebook-muted">
-                  A partir do segundo ano:{' '}
-                  <strong className="text-vebook-navy">{formatBRL(PLAN_OFFERS.monthly.renewal)}/mês</strong>
-                </div>
-                <Button variant="primary" fullWidth onClick={() => startCadastro('monthly')}>
-                  Cadastrar — plano mensal
-                </Button>
-              </Card>
-
-              <Card className="vebook-card-lift space-y-4 border-vebook-navy/20 bg-gradient-to-b from-vebook-white to-vebook-mustard-soft/40 relative">
-                <span className="absolute -top-2.5 left-5 text-[10px] font-bold uppercase tracking-wider bg-vebook-mustard text-vebook-navy-deep px-2.5 py-1 rounded-vebook-sm">
-                  Destaque
-                </span>
-                <p className="text-xs font-semibold uppercase tracking-wider text-vebook-blue pt-1">Plano anual</p>
-                <div>
-                  <p className="text-sm text-vebook-muted">Primeiro ano</p>
-                  <p className="text-3xl font-bold text-vebook-navy">
-                    {formatBRL(PLAN_OFFERS.annual.firstYear)}
-                    <span className="text-base font-semibold text-vebook-muted">/ano</span>
-                  </p>
-                </div>
-                <div className="rounded-vebook bg-vebook-mustard-soft border border-vebook-mustard/30 px-3 py-2 text-sm text-vebook-navy">
-                  Economia de {formatBRL(PLAN_OFFERS.annual.firstYearSavings)} no primeiro ano. Renovação:{' '}
-                  <strong>{formatBRL(PLAN_OFFERS.annual.renewal)}/ano</strong>
-                </div>
-                <Button variant="primary" fullWidth onClick={() => startCadastro('annual')}>
-                  Cadastrar — plano anual
-                </Button>
-              </Card>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
+          {/* Tarifas reais */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            <div className="lg:col-span-4 space-y-3">
+              <h3 className="text-xl font-bold text-vebook-navy">Credenciamento</h3>
+              <p className="text-sm text-vebook-muted leading-relaxed">{planPricingFootnote()}</p>
               <Button variant="secondary" onClick={() => onNavigate('oficinas')}>
-                Conhecer o VEBOOK para oficinas
+                Ver área completa para oficinas
+              </Button>
+            </div>
+
+            <div className="lg:col-span-4 rounded-vebook-lg border border-vebook-border bg-vebook-white p-6 space-y-4 shadow-vebook">
+              <p className="text-xs font-semibold uppercase tracking-wider text-vebook-blue">Mensal</p>
+              <p className="text-3xl font-bold text-vebook-navy">
+                {formatBRL(PLAN_OFFERS.monthly.firstYear)}
+                <span className="text-sm font-semibold text-vebook-muted">/mês</span>
+              </p>
+              <p className="text-sm text-vebook-muted">
+                Primeiro ano. Depois: <strong className="text-vebook-navy">{formatBRL(PLAN_OFFERS.monthly.renewal)}/mês</strong>
+              </p>
+              <Button variant="primary" fullWidth onClick={() => startCadastro('monthly')}>
+                Cadastrar — mensal
+              </Button>
+            </div>
+
+            <div className="lg:col-span-4 rounded-vebook-lg border border-vebook-mustard/50 bg-gradient-to-b from-vebook-white to-vebook-mustard-soft p-6 space-y-4 shadow-vebook-md relative">
+              <span className="absolute -top-2.5 right-5 text-[10px] font-bold uppercase tracking-wider bg-vebook-mustard text-vebook-navy-deep px-2.5 py-1 rounded-vebook-sm">
+                Economia no 1º ano
+              </span>
+              <p className="text-xs font-semibold uppercase tracking-wider text-vebook-mustard-deep">Anual</p>
+              <p className="text-3xl font-bold text-vebook-navy">
+                {formatBRL(PLAN_OFFERS.annual.firstYear)}
+                <span className="text-sm font-semibold text-vebook-muted">/ano</span>
+              </p>
+              <p className="text-sm text-vebook-muted">
+                Economia de {formatBRL(PLAN_OFFERS.annual.firstYearSavings)}. Renovação:{' '}
+                <strong className="text-vebook-navy">{formatBRL(PLAN_OFFERS.annual.renewal)}/ano</strong>
+              </p>
+              <Button variant="primary" fullWidth onClick={() => startCadastro('annual')}>
+                Cadastrar — anual
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ========== 04 TECNOLOGIA / CONFIANÇA ========== */}
-      <section className="relative bg-gradient-to-b from-vebook-navy-deep via-vebook-navy to-vebook-navy-deep text-vebook-white">
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-14 sm:space-y-16">
-          <div className="max-w-2xl space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-vebook-blue">Tecnologia e confiança</p>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-vebook-white">
-              Infraestrutura para organizar o histórico veicular.
+      {/* ===== CONFIANÇA / GOVERNANÇA ===== */}
+      <section className="relative bg-vebook-navy-deep text-vebook-white">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_0%,rgba(107,158,196,0.12),transparent_50%)]" aria-hidden />
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-14">
+          <div className="max-w-2xl space-y-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-blue">Governança</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.1]">
+              Tecnologia a serviço da procedência.
             </h2>
             <p className="text-sm sm:text-base text-vebook-blue-muted leading-relaxed">
-              Oficinas, atendimentos e registros convergem em um prontuário consultável — e, quando
-              necessário, em certidão.
+              Rastreabilidade, segregação de dados e boas práticas de segurança — sem promessas absolutas.
             </p>
           </div>
 
-          {/* Pipeline tecnológico */}
-          <div className="rounded-vebook-lg border border-vebook-navy-mid bg-vebook-navy/50 p-5 sm:p-7">
-            <div className="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap items-stretch gap-2 sm:gap-2">
-              {['Oficinas', 'Atendimentos', 'Registros', 'Histórico', 'Certidões'].map((label, i, arr) => (
-                <React.Fragment key={label}>
-                  <div className="flex-1 min-w-[6.5rem] rounded-vebook bg-vebook-navy-mid border border-vebook-blue/20 text-center px-3 py-3 text-xs sm:text-sm font-semibold text-vebook-white">
-                    {label}
-                  </div>
-                  {i < arr.length - 1 && (
-                    <span className="hidden sm:flex items-center text-vebook-blue px-0.5" aria-hidden>
-                      ↓
-                    </span>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { icon: Shield, t: 'Origem', d: 'Registros com identificação dentro da plataforma.' },
+              { icon: Lock, t: 'Separação', d: 'Prontuário técnico do veículo ≠ dados pessoais do cliente.' },
+              { icon: FileCheck2, t: 'Documento', d: 'A Certidão retrata o disponível no momento da emissão.' },
+            ].map((item) => (
+              <div
+                key={item.t}
+                className="rounded-vebook-lg border border-vebook-navy-mid bg-vebook-navy/50 p-6 space-y-3 transition-colors hover:border-vebook-blue/40"
+              >
+                <item.icon className="w-5 h-5 text-vebook-blue" aria-hidden />
+                <h3 className="text-base font-bold text-vebook-white">{item.t}</h3>
+                <p className="text-sm text-vebook-blue-muted leading-relaxed">{item.d}</p>
+              </div>
+            ))}
           </div>
 
-          {/* Segurança */}
-          <div className="space-y-5">
-            <h3 className="text-xl font-bold text-vebook-white">Segurança e organização</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { icon: Link2, title: 'Rastreabilidade', text: 'Os registros possuem identificação própria.' },
-                { icon: Layers, title: 'Integridade', text: 'Estrutura preparada para controle e auditoria.' },
-                { icon: Fingerprint, title: 'Segregação', text: 'Dados de controle das oficinas não fazem parte do prontuário público.' },
-                { icon: Shield, title: 'Segurança', text: 'Aplicação de boas práticas de proteção de dados e acesso.' },
-              ].map((card) => (
-                <div
-                  key={card.title}
-                  className="vebook-card-lift rounded-vebook-md border border-vebook-navy-mid bg-gradient-to-b from-vebook-navy-mid/80 to-vebook-navy/60 p-5 space-y-3"
-                >
-                  <card.icon className="w-5 h-5 text-vebook-blue" aria-hidden />
-                  <h4 className="text-sm font-semibold text-vebook-white">{card.title}</h4>
-                  <p className="text-sm text-vebook-blue-muted leading-relaxed">{card.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Privacidade */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold text-vebook-white">Privacidade</h3>
-              <p className="text-sm text-vebook-blue-muted leading-relaxed">
-                O prontuário é sobre o veículo e seus registros técnicos. Dados pessoais dos clientes
-                permanecem no ambiente de controle da oficina e não são exibidos no prontuário público.
-              </p>
-              <p className="text-sm text-vebook-blue-muted leading-relaxed">
-                <strong className="text-vebook-white">Cliente ≠ proprietário.</strong> O cliente existe
-                no ambiente da oficina para controle interno. O prontuário VEBOOK acompanha o veículo.
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div className="lg:col-span-7 space-y-4">
+              <h3 className="text-xl font-bold text-vebook-white">Perguntas frequentes</h3>
+              <HomeFaqAccordion />
               <button
                 type="button"
                 onClick={() => onNavigate('transparencia')}
                 className="text-sm font-semibold text-vebook-blue hover:text-vebook-white transition-colors cursor-pointer"
               >
-                Transparência e LGPD →
+                FAQ e transparência completos →
               </button>
             </div>
 
-            <div className="rounded-vebook-lg border border-vebook-navy-mid bg-vebook-navy/50 p-5 sm:p-6 space-y-4">
-              <h3 className="text-lg font-bold text-vebook-white">
-                Um veículo pode passar por muitas oficinas ao longo da vida.
-              </h3>
-              <div className="space-y-3 text-sm">
-                {['Oficina A', 'Oficina B', 'Oficina C'].map((label) => (
-                  <div key={label} className="flex items-center gap-3">
-                    <span className="w-24 shrink-0 font-semibold text-vebook-blue-muted">{label}</span>
-                    <span className="text-vebook-blue" aria-hidden>
-                      ↓
-                    </span>
-                    <span className="rounded-vebook-sm bg-vebook-navy-mid px-3 py-1.5 text-vebook-white border border-vebook-blue/20">
-                      Registro
-                    </span>
-                  </div>
-                ))}
-                <div className="pt-2 border-t border-vebook-navy-mid flex items-center gap-3">
-                  <span className="w-24 shrink-0 font-semibold text-vebook-mustard">Todos</span>
-                  <span className="text-vebook-mustard" aria-hidden>
-                    ↓
-                  </span>
-                  <span className="rounded-vebook-sm bg-vebook-mustard/20 border border-vebook-mustard/40 px-3 py-1.5 text-vebook-mustard font-semibold">
-                    Prontuário do veículo
-                  </span>
-                </div>
+            <div className="lg:col-span-5 space-y-5">
+              <div className="rounded-vebook-lg border border-vebook-navy-mid bg-vebook-navy/40 p-6 space-y-4">
+                <h3 className="text-lg font-bold text-vebook-white flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-vebook-blue" aria-hidden />
+                  Contato
+                </h3>
+                <p className="text-sm text-vebook-blue-muted leading-relaxed">
+                  Canal institucional existente no VEBOOK. Informações oficiais serão ampliadas com a
+                  homologação operacional.
+                </p>
+                <Button variant="inverse" onClick={() => onOpenContato?.()}>
+                  Abrir contato
+                </Button>
+              </div>
+
+              <div className="rounded-vebook-lg border border-vebook-mustard/30 bg-vebook-mustard/10 p-6 space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vebook-mustard">
+                  Em uma frase
+                </p>
+                <p className="text-lg font-semibold text-vebook-white leading-snug">
+                  O VEBOOK organiza o histórico técnico do veículo — escrito pelas oficinas, preservado
+                  pela plataforma.
+                </p>
               </div>
             </div>
-          </div>
-
-          {/* FAQ */}
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold text-vebook-white">Perguntas frequentes</h3>
-              <p className="text-sm text-vebook-blue-muted">
-                Conteúdo institucional já publicado no VEBOOK — reunido aqui para consulta rápida.
-              </p>
-            </div>
-            <HomeFaqAccordion />
-            <button
-              type="button"
-              onClick={() => onNavigate('transparencia')}
-              className="text-sm font-semibold text-vebook-blue hover:text-vebook-white transition-colors cursor-pointer"
-            >
-              Ver FAQ completo →
-            </button>
-          </div>
-
-          {/* Contato */}
-          <div className="rounded-vebook-lg border border-vebook-navy-mid bg-vebook-navy/40 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-vebook-white flex items-center gap-2">
-                <Mail className="w-5 h-5 text-vebook-blue" aria-hidden />
-                Contato institucional
-              </h3>
-              <p className="text-sm text-vebook-blue-muted max-w-lg leading-relaxed">
-                Canais oficiais de atendimento serão disponibilizados com a homologação operacional da
-                plataforma. Use o formulário institucional já existente no VEBOOK.
-              </p>
-            </div>
-            <Button
-              variant="inverse"
-              size="lg"
-              className="shrink-0"
-              onClick={() => {
-                if (onOpenContato) onOpenContato();
-              }}
-            >
-              Abrir contato
-            </Button>
           </div>
         </div>
       </section>
