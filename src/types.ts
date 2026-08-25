@@ -125,7 +125,8 @@ export interface Workshop {
   subdomain: string; // Ex: prisma.vebook.com.br
   logoUrl?: string;
   slogan?: string;
-  themeColor: 'amber' | 'blue' | 'emerald' | 'rose' | 'indigo';
+  /** Cor de personalização da página pública (hex, ex.: `#F59E0B`). */
+  themeColor: string;
   coverImageUrl?: string;
   city: string;
   state: string;
@@ -451,6 +452,8 @@ export interface SignupDraft {
     instagram: string;
     website: string;
     shortDescription: string;
+    /** Cor da página pública (espectro / hex). */
+    themeColor: string;
   };
   modality: PlanModality;
 }

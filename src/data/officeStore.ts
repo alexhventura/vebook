@@ -13,6 +13,7 @@ import {
   statusFromWebhook,
 } from '../lib/payments/mockGateway';
 import { isValidSlugFormat, normalizeSlug, slugFromWorkshopName, workshopHost } from '../lib/slug';
+import { normalizeThemeColor } from '../lib/themeColor';
 import {
   AttendanceProductLine,
   AttendanceServiceLine,
@@ -81,6 +82,7 @@ function workshopToOffice(workshop: Workshop): Office {
   const slug = workshop.subdomain.split('.')[0] || slugFromWorkshopName(workshop.name);
   return {
     ...workshop,
+    themeColor: normalizeThemeColor(workshop.themeColor),
     officeId: workshop.id,
     legalName: workshop.name,
     tradeName: workshop.name,
@@ -123,7 +125,12 @@ function loadRaw(): StoreState {
     const parsed = JSON.parse(raw) as Partial<StoreState>;
     const base = emptyState();
     const persistedOffices = parsed.offices ?? [];
-    const signupOffices = persistedOffices.filter((office) => office.source === 'signup');
+    const signupOffices = persistedOffices
+      .filter((office) => office.source === 'signup')
+      .map((office) => ({
+        ...office,
+        themeColor: normalizeThemeColor(office.themeColor),
+      }));
     return {
       ...base,
       offices: [...base.offices, ...signupOffices],
@@ -555,6 +562,7 @@ export function toPublicWorkshop(office: Office): Workshop {
   } = office;
   return {
     ...workshop,
+    themeColor: normalizeThemeColor(workshop.themeColor),
     subdomain: workshopHost(office.slug),
   };
 }
@@ -604,7 +612,7 @@ export async function createPendingOffice(draft: SignupDraft, consent: {
     subdomain: host,
     slug,
     slogan: draft.extras.shortDescription || undefined,
-    themeColor: 'blue',
+    themeColor: normalizeThemeColor(draft.extras.themeColor),
     city: draft.office.city,
     state: draft.office.state,
     address: composeAddress(draft.office),
@@ -857,6 +865,9 @@ export function updateOfficeProfile(officeId: string, patch: Partial<Office>): O
     status: current.status,
     publicVisible: current.publicVisible,
   };
+  if (patch.themeColor) {
+    next.themeColor = normalizeThemeColor(patch.themeColor);
+  }
   if (patch.street || patch.streetNumber || patch.complement || patch.neighborhood) {
     const line = [next.street, next.streetNumber].filter(Boolean).join(', ');
     const extra = [next.complement, next.neighborhood].filter(Boolean).join(' — ');
@@ -1505,7 +1516,13 @@ export function defaultSignupDraft(modality: PlanModality = 'monthly'): SignupDr
       state: '',
     },
     slug: '',
-    extras: { segments: [], instagram: '', website: '', shortDescription: '' },
+    extras: {
+      segments: [],
+      instagram: '',
+      website: '',
+      shortDescription: '',
+      themeColor: '#0B1E36',
+    },
     modality,
   };
 }

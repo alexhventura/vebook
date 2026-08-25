@@ -9,11 +9,11 @@ import {
   Share2, 
   X, 
   ChevronRight,
-  ChevronDown
 } from 'lucide-react';
 import { Logo } from '../layout/Logo';
 import { getOfficeBySlug, listWorkshopsForPublicSite, toPublicWorkshop } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
+import { contrastTextOn, normalizeThemeColor } from '../../lib/themeColor';
 import { AppView } from '../../types';
 
 interface WorkshopSiteViewProps {
@@ -38,9 +38,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
     officeFromSlug?.id || initialWorkshopId,
   );
   const [activeTabNav, setActiveTabNav] = useState<'inicio' | 'servicos' | 'localizacao' | 'contato'>('inicio');
-  
-  // Custom Color Theme Switcher state (Allows real-time demo preview of different brand colors)
-  const [customColor, setCustomColor] = useState<'amber' | 'blue' | 'emerald' | 'rose' | 'indigo'>('amber');
 
   const [mapModalOpen, setMapModalOpen] = useState(false);
 
@@ -57,76 +54,15 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
     );
   }
 
-  // Helper color mappings
-  const themeClasses = {
-    amber: {
-      primary: 'bg-amber-500 hover:bg-amber-600 text-slate-950',
-      primarySolid: 'bg-amber-500 text-slate-950',
-      primaryBorder: 'border-amber-400',
-      primaryRing: 'focus:ring-amber-400',
-      badge: 'bg-amber-50 text-amber-900 border-amber-200',
-      iconBg: 'bg-amber-100 text-amber-800',
-      accentText: 'text-amber-600',
-      lightBg: 'bg-amber-50/50',
-      borderHover: 'hover:border-amber-300',
-      heroTag: 'bg-amber-500 text-slate-950',
-    },
-    blue: {
-      primary: 'bg-sky-500 hover:bg-sky-600 text-white',
-      primarySolid: 'bg-sky-500 text-white',
-      primaryBorder: 'border-sky-400',
-      primaryRing: 'focus:ring-sky-400',
-      badge: 'bg-sky-50 text-sky-900 border-sky-200',
-      iconBg: 'bg-sky-100 text-sky-800',
-      accentText: 'text-sky-600',
-      lightBg: 'bg-sky-50/50',
-      borderHover: 'hover:border-sky-300',
-      heroTag: 'bg-sky-500 text-white',
-    },
-    emerald: {
-      primary: 'bg-emerald-600 hover:bg-emerald-700 text-white',
-      primarySolid: 'bg-emerald-600 text-white',
-      primaryBorder: 'border-emerald-400',
-      primaryRing: 'focus:ring-emerald-400',
-      badge: 'bg-emerald-50 text-emerald-900 border-emerald-200',
-      iconBg: 'bg-emerald-100 text-emerald-800',
-      accentText: 'text-emerald-600',
-      lightBg: 'bg-emerald-50/50',
-      borderHover: 'hover:border-emerald-300',
-      heroTag: 'bg-emerald-600 text-white',
-    },
-    rose: {
-      primary: 'bg-rose-600 hover:bg-rose-700 text-white',
-      primarySolid: 'bg-rose-600 text-white',
-      primaryBorder: 'border-rose-400',
-      primaryRing: 'focus:ring-rose-400',
-      badge: 'bg-rose-50 text-rose-900 border-rose-200',
-      iconBg: 'bg-rose-100 text-rose-800',
-      accentText: 'text-rose-600',
-      lightBg: 'bg-rose-50/50',
-      borderHover: 'hover:border-rose-300',
-      heroTag: 'bg-rose-600 text-white',
-    },
-    indigo: {
-      primary: 'bg-indigo-600 hover:bg-indigo-700 text-white',
-      primarySolid: 'bg-indigo-600 text-white',
-      primaryBorder: 'border-indigo-400',
-      primaryRing: 'focus:ring-indigo-400',
-      badge: 'bg-indigo-50 text-indigo-900 border-indigo-200',
-      iconBg: 'bg-indigo-100 text-indigo-800',
-      accentText: 'text-indigo-600',
-      lightBg: 'bg-indigo-50/50',
-      borderHover: 'hover:border-indigo-300',
-      heroTag: 'bg-indigo-600 text-white',
-    },
-  }[customColor];
+  const themeHex = normalizeThemeColor(workshop.themeColor);
+  const themeOn = contrastTextOn(themeHex);
+  const themeAccent = { color: themeHex } as const;
+  const themeBorder = { borderColor: themeHex } as const;
+  const themeSolid = { backgroundColor: themeHex, color: themeOn } as const;
+  const themeDot = { backgroundColor: themeHex } as const;
 
   const handleWorkshopChange = (id: string) => {
     setCurrentWorkshopId(id);
-    const selected = publicWorkshops.find(w => w.id === id);
-    if (selected?.themeColor) {
-      setCustomColor(selected.themeColor);
-    }
   };
 
   const scrollToSection = (sectionId: string, tabName: typeof activeTabNav) => {
@@ -145,10 +81,10 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
         ? workshop.specialties
         : [];
 
-  const cardShell = `bg-white p-5 rounded-2xl border-2 ${themeClasses.primaryBorder} shadow-2xs space-y-3`;
-  const cardTitle = `flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider ${themeClasses.accentText}`;
-  const cardBody = 'text-sm font-bold text-slate-900 leading-snug';
-  const cardMeta = 'text-xs font-bold text-slate-700';
+  const cardShell = 'bg-white p-5 sm:p-6 rounded-2xl border-2 shadow-2xs space-y-3';
+  const cardTitle = 'flex items-center gap-2.5 text-sm sm:text-base font-extrabold uppercase tracking-wider';
+  const cardBody = 'text-base sm:text-lg font-bold text-slate-900 leading-snug';
+  const cardMeta = 'text-sm font-bold text-slate-700';
 
   return (
     <div className="min-h-screen bg-[#F1F5F9] text-slate-800 font-['Plus_Jakarta_Sans',sans-serif]">
@@ -206,38 +142,13 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               </select>
             </div>
 
-            <div className="flex items-center gap-1 bg-slate-800/80 px-2 py-1 rounded-md border border-slate-700">
-              <span className="text-[11px] text-slate-400 hidden lg:inline mr-1">Cor:</span>
-              <button
-                type="button"
-                onClick={() => setCustomColor('amber')}
-                title="Laranja / Âmbar"
-                className={`w-3.5 h-3.5 rounded-full bg-amber-500 cursor-pointer transition-transform ${customColor === 'amber' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
-              />
-              <button
-                type="button"
-                onClick={() => setCustomColor('blue')}
-                title="Azul Técnico"
-                className={`w-3.5 h-3.5 rounded-full bg-sky-500 cursor-pointer transition-transform ${customColor === 'blue' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
-              />
-              <button
-                type="button"
-                onClick={() => setCustomColor('emerald')}
-                title="Verde Sustentável"
-                className={`w-3.5 h-3.5 rounded-full bg-emerald-500 cursor-pointer transition-transform ${customColor === 'emerald' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
-              />
-              <button
-                type="button"
-                onClick={() => setCustomColor('rose')}
-                title="Vermelho Esportivo"
-                className={`w-3.5 h-3.5 rounded-full bg-rose-500 cursor-pointer transition-transform ${customColor === 'rose' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
-              />
-              <button
-                type="button"
-                onClick={() => setCustomColor('indigo')}
-                title="Índigo Corporativo"
-                className={`w-3.5 h-3.5 rounded-full bg-indigo-500 cursor-pointer transition-transform ${customColor === 'indigo' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
-              />
+            <div
+              className="flex items-center gap-2 bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700"
+              title={`Cor cadastrada: ${themeHex}`}
+            >
+              <span className="text-[11px] text-slate-400 hidden lg:inline">Cor da oficina:</span>
+              <span className="w-3.5 h-3.5 rounded-full ring-2 ring-white/80 shrink-0" style={themeDot} />
+              <span className="font-mono text-[11px] text-slate-300">{themeHex}</span>
             </div>
 
             <button
@@ -313,7 +224,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
 
               {/* Tarja personalizada com o nome da oficina */}
-              <div className={`absolute bottom-0 left-0 right-0 ${themeClasses.primarySolid} px-5 sm:px-8 py-4 sm:py-5`}>
+              <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 py-4 sm:py-5" style={themeSolid}>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
                   {workshop.name}
                 </h1>
@@ -330,7 +241,8 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20com%20a%20${encodeURIComponent(workshop.name)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className={`inline-flex items-center gap-2 px-6 py-3.5 rounded-xl ${themeClasses.primary} font-extrabold text-sm transition-all shadow-md cursor-pointer`}
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-extrabold text-sm sm:text-base transition-all shadow-md cursor-pointer hover:opacity-90"
+              style={themeSolid}
             >
               <MessageSquare className="w-4 h-4" />
               <span>Contato</span>
@@ -342,9 +254,9 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               
               {/* Card 1: Endereço */}
-              <div className={cardShell}>
-                <div className={cardTitle}>
-                  <MapPin className={`w-4 h-4 ${themeClasses.accentText}`} />
+              <div className={cardShell} style={themeBorder}>
+                <div className={cardTitle} style={themeAccent}>
+                  <MapPin className="w-5 h-5" />
                   <span>Endereço</span>
                 </div>
 
@@ -360,52 +272,54 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setMapModalOpen(true)}
-                  className={`inline-flex items-center gap-1.5 text-xs font-extrabold ${themeClasses.accentText} hover:underline cursor-pointer pt-1`}
+                  className="inline-flex items-center gap-1.5 text-sm font-extrabold hover:underline cursor-pointer pt-1"
+                  style={themeAccent}
                 >
                   <span>Ver no mapa e rotas</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Card 2: Contato */}
-              <div className={cardShell}>
-                <div className={cardTitle}>
-                  <Phone className={`w-4 h-4 ${themeClasses.accentText}`} />
+              <div className={cardShell} style={themeBorder}>
+                <div className={cardTitle} style={themeAccent}>
+                  <Phone className="w-5 h-5" />
                   <span>Contato Direto</span>
                 </div>
 
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                    <span className={`font-extrabold ${themeClasses.accentText}`}>Telefone:</span>
-                    <a href={`tel:${workshop.phone.replace(/\D/g, '')}`} className="font-extrabold text-slate-900 hover:opacity-80">
+                <div className="space-y-2 text-sm sm:text-base">
+                  <div className="flex items-center justify-between gap-3 py-1 border-b border-slate-100">
+                    <span className="font-extrabold shrink-0" style={themeAccent}>Telefone:</span>
+                    <a href={`tel:${workshop.phone.replace(/\D/g, '')}`} className="font-extrabold text-slate-900 hover:opacity-80 text-right">
                       {workshop.phone}
                     </a>
                   </div>
-                  <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                    <span className={`font-extrabold ${themeClasses.accentText}`}>WhatsApp:</span>
+                  <div className="flex items-center justify-between gap-3 py-1 border-b border-slate-100">
+                    <span className="font-extrabold shrink-0" style={themeAccent}>WhatsApp:</span>
                     <a 
                       href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`font-extrabold ${themeClasses.accentText} hover:underline flex items-center gap-1`}
+                      className="font-extrabold hover:underline flex items-center gap-1.5 text-right"
+                      style={themeAccent}
                     >
                       <span>{workshop.whatsapp}</span>
-                      <MessageSquare className="w-3 h-3" />
+                      <MessageSquare className="w-4 h-4" />
                     </a>
                   </div>
                   {workshop.email && (
-                    <div className="flex items-center justify-between py-1">
-                      <span className={`font-extrabold ${themeClasses.accentText}`}>E-mail:</span>
-                      <span className="font-extrabold text-slate-900 text-[11px]">{workshop.email}</span>
+                    <div className="flex items-center justify-between gap-3 py-1">
+                      <span className="font-extrabold shrink-0" style={themeAccent}>E-mail:</span>
+                      <span className="font-extrabold text-slate-900 text-sm sm:text-base text-right break-all">{workshop.email}</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Card 3: Redes da Oficina */}
-              <div className={cardShell}>
-                <div className={cardTitle}>
-                  <Share2 className={`w-4 h-4 ${themeClasses.accentText}`} />
+              <div className={cardShell} style={themeBorder}>
+                <div className={cardTitle} style={themeAccent}>
+                  <Share2 className="w-5 h-5" />
                   <span>Redes da Oficina</span>
                 </div>
 
@@ -415,7 +329,8 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                       href={workshop.socialLinks.instagram}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`px-3 py-1.5 rounded-lg bg-white hover:opacity-90 border-2 ${themeClasses.primaryBorder} text-slate-900 text-xs font-extrabold flex items-center gap-1.5 transition-colors`}
+                      className="px-3.5 py-2 rounded-lg bg-white hover:opacity-90 border-2 text-slate-900 text-sm font-extrabold flex items-center gap-1.5 transition-colors"
+                      style={themeBorder}
                     >
                       <span>Instagram</span>
                     </a>
@@ -425,7 +340,8 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                       href={workshop.socialLinks.facebook}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`px-3 py-1.5 rounded-lg bg-white hover:opacity-90 border-2 ${themeClasses.primaryBorder} text-slate-900 text-xs font-extrabold flex items-center gap-1.5 transition-colors`}
+                      className="px-3.5 py-2 rounded-lg bg-white hover:opacity-90 border-2 text-slate-900 text-sm font-extrabold flex items-center gap-1.5 transition-colors"
+                      style={themeBorder}
                     >
                       <span>Facebook</span>
                     </a>
@@ -435,7 +351,8 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                       href={workshop.socialLinks.youtube}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`px-3 py-1.5 rounded-lg bg-white hover:opacity-90 border-2 ${themeClasses.primaryBorder} text-slate-900 text-xs font-extrabold flex items-center gap-1.5 transition-colors`}
+                      className="px-3.5 py-2 rounded-lg bg-white hover:opacity-90 border-2 text-slate-900 text-sm font-extrabold flex items-center gap-1.5 transition-colors"
+                      style={themeBorder}
                     >
                       <span>YouTube</span>
                     </a>
@@ -445,42 +362,44 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                       href={workshop.socialLinks.tiktok}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`px-3 py-1.5 rounded-lg bg-white hover:opacity-90 border-2 ${themeClasses.primaryBorder} text-slate-900 text-xs font-extrabold flex items-center gap-1.5 transition-colors`}
+                      className="px-3.5 py-2 rounded-lg bg-white hover:opacity-90 border-2 text-slate-900 text-sm font-extrabold flex items-center gap-1.5 transition-colors"
+                      style={themeBorder}
                     >
                       <span>TikTok</span>
                     </a>
                   )}
                   <a
                     href={`https://${workshop.subdomain}`}
-                    className={`px-3 py-1.5 rounded-lg bg-white hover:opacity-90 border-2 ${themeClasses.primaryBorder} text-slate-900 text-xs font-extrabold flex items-center gap-1.5 transition-colors`}
+                    className="px-3.5 py-2 rounded-lg bg-white hover:opacity-90 border-2 text-slate-900 text-sm font-extrabold flex items-center gap-1.5 transition-colors"
+                    style={themeBorder}
                   >
-                    <Globe className={`w-3.5 h-3.5 ${themeClasses.accentText}`} />
+                    <Globe className="w-4 h-4" style={themeAccent} />
                     <span>Site Oficial</span>
                   </a>
                 </div>
               </div>
 
               {/* Card 4: Horário de Funcionamento */}
-              <div className={cardShell}>
-                <div className={cardTitle}>
-                  <Clock className={`w-4 h-4 ${themeClasses.accentText}`} />
+              <div className={cardShell} style={themeBorder}>
+                <div className={cardTitle} style={themeAccent}>
+                  <Clock className="w-5 h-5" />
                   <span>Horário de Funcionamento</span>
                 </div>
 
-                <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between items-center py-0.5">
+                <div className="space-y-2 text-sm sm:text-base">
+                  <div className="flex justify-between items-center gap-3 py-0.5">
                     <span className="font-extrabold text-slate-800">Segunda — Sexta</span>
                     <span className="font-mono font-extrabold text-slate-900">
                       {workshop.businessHoursDetail?.weekdays || '08:00 — 18:00'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center py-0.5">
+                  <div className="flex justify-between items-center gap-3 py-0.5">
                     <span className="font-extrabold text-slate-800">Sábado</span>
                     <span className="font-mono font-extrabold text-slate-900">
                       {workshop.businessHoursDetail?.saturday || '08:00 — 13:00'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center py-0.5">
+                  <div className="flex justify-between items-center gap-3 py-0.5">
                     <span className="font-extrabold text-slate-800">Domingo</span>
                     <span className="font-mono font-extrabold text-slate-900">
                       {workshop.businessHoursDetail?.sunday || 'Fechado'}
@@ -495,29 +414,29 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
           {/* 4. SERVIÇOS — texto dos itens realizados */}
           <section id="sec-servicos" className="p-6 sm:p-8 space-y-5">
             <div className="space-y-2">
-              <span className={`text-xs font-extrabold uppercase tracking-wider ${themeClasses.accentText} block`}>
+              <span className="text-sm font-extrabold uppercase tracking-wider block" style={themeAccent}>
                 Serviços
               </span>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
                 Serviços realizados pela oficina
               </h3>
-              <p className="text-sm font-bold text-slate-700 max-w-2xl">
+              <p className="text-base font-bold text-slate-700 max-w-2xl">
                 Itens e especialidades oferecidos por {workshop.name}. O detalhamento acompanha o cadastro da oficina.
               </p>
             </div>
 
-            <div className={`rounded-2xl border-2 ${themeClasses.primaryBorder} bg-white p-5 sm:p-6 shadow-2xs`}>
+            <div className="rounded-2xl border-2 bg-white p-5 sm:p-6 shadow-2xs" style={themeBorder}>
               {serviceTextItems.length > 0 ? (
-                <ul className="space-y-2.5">
+                <ul className="space-y-3">
                   {serviceTextItems.map((item) => (
-                    <li key={item} className="flex gap-3 text-sm sm:text-base font-extrabold text-slate-900 leading-relaxed">
-                      <span className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${themeClasses.primarySolid}`} aria-hidden />
+                    <li key={item} className="flex gap-3 text-base sm:text-lg font-extrabold text-slate-900 leading-relaxed">
+                      <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full" style={themeDot} aria-hidden />
                       <span>{item}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm font-bold text-slate-600 leading-relaxed">
+                <p className="text-base font-bold text-slate-600 leading-relaxed">
                   A oficina ainda não publicou a lista de serviços. Em breve os itens realizados aparecerão neste espaço.
                 </p>
               )}
@@ -528,7 +447,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
           <footer className="bg-slate-900 text-slate-400 p-6 sm:p-8 space-y-6 text-xs border-t border-slate-800">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-6 border-b border-slate-800">
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg ${themeClasses.primarySolid} flex items-center justify-center font-black text-sm`}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm" style={themeSolid}>
                   {workshop.name.charAt(0)}
                 </div>
                 <div>
@@ -635,7 +554,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <MapPin className={`w-5 h-5 ${themeClasses.accentText}`} />
+                <MapPin className="w-5 h-5" style={themeAccent} />
                 <h3 className="font-extrabold text-slate-900 text-lg">
                   Localização da {workshop.name}
                 </h3>
@@ -652,7 +571,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
             <div className="h-56 bg-slate-100 rounded-2xl overflow-hidden border border-slate-300 relative flex items-center justify-center">
               <div className="absolute inset-0 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
               <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10 space-y-2">
-                <div className={`w-10 h-10 rounded-full ${themeClasses.primarySolid} flex items-center justify-center shadow-lg`}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg" style={themeSolid}>
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 shadow-md text-xs font-bold text-slate-800">
