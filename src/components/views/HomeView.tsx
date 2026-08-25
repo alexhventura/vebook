@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { formatPlate, isValidPlateFormat } from '../../lib/utils';
 import { formatBRL } from '../../lib/currency';
-import { PLAN_OFFERS, planPricingFootnote } from '../../data/officePlans';
+import { PLAN_OFFERS } from '../../data/officePlans';
 import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
 import { AppView, PlanModality } from '../../types';
 import { Button, Input } from '../ui';
@@ -302,44 +302,37 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </div>
 
-          {/* Tarifas reais */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            <div className="lg:col-span-4 space-y-3">
-              <h3 className="text-xl font-bold text-vebook-navy">Credenciamento</h3>
-              <p className="text-sm text-vebook-muted leading-relaxed">{planPricingFootnote()}</p>
-              <Button variant="secondary" onClick={() => onNavigate('oficinas')}>
-                Ver área completa para oficinas
-              </Button>
-            </div>
-
-            <div className="lg:col-span-4 rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-6 space-y-4 shadow-vebook transition-all duration-200 hover:-translate-y-0.5 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]">
+          {/* Planos — dois cards iguais */}
+          <div className="mx-auto grid w-full max-w-3xl grid-cols-1 gap-5 sm:grid-cols-2 sm:items-stretch">
+            <div className="flex h-full flex-col rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-6 sm:p-7 shadow-vebook transition-all duration-200 hover:-translate-y-0.5 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]">
               <p className="text-xs font-semibold uppercase tracking-wider text-vebook-mustard-deep">Mensal</p>
-              <p className="text-3xl font-bold text-vebook-navy">
+              <p className="mt-3 text-3xl font-bold text-vebook-navy">
                 {formatBRL(PLAN_OFFERS.monthly.firstYear)}
                 <span className="text-sm font-semibold text-vebook-muted">/mês</span>
               </p>
-              <p className="text-sm text-vebook-muted">
-                Primeiro ano. Depois: <strong className="text-vebook-navy">{formatBRL(PLAN_OFFERS.monthly.renewal)}/mês</strong>
+              <p className="mt-3 flex-1 text-sm text-vebook-muted leading-relaxed">
+                Primeiro ano. Depois:{' '}
+                <strong className="text-vebook-navy">{formatBRL(PLAN_OFFERS.monthly.renewal)}/mês</strong>
               </p>
-              <Button variant="primary" fullWidth onClick={() => startCadastro('monthly')}>
+              <Button variant="primary" size="lg" fullWidth className="mt-6" onClick={() => startCadastro('monthly')}>
                 Fazer cadastro
               </Button>
             </div>
 
-            <div className="lg:col-span-4 rounded-vebook-lg border border-vebook-mustard bg-gradient-to-b from-vebook-white to-vebook-mustard-soft p-6 space-y-4 shadow-vebook-md relative transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(196,163,90,0.22)]">
+            <div className="relative flex h-full flex-col rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-6 sm:p-7 shadow-vebook transition-all duration-200 hover:-translate-y-0.5 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]">
               <span className="absolute -top-2.5 right-5 text-[10px] font-bold uppercase tracking-wider bg-vebook-mustard text-vebook-navy-deep px-2.5 py-1 rounded-vebook-sm border border-vebook-mustard-deep/40">
                 Economia no 1º ano
               </span>
               <p className="text-xs font-semibold uppercase tracking-wider text-vebook-mustard-deep">Anual</p>
-              <p className="text-3xl font-bold text-vebook-navy">
+              <p className="mt-3 text-3xl font-bold text-vebook-navy">
                 {formatBRL(PLAN_OFFERS.annual.firstYear)}
                 <span className="text-sm font-semibold text-vebook-muted">/ano</span>
               </p>
-              <p className="text-sm text-vebook-muted">
+              <p className="mt-3 flex-1 text-sm text-vebook-muted leading-relaxed">
                 Economia de {formatBRL(PLAN_OFFERS.annual.firstYearSavings)}. Renovação:{' '}
                 <strong className="text-vebook-navy">{formatBRL(PLAN_OFFERS.annual.renewal)}/ano</strong>
               </p>
-              <Button variant="accent" fullWidth onClick={() => startCadastro('annual')}>
+              <Button variant="primary" size="lg" fullWidth className="mt-6" onClick={() => startCadastro('annual')}>
                 Fazer cadastro
               </Button>
             </div>
