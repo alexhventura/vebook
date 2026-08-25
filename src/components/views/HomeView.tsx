@@ -281,16 +281,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* ===== PARA QUEM CONSULTA — logo abaixo da consulta ===== */}
       <section className="relative bg-vebook-blue-soft border-b border-vebook-border">
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
-            <div className="max-w-xl space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard-deep">Para quem consulta</p>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
-                Clareza antes da certidão.
-              </h2>
-            </div>
-            <p className="text-sm text-vebook-muted max-w-sm leading-relaxed lg:text-right">
-              O prontuário é sobre o veículo e seus registros técnicos — não um cadastro público de proprietários.
-            </p>
+          <div className="max-w-xl space-y-3 mb-10">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard-deep">Para quem consulta</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
+              Clareza antes da certidão.
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
