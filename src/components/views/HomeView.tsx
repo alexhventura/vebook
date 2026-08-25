@@ -95,7 +95,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               VEBOOK
             </h1>
             <p className="text-base sm:text-xl text-vebook-mustard font-medium max-w-xl mx-auto leading-relaxed">
-              A oficina registra. O cliente valida. A VEBOOK preserva.
+              O histórico do veículo em um só lugar.
             </p>
             <p className="text-sm sm:text-base text-vebook-subtle max-w-lg mx-auto leading-relaxed">
               O histórico do seu veículo: Consultável. Imutável. Rastreável.
