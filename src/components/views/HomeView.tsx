@@ -341,7 +341,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </section>
 
       {/* ===== PARA QUEM CONSULTA ===== */}
-      <section className="relative bg-vebook-blue-soft/50 border-b border-vebook-border">
+      <section className="relative bg-vebook-blue-soft border-b border-vebook-border">
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
             <div className="max-w-xl space-y-3">
