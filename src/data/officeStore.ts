@@ -174,8 +174,19 @@ function assertOfficeScope(officeId: string, rowOfficeId: string): void {
 async function ensureDemoOwner(): Promise<void> {
   const prisma = state.offices.find((office) => office.slug === 'prisma');
   if (!prisma) return;
+  const expectedHash = await hashPassword(DEMO_OWNER.cpf, DEMO_OWNER.password);
   const existing = state.users.find((user) => user.cpf === DEMO_OWNER.cpf);
-  if (existing) return;
+  if (existing) {
+    if (existing.passwordHash !== expectedHash || existing.status !== 'active') {
+      state.users = state.users.map((user) =>
+        user.cpf === DEMO_OWNER.cpf
+          ? { ...user, passwordHash: expectedHash, status: 'active', officeId: prisma.officeId }
+          : user,
+      );
+      persist();
+    }
+    return;
+  }
   const owner: OfficeUser = {
     id: 'user_demo_prisma',
     officeId: prisma.officeId,
@@ -183,7 +194,7 @@ async function ensureDemoOwner(): Promise<void> {
     cpf: DEMO_OWNER.cpf,
     phone: DEMO_OWNER.phone,
     email: DEMO_OWNER.email,
-    passwordHash: await hashPassword(DEMO_OWNER.cpf, DEMO_OWNER.password),
+    passwordHash: expectedHash,
     role: 'owner',
     jobRole: 'owner',
     jobTitle: 'Proprietária',
@@ -768,6 +779,7 @@ export function applyPaymentWebhook(externalId: string, event: Parameters<typeof
 }
 
 export async function loginWithCpf(cpf: string, password: string): Promise<OfficeSession> {
+  await ensureDemoOwner();
   const digits = onlyDigits(cpf);
   const user = state.users.find((row) => row.cpf === digits);
   if (!user) {
