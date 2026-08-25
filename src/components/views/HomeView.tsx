@@ -330,10 +330,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   key={cell.id}
                   type="button"
                   onClick={() => setOpenPillarId(cell.id)}
-                  className="group w-full text-left p-5 sm:p-6 space-y-3 cursor-pointer transition-colors hover:bg-vebook-mustard-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-vebook-mustard/40"
+                  className="group w-full text-left p-5 sm:p-6 space-y-2.5 cursor-pointer transition-colors hover:bg-vebook-mustard-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-vebook-mustard/40"
                 >
-                  <cell.icon className="w-5 h-5 text-vebook-navy transition group-hover:text-vebook-mustard-deep" aria-hidden />
-                  <h3 className="text-base font-bold text-vebook-navy">{cell.title}</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-vebook-navy group-hover:text-vebook-mustard-deep transition-colors">
+                    {cell.title}
+                  </h3>
                   <p className="text-sm text-vebook-muted leading-relaxed">{cell.summary}</p>
                   <span className="inline-flex text-xs font-semibold text-vebook-mustard-deep">
                     Saiba mais →
