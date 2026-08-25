@@ -138,9 +138,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <section id="home-consulta" className="vebook-container vebook-section">
         <Card padding="lg" className="space-y-8 border-vebook-border">
           <div className="max-w-xl mx-auto text-center space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-vebook-blue">
-              Ação principal
-            </p>
             <h2 className="vebook-section-title">Consulte um veículo</h2>
             <p className="vebook-section-lead">
               Consulte as informações disponíveis sobre o histórico registrado no VEBOOK.
