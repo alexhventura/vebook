@@ -288,9 +288,9 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
         {/* ---------------------------------------------------- */}
         <main className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden transition-all">
           
-          {/* 1. CABEÇALHO VEBOOK */}
-          <header className="bg-[#0B1E36] border-b border-slate-700 sticky top-10 z-40 px-6 sm:px-8 py-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* 1. CABEÇALHO VEBOOK — sem identidade da oficina */}
+          <header className="bg-[#0B1E36] border-b border-slate-700 sticky top-10 z-40 px-6 sm:px-8 py-3.5">
+            <div className="flex items-center justify-between gap-4">
               <button
                 type="button"
                 onClick={() => onNavigate('home')}
@@ -304,51 +304,12 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2.5 rounded-xl bg-vebook-mustard hover:bg-vebook-mustard-deep text-vebook-navy-deep font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                className="px-4 py-2.5 rounded-xl bg-vebook-mustard hover:bg-vebook-mustard-deep text-vebook-navy-deep font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 <span>Contato</span>
               </a>
             </div>
-
-            <nav className="flex items-center gap-1 sm:gap-2 pt-4 mt-2 border-t border-slate-700/80 overflow-x-auto no-scrollbar text-xs font-bold text-slate-300">
-              <button
-                type="button"
-                onClick={() => scrollToSection('sec-hero', 'inicio')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
-                  activeTabNav === 'inicio' ? 'bg-white/10 text-white font-extrabold' : 'hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                Início
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollToSection('sec-servicos', 'servicos')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
-                  activeTabNav === 'servicos' ? 'bg-white/10 text-white font-extrabold' : 'hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                Serviços
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollToSection('sec-localizacao', 'localizacao')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
-                  activeTabNav === 'localizacao' ? 'bg-white/10 text-white font-extrabold' : 'hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                Localização & Horário
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollToSection('sec-localizacao', 'contato')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
-                  activeTabNav === 'contato' ? 'bg-white/10 text-white font-extrabold' : 'hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                Contato
-              </button>
-            </nav>
           </header>
 
           {/* 2. HERO DA OFICINA COM FOTO REAL DE QUALIDADE & CALL TO ACTIONS */}
