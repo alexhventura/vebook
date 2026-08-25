@@ -12,7 +12,10 @@ export type ConsultationPillar = {
   points: string[];
 };
 
-/** Pilares “Para quem consulta” na home. */
+/**
+ * Pilares “Para quem consulta” na home.
+ * Conteúdo mescla a construção do histórico (Como Funciona) e transparência/LGPD.
+ */
 export const CONSULTATION_PILLARS: ConsultationPillar[] = [
   {
     id: 'historico',
@@ -20,12 +23,13 @@ export const CONSULTATION_PILLARS: ConsultationPillar[] = [
     summary: 'Registros de manutenções e atendimentos de oficinas participantes.',
     icon: History,
     lead:
-      'O diário reúne os serviços registrados por oficinas na plataforma — manutenções, peças e descrições técnicas associadas à placa do veículo.',
+      'O Diário Veicular é construído em três papéis: a oficina registra a ordem de serviço, o cliente confere e pode validar ou contestar, e a VEBOOK preserva o que entrou na plataforma — de forma auditável e vinculada ao veículo.',
     points: [
-      'Atendimentos inseridos por oficinas participantes do VEBOOK.',
-      'Consulta pública mostra o panorama numérico do que existe no prontuário.',
-      'A Certidão detalha o histórico disponível no momento da emissão.',
-      'Sem inventário falso: só aparece o que foi de fato registrado.',
+      'Oficina credenciada registra quilometragem, serviços, peças e especificações técnicas.',
+      'O proprietário consulta o registro no Diário e pode validar ou contestar divergências.',
+      'A VEBOOK consolida e preserva o registro no prontuário do veículo.',
+      'Só aparece o que foi de fato cadastrado na rede — sem inventário fictício.',
+      'A Certidão VEBOOK documenta o histórico completo disponível no momento da emissão.',
     ],
   },
   {
@@ -34,12 +38,13 @@ export const CONSULTATION_PILLARS: ConsultationPillar[] = [
     summary: 'O histórico acompanha o veículo ao longo da vida útil.',
     icon: RefreshCw,
     lead:
-      'O prontuário está ligado ao veículo. Trocas de dono ou de oficina não apagam o que já foi registrado e validado na plataforma.',
+      'O prontuário está ligado ao veículo (placa/chassi), não a um cadastro público de donos. Trocas de proprietário ou de oficina não apagam o que já foi registrado e preservado na plataforma.',
     points: [
-      'Memória técnica acompanha a vida útil do veículo.',
-      'Oficinas diferentes podem contribuir ao mesmo diário.',
+      'O histórico de manutenção acompanha o veículo na vida útil e na revenda.',
+      'Oficinas diferentes podem contribuir ao mesmo diário ao longo do tempo.',
+      'Dados pessoais do antigo proprietário não são transferidos nem expostos na consulta.',
       'Útil em compra, venda e avaliação da procedência de manutenção.',
-      'A continuidade depende dos registros realmente inseridos — não de promessas absolutas.',
+      'A continuidade reflete apenas registros realmente inseridos — não garante fatos fora da rede.',
     ],
   },
   {
@@ -48,12 +53,13 @@ export const CONSULTATION_PILLARS: ConsultationPillar[] = [
     summary: 'Verifique a existência de registros antes de documentar.',
     icon: FileCheck2,
     lead:
-      'A consulta gratuita ajuda a ver se há histórico antes de solicitar a Certidão. Assim você decide com clareza se precisa do documento completo.',
+      'A consulta gratuita mostra o panorama numérico do que existe no prontuário. Assim você decide, com clareza, se precisa da Certidão — o documento formal com a informação completa.',
     points: [
-      'Consulta: dados numéricos e existência de registros.',
-      'Certidão: informação completa e documentada.',
-      'Sem notas ou scores inventados sobre o veículo.',
-      'O que não foi registrado não aparece — e isso também é informação.',
+      'Consulta: totais e existência de registros, sem custo.',
+      'Certidão: narrativa completa e documentada, com preço publicado.',
+      'Sem scores, notas ou rankings inventados sobre o veículo.',
+      'O que não foi registrado na rede não aparece — e isso também é informação.',
+      'O VEBOOK não substitui CRLV, vistoria cautelar ou documentos oficiais de trânsito.',
     ],
   },
   {
@@ -62,12 +68,13 @@ export const CONSULTATION_PILLARS: ConsultationPillar[] = [
     summary: 'Dados pessoais do cliente ficam no controle da oficina.',
     icon: Lock,
     lead:
-      'O foco da consulta é o histórico técnico do veículo. Dados pessoais do cliente não são o objeto do prontuário público e permanecem sob responsabilidade da oficina.',
+      'O foco da consulta é o histórico técnico do veículo. Dados pessoais do cliente permanecem sob responsabilidade da oficina (controladora no atendimento). O VEBOOK organiza o prontuário e não comercializa dados identificáveis.',
     points: [
       'Prontuário do veículo ≠ cadastro público de proprietários.',
-      'Contatos e dados pessoais ficam no painel da oficina.',
-      'Finalidade de uso alinhada às regras de privacidade publicadas.',
-      'Canal institucional disponível para dúvidas sobre tratamento de dados.',
+      'Contatos e dados pessoais ficam no painel da oficina; a comunicação com o cliente é dela.',
+      'Tratamentos estatísticos, quando houver, usam dados anonimizados e agregados (LGPD).',
+      'Identidade de quem valida pode ser mascarada na camada pública do diário.',
+      'Dúvidas e direitos do titular: canal de Contato / Transparência no rodapé.',
     ],
   },
 ];

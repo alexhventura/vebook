@@ -310,15 +310,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </button>
             ))}
           </div>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button variant="primary" onClick={() => onNavigate('como-funciona')}>
-              Como o histórico é construído
-            </Button>
-            <Button variant="secondary" onClick={() => onNavigate('transparencia')}>
-              Transparência e LGPD
-            </Button>
-          </div>
         </div>
       </section>
 

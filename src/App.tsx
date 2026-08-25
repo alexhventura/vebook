@@ -96,19 +96,6 @@ export default function App() {
     handleNavigate('diario');
   };
 
-  const handleFocusConsulta = () => {
-    if (currentView !== 'diario') {
-      handleNavigate('diario');
-    }
-    setTimeout(() => {
-      const input = consultaInputRef.current;
-      if (input) {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        input.focus();
-      }
-    }, 100);
-  };
-
   const handleEmitirCertidaoForPlate = (plate: string) => {
     setSelectedPlateForCertidao(plate);
     handleNavigate('certidao');
@@ -129,11 +116,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-vebook-surface text-vebook-text font-sans">
       {!immersive && (
-        <Header
-          currentView={currentView}
-          onNavigate={handleNavigate}
-          onFocusConsulta={handleFocusConsulta}
-        />
+        <Header onNavigate={handleNavigate} />
       )}
 
       <main className="flex-1">

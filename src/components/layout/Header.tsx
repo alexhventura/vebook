@@ -3,9 +3,7 @@ import { AppView } from '../../types';
 import { Logo } from './Logo';
 
 interface HeaderProps {
-  currentView: AppView;
   onNavigate: (view: AppView) => void;
-  onFocusConsulta?: () => void;
 }
 
 /**
