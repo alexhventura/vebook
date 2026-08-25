@@ -8,7 +8,6 @@ import {
   Lock,
   Building2,
   ArrowRight,
-  ChevronRight,
   Mail,
 } from 'lucide-react';
 import { formatPlate, isValidPlateFormat } from '../../lib/utils';
