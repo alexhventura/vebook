@@ -15,11 +15,13 @@ import { formatBRL } from '../../lib/currency';
 import { PLAN_OFFERS } from '../../data/officePlans';
 import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
 import { OFFICE_PILLARS, type OfficePillarId } from '../../data/officePillars';
+import { GOVERNANCE_PILLARS, type GovernancePillarId } from '../../data/governancePillars';
 import { AppView, PlanModality } from '../../types';
 import { Button, Input } from '../ui';
 import { HomeAtmosphere } from '../home/HomeAtmosphere';
 import { HomeFaqAccordion } from '../home/HomeFaqAccordion';
 import { OfficePillarModal } from '../modals/OfficePillarModal';
+import { GovernancePillarModal } from '../modals/GovernancePillarModal';
 
 interface HomeViewProps {
   onNavigate: (view: AppView) => void;
@@ -49,10 +51,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [inputPlate, setInputPlate] = useState('');
   const [plateError, setPlateError] = useState<string | null>(null);
   const [openPillarId, setOpenPillarId] = useState<OfficePillarId | null>(null);
-  const [openGovId, setOpenGovId] = useState<string | null>(null);
+  const [openGovId, setOpenGovId] = useState<GovernancePillarId | null>(null);
   const [faqOpen, setFaqOpen] = useState(false);
 
   const openPillar = OFFICE_PILLARS.find((item) => item.id === openPillarId) ?? null;
+  const openGovPillar = GOVERNANCE_PILLARS.find((item) => item.id === openGovId) ?? null;
 
   const startCadastro = (modality: PlanModality) => {
     if (onStartCadastro) onStartCadastro(modality);
@@ -411,56 +414,22 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {[
-              {
-                id: 'origem',
-                icon: Shield,
-                t: 'Origem',
-                d: 'Registros com identificação dentro da plataforma.',
-              },
-              {
-                id: 'separacao',
-                icon: Lock,
-                t: 'Separação',
-                d: 'Prontuário técnico do veículo ≠ dados pessoais do cliente.',
-              },
-              {
-                id: 'documento',
-                icon: FileCheck2,
-                t: 'Documento',
-                d: 'A Certidão retrata o disponível no momento da emissão.',
-              },
-            ].map((item) => {
-              const open = openGovId === item.id;
-              return (
-                <div
-                  key={item.id}
-                  className="rounded-vebook border border-vebook-mustard/55 bg-vebook-navy/40 overflow-hidden"
-                >
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-left cursor-pointer hover:bg-vebook-navy-mid/40"
-                    aria-expanded={open}
-                    onClick={() => setOpenGovId(open ? null : item.id)}
-                  >
-                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-vebook-white">
-                      <item.icon className="w-4 h-4 text-vebook-mustard shrink-0" aria-hidden />
-                      {item.t}
-                    </span>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 shrink-0 text-vebook-mustard transition-transform ${open ? 'rotate-180' : ''}`}
-                      aria-hidden
-                    />
-                  </button>
-                  {open && (
-                    <p className="px-3.5 pb-3 text-xs text-vebook-blue-muted leading-relaxed border-t border-vebook-mustard/30 pt-2">
-                      {item.d}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {GOVERNANCE_PILLARS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setOpenGovId(item.id)}
+                className="group rounded-vebook-lg border border-vebook-mustard/65 bg-vebook-navy/45 p-4 text-left cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40"
+              >
+                <item.icon className="w-5 h-5 text-vebook-mustard mb-3" aria-hidden />
+                <h3 className="text-base font-bold text-vebook-white">{item.title}</h3>
+                <p className="mt-1.5 text-xs text-vebook-blue-muted leading-relaxed">{item.summary}</p>
+                <span className="mt-3 inline-flex text-xs font-semibold text-vebook-mustard group-hover:text-vebook-mustard-soft">
+                  Saiba mais →
+                </span>
+              </button>
+            ))}
           </div>
 
           <div className="rounded-vebook border border-vebook-mustard/55 bg-vebook-navy/35 overflow-hidden">
@@ -509,6 +478,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
         pillar={openPillar}
         onClose={() => setOpenPillarId(null)}
         onStartCadastro={() => startCadastro('monthly')}
+      />
+      <GovernancePillarModal
+        pillar={openGovPillar}
+        onClose={() => setOpenGovId(null)}
+        onOpenContato={onOpenContato}
       />
     </div>
   );
