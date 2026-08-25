@@ -269,50 +269,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </section>
 
-      {/* ===== O QUE ENTRA NO HISTÓRICO — fita editorial ===== */}
-      <section className="relative bg-vebook-blue-soft/50 border-b border-vebook-border">
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
-            <div className="max-w-xl space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard-deep">Para quem consulta</p>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
-                Clareza antes da certidão.
-              </h2>
-            </div>
-            <p className="text-sm text-vebook-muted max-w-sm leading-relaxed lg:text-right">
-              O prontuário é sobre o veículo e seus registros técnicos — não um cadastro público de proprietários.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { t: 'Histórico', d: 'Registros de manutenções e atendimentos de oficinas participantes.' },
-              { t: 'Continuidade', d: 'O histórico acompanha o veículo ao longo da vida útil.' },
-              { t: 'Transparência', d: 'Verifique a existência de registros antes de documentar.' },
-              { t: 'Privacidade', d: 'Dados pessoais do cliente ficam no controle da oficina.' },
-            ].map((item, i) => (
-              <article
-                key={item.t}
-                className="group rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white/90 p-5 sm:p-6 shadow-vebook transition-all duration-300 hover:-translate-y-1 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
-              >
-                <span className="text-[11px] font-mono font-semibold text-vebook-mustard-deep">0{i + 1}</span>
-                <h3 className="mt-3 text-lg font-bold text-vebook-navy">{item.t}</h3>
-                <p className="mt-2 text-sm text-vebook-muted leading-relaxed">{item.d}</p>
-              </article>
-            ))}
-          </div>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button variant="primary" onClick={() => onNavigate('como-funciona')}>
-              Como o histórico é construído
-            </Button>
-            <Button variant="secondary" onClick={() => onNavigate('transparencia')}>
-              Transparência e LGPD
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* ===== OFICINAS — infraestrutura, não pitch ===== */}
       <section id="home-oficinas" className="relative bg-vebook-gray border-b border-vebook-border">
         <Spine />
@@ -392,7 +348,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </section>
 
       {/* ===== CONFIANÇA / GOVERNANÇA ===== */}
-      <section className="relative bg-vebook-navy-deep text-vebook-white">
+      <section className="relative bg-vebook-navy-deep text-vebook-white border-b border-vebook-mustard/30">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_0%,rgba(107,158,196,0.12),transparent_50%)]" aria-hidden />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-14">
           <div className="max-w-2xl space-y-4">
@@ -460,6 +416,50 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== PARA QUEM CONSULTA — imediatamente antes do rodapé ===== */}
+      <section className="relative bg-vebook-blue-soft/50">
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
+            <div className="max-w-xl space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard-deep">Para quem consulta</p>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
+                Clareza antes da certidão.
+              </h2>
+            </div>
+            <p className="text-sm text-vebook-muted max-w-sm leading-relaxed lg:text-right">
+              O prontuário é sobre o veículo e seus registros técnicos — não um cadastro público de proprietários.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { t: 'Histórico', d: 'Registros de manutenções e atendimentos de oficinas participantes.' },
+              { t: 'Continuidade', d: 'O histórico acompanha o veículo ao longo da vida útil.' },
+              { t: 'Transparência', d: 'Verifique a existência de registros antes de documentar.' },
+              { t: 'Privacidade', d: 'Dados pessoais do cliente ficam no controle da oficina.' },
+            ].map((item, i) => (
+              <article
+                key={item.t}
+                className="group rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white/90 p-5 sm:p-6 shadow-vebook transition-all duration-300 hover:-translate-y-1 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
+              >
+                <span className="text-[11px] font-mono font-semibold text-vebook-mustard-deep">0{i + 1}</span>
+                <h3 className="mt-3 text-lg font-bold text-vebook-navy">{item.t}</h3>
+                <p className="mt-2 text-sm text-vebook-muted leading-relaxed">{item.d}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button variant="primary" onClick={() => onNavigate('como-funciona')}>
+              Como o histórico é construído
+            </Button>
+            <Button variant="secondary" onClick={() => onNavigate('transparencia')}>
+              Transparência e LGPD
+            </Button>
           </div>
         </div>
       </section>
