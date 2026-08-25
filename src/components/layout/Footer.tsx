@@ -18,7 +18,7 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenCookiesConfig,
   onOpenPrivacidadeModal: _onOpenPrivacidadeModal,
   onOpenContestacaoModal: _onOpenContestacaoModal,
-  onOpenContato: _onOpenContato,
+  onOpenContato,
 }) => {
   const handleNav = (view: AppView) => {
     onNavigate(view);
@@ -38,8 +38,8 @@ export const Footer: React.FC<FooterProps> = ({
       id="footer-institucional-vebook"
       className="bg-vebook-navy-deep text-vebook-subtle py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-t border-vebook-navy-mid"
     >
-      <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 pb-10 border-b border-vebook-navy-mid">
+      <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 pb-10 border-b border-vebook-navy-mid">
           <div className="space-y-4 sm:col-span-2 lg:col-span-1">
             <Logo size="md" variant="light" />
             <p className="text-sm text-vebook-blue-muted leading-relaxed">
@@ -53,13 +53,12 @@ export const Footer: React.FC<FooterProps> = ({
             </h4>
             <ul className="space-y-2.5">
               <li>
-                <button type="button" onClick={() => handleNav('diario')} className={linkClass}>
-                  Consultar veículo
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleNav('oficinas')} className={linkClass}>
-                  Oficinas
+                <button
+                  type="button"
+                  onClick={() => handleTransparencia('como-tratamos')}
+                  className={linkClass}
+                >
+                  Sobre
                 </button>
               </li>
               <li>
@@ -68,8 +67,26 @@ export const Footer: React.FC<FooterProps> = ({
                 </button>
               </li>
               <li>
-                <button type="button" onClick={() => handleTransparencia('faq')} className={linkClass}>
-                  FAQ
+                <button type="button" onClick={() => handleNav('oficinas')} className={linkClass}>
+                  Oficinas
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-xs font-semibold uppercase text-vebook-white tracking-wider">
+              Consultas
+            </h4>
+            <ul className="space-y-2.5">
+              <li>
+                <button type="button" onClick={() => handleNav('diario')} className={linkClass}>
+                  Consultar veículo
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => handleNav('certidao')} className={linkClass}>
+                  Certidão
                 </button>
               </li>
             </ul>
@@ -81,28 +98,31 @@ export const Footer: React.FC<FooterProps> = ({
             </h4>
             <ul className="space-y-2.5">
               <li>
-                <button type="button" onClick={() => handleTransparencia('como-tratamos')} className={linkClass}>
-                  Sobre
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleTransparencia('seguranca')} className={linkClass}>
-                  Segurança
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleTransparencia('privacidade')} className={linkClass}>
-                  Privacidade
-                </button>
-              </li>
-              <li>
                 <button type="button" onClick={() => handleTransparencia('termos')} className={linkClass}>
                   Termos
                 </button>
               </li>
               <li>
-                <button type="button" onClick={() => handleTransparencia('cookies')} className={linkClass}>
-                  Cookies
+                <button
+                  type="button"
+                  onClick={() => handleTransparencia('privacidade')}
+                  className={linkClass}
+                >
+                  Privacidade
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => handleTransparencia('seguranca')}
+                  className={linkClass}
+                >
+                  Segurança
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={onOpenContato} className={linkClass}>
+                  Contato
                 </button>
               </li>
             </ul>
@@ -132,7 +152,11 @@ export const Footer: React.FC<FooterProps> = ({
             <span>Aviso legal</span>
           </div>
           <p>
-            A <strong className="text-vebook-white/90">VEBOOK</strong> é uma plataforma tecnológica de registro, organização e histórico veicular. A VEBOOK não é órgão governamental, cartório ou substituto dos órgãos do Sistema Nacional de Trânsito (SENATRAN/CONTRAN/Detran), não atesta propriedade jurídica ou quitação tributária, não substitui o CRLV/ATPV-e e não substitui laudo de vistoria cautelar veicular. A certidão reproduz as informações disponíveis na base tecnológica do VEBOOK no momento de sua emissão, sem constituir garantia de inexistência de fatos não registrados.
+            A <strong className="text-vebook-white/90">VEBOOK</strong> é uma plataforma tecnológica de
+            registro, organização e histórico veicular. A VEBOOK não é órgão governamental, cartório
+            ou substituto dos órgãos do Sistema Nacional de Trânsito (SENATRAN/CONTRAN/Detran), não
+            atesta propriedade jurídica ou quitação tributária, não substitui o CRLV/ATPV-e e não
+            substitui laudo de vistoria cautelar veicular.
           </p>
         </div>
 
