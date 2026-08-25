@@ -14,12 +14,14 @@ import { PLAN_OFFERS } from '../../data/officePlans';
 import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
 import { OFFICE_PILLARS, type OfficePillarId } from '../../data/officePillars';
 import { GOVERNANCE_PILLARS, type GovernancePillarId } from '../../data/governancePillars';
+import { CONSULTATION_PILLARS, type ConsultationPillarId } from '../../data/consultationPillars';
 import { AppView, PlanModality } from '../../types';
 import { Button, Input } from '../ui';
 import { HomeAtmosphere } from '../home/HomeAtmosphere';
 import { HomeFaqAccordion } from '../home/HomeFaqAccordion';
 import { OfficePillarModal } from '../modals/OfficePillarModal';
 import { GovernancePillarModal } from '../modals/GovernancePillarModal';
+import { ConsultationPillarModal } from '../modals/ConsultationPillarModal';
 
 interface HomeViewProps {
   onNavigate: (view: AppView) => void;
@@ -50,10 +52,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [plateError, setPlateError] = useState<string | null>(null);
   const [openPillarId, setOpenPillarId] = useState<OfficePillarId | null>(null);
   const [openGovId, setOpenGovId] = useState<GovernancePillarId | null>(null);
+  const [openConsultaId, setOpenConsultaId] = useState<ConsultationPillarId | null>(null);
   const [faqOpen, setFaqOpen] = useState(false);
 
   const openPillar = OFFICE_PILLARS.find((item) => item.id === openPillarId) ?? null;
   const openGovPillar = GOVERNANCE_PILLARS.find((item) => item.id === openGovId) ?? null;
+  const openConsultaPillar = CONSULTATION_PILLARS.find((item) => item.id === openConsultaId) ?? null;
 
   const startCadastro = (modality: PlanModality) => {
     if (onStartCadastro) onStartCadastro(modality);
@@ -290,20 +294,20 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { t: 'Histórico', d: 'Registros de manutenções e atendimentos de oficinas participantes.' },
-              { t: 'Continuidade', d: 'O histórico acompanha o veículo ao longo da vida útil.' },
-              { t: 'Transparência', d: 'Verifique a existência de registros antes de documentar.' },
-              { t: 'Privacidade', d: 'Dados pessoais do cliente ficam no controle da oficina.' },
-            ].map((item, i) => (
-              <article
-                key={item.t}
-                className="group rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white/90 p-5 sm:p-6 shadow-vebook transition-all duration-300 hover:-translate-y-1 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
+            {CONSULTATION_PILLARS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setOpenConsultaId(item.id)}
+                className="group rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-5 sm:p-6 text-left shadow-vebook transition-all duration-300 hover:-translate-y-1 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40"
               >
-                <span className="text-[11px] font-mono font-semibold text-vebook-mustard-deep">0{i + 1}</span>
-                <h3 className="mt-3 text-lg font-bold text-vebook-navy">{item.t}</h3>
-                <p className="mt-2 text-sm text-vebook-muted leading-relaxed">{item.d}</p>
-              </article>
+                <item.icon className="w-5 h-5 text-vebook-mustard-deep" aria-hidden />
+                <h3 className="mt-3 text-lg font-bold text-vebook-navy">{item.title}</h3>
+                <p className="mt-2 text-sm text-vebook-muted leading-relaxed">{item.summary}</p>
+                <span className="mt-4 inline-flex text-xs font-semibold text-vebook-mustard-deep group-hover:text-vebook-mustard">
+                  Saiba mais →
+                </span>
+              </button>
             ))}
           </div>
 
@@ -481,6 +485,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
         pillar={openGovPillar}
         onClose={() => setOpenGovId(null)}
         onOpenContato={onOpenContato}
+      />
+      <ConsultationPillarModal
+        pillar={openConsultaPillar}
+        onClose={() => setOpenConsultaId(null)}
+        onNavigateCertidao={() => onNavigate('certidao')}
       />
     </div>
   );
