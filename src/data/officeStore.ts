@@ -779,6 +779,33 @@ export async function loginWithCpf(cpf: string, password: string): Promise<Offic
   return session;
 }
 
+/**
+ * Entrada de demonstração no painel (sem senha) — oficina Prisma.
+ * Uso exclusivo de atalhos de teste do protótipo.
+ */
+export async function loginDemoOffice(slug = 'prisma'): Promise<OfficeSession> {
+  await ensureDemoOwner();
+  enrichDemoOperationalRecords();
+  const office = state.offices.find((row) => row.slug === slug);
+  if (!office) {
+    throw new Error('Oficina de demonstração não encontrada.');
+  }
+  const user =
+    state.users.find((row) => row.officeId === office.officeId && row.role === 'owner' && row.status === 'active') ??
+    state.users.find((row) => row.cpf === DEMO_OWNER.cpf);
+  if (!user) {
+    throw new Error('Usuário de demonstração não encontrado.');
+  }
+  const session: OfficeSession = {
+    userId: user.id,
+    officeId: user.officeId,
+    expiresAt: Date.now() + SESSION_MS,
+  };
+  state.session = session;
+  persist();
+  return session;
+}
+
 export function logoutOffice(): void {
   state.session = null;
   persist();

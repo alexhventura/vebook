@@ -19,7 +19,7 @@ import { MinhaPrivacidadeModal } from './components/privacy/MinhaPrivacidadeModa
 import { ContestacaoModal } from './components/contestation/ContestacaoModal';
 import { AppView, PlanModality, ServiceRecord, TransparenciaSection } from './types';
 import { applyHash, parseHash, PanelSection } from './lib/navigation';
-import { initOfficeStore } from './data/officeStore';
+import { initOfficeStore, loginDemoOffice } from './data/officeStore';
 
 export default function App() {
   const initial = parseHash();
@@ -232,6 +232,13 @@ export default function App() {
           onOpenPrivacidadeModal={() => setIsPrivacidadeModalOpen(true)}
           onOpenContestacaoModal={handleOpenContestacaoGeneric}
           onOpenContato={() => setLegalModalType('contato')}
+          onOpenDemoWorkshopSite={() => {
+            handleNavigate('site-oficina', { workshopSlug: 'prisma' });
+          }}
+          onOpenDemoPanel={async () => {
+            await loginDemoOffice('prisma');
+            handleNavigate('painel-oficina', { workshopSlug: 'prisma' });
+          }}
         />
       )}
 

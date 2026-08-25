@@ -9,6 +9,9 @@ interface FooterProps {
   onOpenPrivacidadeModal: () => void;
   onOpenContestacaoModal: () => void;
   onOpenContato: () => void;
+  /** Atalhos de protótipo: site e painel sem senha */
+  onOpenDemoWorkshopSite?: () => void;
+  onOpenDemoPanel?: () => void | Promise<void>;
 }
 
 /**
@@ -21,6 +24,8 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenPrivacidadeModal: _onOpenPrivacidadeModal,
   onOpenContestacaoModal: _onOpenContestacaoModal,
   onOpenContato,
+  onOpenDemoWorkshopSite,
+  onOpenDemoPanel,
 }) => {
   const handleNav = (view: AppView) => {
     onNavigate(view);
@@ -116,6 +121,36 @@ export const Footer: React.FC<FooterProps> = ({
             </button>
           </div>
         </div>
+
+        {(onOpenDemoWorkshopSite || onOpenDemoPanel) && (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-dashed border-vebook-mustard/35 pt-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-vebook-mustard/90">
+              Atalhos de teste · sem senha
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {onOpenDemoWorkshopSite ? (
+                <button
+                  type="button"
+                  onClick={onOpenDemoWorkshopSite}
+                  className="inline-flex items-center rounded-vebook-sm border border-vebook-mustard/60 bg-vebook-mustard/15 px-2.5 py-1 text-[11px] font-semibold text-vebook-mustard hover:bg-vebook-mustard hover:text-vebook-navy-deep transition-colors cursor-pointer"
+                >
+                  Teste · Site da oficina
+                </button>
+              ) : null}
+              {onOpenDemoPanel ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void onOpenDemoPanel();
+                  }}
+                  className="inline-flex items-center rounded-vebook-sm border border-vebook-mustard/60 bg-vebook-mustard/15 px-2.5 py-1 text-[11px] font-semibold text-vebook-mustard hover:bg-vebook-mustard hover:text-vebook-navy-deep transition-colors cursor-pointer"
+                >
+                  Teste · Painel de gestão
+                </button>
+              ) : null}
+            </div>
+          </div>
+        )}
       </div>
     </footer>
   );
