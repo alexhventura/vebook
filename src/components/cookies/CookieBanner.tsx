@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CookiePreferences } from '../../types';
 import { ShieldCheck, Cookie, Sliders, Check, X, Info } from 'lucide-react';
+import { Button } from '../ui';
 
 interface CookieBannerProps {
   isOpenModalExternally?: boolean;
@@ -8,6 +9,9 @@ interface CookieBannerProps {
 }
 
 const COOKIE_STORAGE_KEY = 'vebook_cookie_preferences_v1';
+
+const toggleTrack =
+  "w-10 h-5 bg-vebook-border-strong peer-focus:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-vebook-blue/40 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-vebook-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-vebook-white after:border after:border-vebook-border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-vebook-navy";
 
 export const CookieBanner: React.FC<CookieBannerProps> = ({
   isOpenModalExternally = false,
@@ -20,7 +24,7 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
     advertising: false,
   });
 
-  const [hasAnswered, setHasAnswered] = useState<boolean>(true); // Inicia oculto até checar
+  const [hasAnswered, setHasAnswered] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -48,7 +52,7 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
     try {
       localStorage.setItem(
         COOKIE_STORAGE_KEY,
-        JSON.stringify({ ...newPrefs, savedAt: new Date().toISOString() })
+        JSON.stringify({ ...newPrefs, savedAt: new Date().toISOString() }),
       );
     } catch {
       // safe fallback
@@ -78,126 +82,118 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
 
   return (
     <>
-      {/* BANNER INFERIOR INSTITUCIONAL (Só aparece se o usuário ainda não tiver optado) */}
       {!hasAnswered && !isModalOpen && (
         <div
           id="vebook-cookie-banner"
-          className="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-5 bg-[#071526]/95 backdrop-blur-md border-t border-slate-700 shadow-2xl animate-in slide-in-from-bottom duration-300"
+          className="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-5 bg-vebook-navy-deep/95 backdrop-blur-md border-t border-vebook-navy-mid shadow-vebook-md"
         >
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5 max-w-3xl">
-              <div className="p-2.5 rounded-lg bg-sky-950/80 border border-sky-800/60 text-sky-400 shrink-0 mt-0.5">
-                <Cookie className="w-5 h-5" />
+              <div className="p-2.5 rounded-vebook bg-vebook-navy border border-vebook-navy-mid text-vebook-blue shrink-0 mt-0.5">
+                <Cookie className="w-5 h-5" aria-hidden />
               </div>
               <div className="space-y-1">
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  <span>Sua privacidade e governança de dados importam</span>
-                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-sky-900/60 text-sky-300 border border-sky-700/50">
-                    LGPD & Marco Civil
+                <h4 className="text-sm font-semibold text-vebook-white flex flex-wrap items-center gap-2">
+                  <span>Privacidade e cookies</span>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-vebook-sm bg-vebook-navy text-vebook-blue-muted border border-vebook-navy-mid">
+                    LGPD
                   </span>
                 </h4>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  O <strong>VEBOOK</strong> utiliza cookies e tecnologias estritamente necessárias para garantir segurança, autenticação de registros e funcionamento da plataforma. Cookies opcionais para estatísticas anônimas de desempenho e personalização dependem da sua escolha livre e informada.
+                <p className="text-xs text-vebook-blue-muted leading-relaxed">
+                  O <strong className="text-vebook-white/90">VEBOOK</strong> utiliza cookies necessários
+                  para segurança e funcionamento. Cookies opcionais dependem da sua escolha.
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
-              <button
+              <Button
                 id="btn-cookie-configurar"
+                variant="ghost"
+                size="sm"
+                className="text-vebook-blue-muted border-vebook-navy-mid hover:border-vebook-blue-muted"
                 onClick={() => setIsModalOpen(true)}
-                className="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all cursor-pointer flex items-center gap-1.5"
               >
-                <Sliders className="w-3.5 h-3.5 text-slate-400" />
-                <span>Configurar</span>
-              </button>
+                <Sliders className="w-3.5 h-3.5" aria-hidden />
+                Configurar
+              </Button>
 
-              <button
+              <Button
                 id="btn-cookie-recusar"
+                variant="ghost"
+                size="sm"
+                className="text-vebook-blue-muted border-vebook-navy-mid hover:border-vebook-blue-muted"
                 onClick={handleRejectOptionals}
-                className="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all cursor-pointer"
               >
-                Recusar Opcionais
-              </button>
+                Recusar opcionais
+              </Button>
 
-              <button
-                id="btn-cookie-aceitar"
-                onClick={handleAcceptAll}
-                className="px-4 py-2 rounded-lg text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 transition-all shadow-md cursor-pointer flex items-center gap-1.5"
-              >
-                <Check className="w-3.5 h-3.5 text-slate-950" />
-                <span>Aceitar Todos</span>
-              </button>
+              <Button id="btn-cookie-aceitar" variant="inverse" size="sm" onClick={handleAcceptAll}>
+                <Check className="w-3.5 h-3.5" aria-hidden />
+                Aceitar todos
+              </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL DE PREFERÊNCIAS DETALHADAS DE COOKIES */}
       {isModalOpen && (
         <div
           id="modal-cookie-preferences"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-vebook-ink/70 backdrop-blur-sm"
         >
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="p-5 bg-[#0B1E36] text-white flex items-center justify-between border-b border-slate-800">
+          <div className="bg-vebook-white rounded-vebook-lg border border-vebook-border shadow-vebook-md max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="p-5 bg-vebook-navy text-vebook-white flex items-center justify-between border-b border-vebook-navy-mid">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-sky-950 border border-sky-800 text-sky-400">
-                  <Cookie className="w-5 h-5" />
+                <div className="p-2 rounded-vebook bg-vebook-navy-mid border border-vebook-navy-mid text-vebook-blue">
+                  <Cookie className="w-5 h-5" aria-hidden />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold">Central de Preferências de Cookies</h3>
-                  <p className="text-xs text-slate-300">
-                    Transparência e controle de privacidade no VEBOOK
-                  </p>
+                  <h3 className="text-base font-semibold">Preferências de cookies</h3>
+                  <p className="text-xs text-vebook-blue-muted">Controle de privacidade no VEBOOK</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   setIsModalOpen(false);
                   if (onCloseExternalModal) onCloseExternalModal();
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1.5 rounded-vebook-sm text-vebook-subtle hover:text-vebook-white hover:bg-vebook-navy-mid transition-colors cursor-pointer"
                 title="Fechar"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Conteúdo scrollável */}
-            <div className="p-6 overflow-y-auto space-y-5 text-slate-700 text-sm">
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 leading-relaxed flex items-start gap-2.5">
-                <Info className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
+            <div className="p-6 overflow-y-auto space-y-5 text-vebook-text text-sm">
+              <div className="p-3.5 rounded-vebook-md bg-vebook-blue-soft border border-vebook-border text-xs text-vebook-muted leading-relaxed flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-vebook-blue shrink-0 mt-0.5" aria-hidden />
                 <p>
-                  Em consonância com a <strong>LGPD (Lei 13.709/2018)</strong> e o <strong>Guia de Cookies da ANPD</strong>, você tem o direito de escolher livremente quais categorias de tecnologias autoriza em sua navegação.
+                  Em consonância com a <strong className="text-vebook-navy">LGPD (Lei 13.709/2018)</strong>, você
+                  pode escolher quais categorias autoriza na navegação.
                 </p>
               </div>
 
-              {/* Categorias */}
               <div className="space-y-4">
-                {/* 1. Essenciais */}
-                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold text-[#0B1E36]">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                      <span>Cookies Essenciais e de Segurança</span>
+                <div className="p-4 rounded-vebook-md border border-vebook-border bg-vebook-gray space-y-2">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2 font-semibold text-vebook-navy">
+                      <ShieldCheck className="w-4 h-4 text-vebook-blue" aria-hidden />
+                      <span>Cookies essenciais</span>
                     </div>
-                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded border border-emerald-300">
-                      Sempre Ativos (Obrigatórios)
+                    <span className="text-[11px] font-semibold text-vebook-navy bg-vebook-navy-soft px-2 py-0.5 rounded-vebook-sm border border-vebook-border">
+                      Sempre ativos
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Indispensáveis para a autenticação de oficinas, proteção contra requisições fraudulentas (CSRF), integridade de sessões e cumprimento do Art. 15 do Marco Civil da Internet.
+                  <p className="text-xs text-vebook-muted leading-relaxed">
+                    Necessários para segurança, autenticação e funcionamento da plataforma.
                   </p>
                 </div>
 
-                {/* 2. Desempenho */}
-                <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="font-bold text-[#0B1E36]">
-                      <span>Cookies de Desempenho e Estatísticas Anônimas</span>
-                    </div>
+                <div className="p-4 rounded-vebook-md border border-vebook-border bg-vebook-white space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-semibold text-vebook-navy">Desempenho</div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -207,20 +203,17 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-10 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-600"></div>
+                      <div className={toggleTrack} />
                     </label>
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Permitem aferir métricas agregadas de velocidade e uso das páginas para aprimoramento da infraestrutura técnica, sem identificar indivíduos ou placas específicas.
+                  <p className="text-xs text-vebook-muted leading-relaxed">
+                    Métricas agregadas de uso para aprimorar a infraestrutura, sem identificar indivíduos.
                   </p>
                 </div>
 
-                {/* 3. Funcionais */}
-                <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="font-bold text-[#0B1E36]">
-                      <span>Cookies de Funcionalidade e Preferências</span>
-                    </div>
+                <div className="p-4 rounded-vebook-md border border-vebook-border bg-vebook-white space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-semibold text-vebook-navy">Funcionalidade</div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -230,20 +223,17 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-10 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-600"></div>
+                      <div className={toggleTrack} />
                     </label>
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Armazenam preferências locais de navegação (como filtros recentes de consulta ou tamanho de fonte) para conveniência do usuário durante o uso do Diário Veicular.
+                  <p className="text-xs text-vebook-muted leading-relaxed">
+                    Preferências locais de navegação para conveniência durante o uso.
                   </p>
                 </div>
 
-                {/* 4. Publicidade / Parceiros Homologados */}
-                <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="font-bold text-[#0B1E36]">
-                      <span>Cookies de Parceiros Homologados do Setor</span>
-                    </div>
+                <div className="p-4 rounded-vebook-md border border-vebook-border bg-vebook-white space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-semibold text-vebook-navy">Parceiros do setor</div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -253,38 +243,28 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-10 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-600"></div>
+                      <div className={toggleTrack} />
                     </label>
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Utilizados para exibir comunicações institucionais de fabricantes homologados (peças, lubrificantes e filtros) nas áreas periféricas dedicadas sem invasão de privacidade.
+                  <p className="text-xs text-vebook-muted leading-relaxed">
+                    Comunicações institucionais de parceiros em áreas periféricas da plataforma.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Footer com botões */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-              <button
-                onClick={handleRejectOptionals}
-                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 transition-all cursor-pointer"
-              >
-                Rejeitar Opcionais
-              </button>
+            <div className="p-4 bg-vebook-gray border-t border-vebook-border flex flex-wrap items-center justify-between gap-3">
+              <Button variant="secondary" size="sm" onClick={handleRejectOptionals}>
+                Rejeitar opcionais
+              </Button>
 
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleSavePreferences(preferences)}
-                  className="px-4 py-2 rounded-lg text-xs font-bold text-slate-900 bg-amber-500 hover:bg-amber-400 transition-all shadow-xs cursor-pointer"
-                >
-                  Salvar Minhas Escolhas
-                </button>
-                <button
-                  onClick={handleAcceptAll}
-                  className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-[#0B1E36] hover:bg-[#122b4d] transition-all cursor-pointer"
-                >
-                  Autorizar Todos
-                </button>
+                <Button variant="secondary" size="sm" onClick={() => handleSavePreferences(preferences)}>
+                  Salvar escolhas
+                </Button>
+                <Button variant="primary" size="sm" onClick={handleAcceptAll}>
+                  Autorizar todos
+                </Button>
               </div>
             </div>
           </div>
