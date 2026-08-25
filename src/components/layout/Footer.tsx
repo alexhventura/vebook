@@ -11,6 +11,9 @@ interface FooterProps {
   onOpenContato: () => void;
 }
 
+/**
+ * Rodapé com a navegação completa da plataforma (única fonte de atalhos).
+ */
 export const Footer: React.FC<FooterProps> = ({
   onNavigate,
   onNavigateTransparencia,
@@ -38,54 +41,57 @@ export const Footer: React.FC<FooterProps> = ({
       className="bg-vebook-navy-deep text-vebook-subtle py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-t border-vebook-navy-mid"
     >
       <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 pb-10 border-b border-vebook-navy-mid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 pb-10 border-b border-vebook-navy-mid">
           <div className="space-y-4 sm:col-span-2 lg:col-span-1">
             <Logo size="md" variant="light" />
             <p className="text-sm text-vebook-blue-muted leading-relaxed">
-              O histórico do veículo em um só lugar.
+              A oficina registra. O cliente valida. A VEBOOK preserva.
             </p>
           </div>
 
           <div className="space-y-4">
             <h4 className="text-xs font-semibold uppercase text-vebook-white tracking-wider">
-              VEBOOK
+              Navegação
             </h4>
             <ul className="space-y-2.5">
               <li>
-                <button
-                  type="button"
-                  onClick={() => handleTransparencia('como-tratamos')}
-                  className={linkClass}
-                >
-                  Sobre
+                <button type="button" onClick={() => handleNav('home')} className={linkClass}>
+                  Início
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => handleNav('diario')} className={linkClass}>
+                  Diário Veicular
                 </button>
               </li>
               <li>
                 <button type="button" onClick={() => handleNav('como-funciona')} className={linkClass}>
-                  Como funciona
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleNav('oficinas')} className={linkClass}>
-                  Oficinas
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-xs font-semibold uppercase text-vebook-white tracking-wider">
-              Consultas
-            </h4>
-            <ul className="space-y-2.5">
-              <li>
-                <button type="button" onClick={() => handleNav('diario')} className={linkClass}>
-                  Consultar veículo
+                  Como Funciona
                 </button>
               </li>
               <li>
                 <button type="button" onClick={() => handleNav('certidao')} className={linkClass}>
-                  Certidão
+                  Certidão VEBOOK
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => handleNav('oficinas')} className={linkClass}>
+                  Para Oficinas
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => handleNav('site-oficina')} className={linkClass}>
+                  Site da Oficina
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => handleNav('validacao')} className={linkClass}>
+                  Validar Serviço
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => handleNav('transparencia')} className={linkClass}>
+                  Transparência
                 </button>
               </li>
             </ul>
@@ -148,13 +154,6 @@ export const Footer: React.FC<FooterProps> = ({
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-vebook-subtle/80 pt-1">
           <div>© 2026 VEBOOK</div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px]">
-            <button
-              type="button"
-              onClick={() => handleTransparencia('privacidade')}
-              className="hover:text-vebook-blue-muted transition-colors cursor-pointer"
-            >
-              Privacidade
-            </button>
             <button
               type="button"
               onClick={() => handleTransparencia('cookies')}
