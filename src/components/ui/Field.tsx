@@ -11,17 +11,21 @@ interface FieldProps {
 
 export const Field: React.FC<FieldProps> = ({ label, htmlFor, hint, error, optional, children }) => {
   return (
-    <div className="space-y-1">
-      <label htmlFor={htmlFor} className="block text-xs font-bold text-slate-700">
+    <div className="space-y-1.5">
+      <label htmlFor={htmlFor} className="vebook-label">
         {label}
-        {optional ? <span className="ml-1 font-medium text-slate-400">(opcional)</span> : null}
+        {optional ? <span className="ml-1 font-medium text-vebook-subtle">(opcional)</span> : null}
       </label>
       {children}
-      {error ? <p className="text-[11px] font-medium text-rose-700">{error}</p> : null}
-      {!error && hint ? <p className="text-[11px] text-slate-500">{hint}</p> : null}
+      {error ? <p className="vebook-error-text">{error}</p> : null}
+      {!error && hint ? <p className="vebook-hint">{hint}</p> : null}
     </div>
   );
 };
 
-export const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0B1E36]/20 focus:border-[#0B1E36]';
+/** Classe canônica de input — preferir o componente `Input` em telas novas. */
+export const inputClass = [
+  'w-full px-3.5 py-2.5 rounded-vebook border border-vebook-border bg-vebook-white',
+  'text-sm text-vebook-text placeholder:text-vebook-subtle',
+  'focus:outline-none focus:ring-2 focus:ring-vebook-blue/30 focus:border-vebook-navy',
+].join(' ');

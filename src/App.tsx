@@ -127,7 +127,7 @@ export default function App() {
   const immersive = currentView === 'site-oficina' || currentView === 'painel-oficina' || currentView === 'cadastro-oficina';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#071A33] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#0B1E36] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-vebook-surface text-vebook-text font-sans">
       {!immersive && (
         <Header
           currentView={currentView}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 import { formatPlate, isValidPlateFormat } from '../../lib/utils';
 import { AppView } from '../../types';
+import { Button, Card, Input } from '../ui';
 
 interface HomeViewProps {
   onNavigate: (view: AppView) => void;
@@ -67,97 +68,91 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   return (
-    <div className="pb-24">
+    <div className="pb-20 sm:pb-24">
       {/* 1. HERO */}
-      <section className="relative bg-[#071527] text-white px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto py-24 sm:py-32 lg:py-40 text-center space-y-8">
+      <section className="relative bg-vebook-navy-deep text-vebook-white px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto py-20 sm:py-28 lg:py-36 text-center space-y-8">
           <div className="space-y-5">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-vebook-white leading-tight">
               O histórico do veículo em um só lugar.
             </h1>
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl mx-auto">
+            <p className="text-base sm:text-lg text-vebook-blue-muted leading-relaxed max-w-xl mx-auto">
               Registros de serviços e manutenção organizados para acompanhar a vida do veículo.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <button
-              type="button"
-              onClick={scrollToConsulta}
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-white text-[#0B1E36] font-semibold text-sm hover:bg-slate-100 transition-colors cursor-pointer"
-            >
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-1">
+            <Button variant="inverse" size="lg" fullWidth className="sm:w-auto" onClick={scrollToConsulta}>
               Consultar veículo
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              fullWidth
+              className="sm:w-auto text-vebook-blue-muted border-vebook-navy-mid hover:border-vebook-blue-muted"
               onClick={() => onNavigate('oficinas')}
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-transparent text-slate-300 font-medium text-sm border border-slate-600 hover:border-slate-400 hover:text-white transition-colors cursor-pointer"
             >
               Sou uma oficina
-            </button>
+            </Button>
           </div>
         </div>
       </section>
 
       {/* 2. O QUE É O VEBOOK */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 space-y-12">
+      <section className="vebook-container vebook-section space-y-10 sm:space-y-12">
         <div className="max-w-2xl mx-auto text-center space-y-4">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#0B1E36] tracking-tight">
-            O que é o VEBOOK?
-          </h2>
-          <p className="text-base text-slate-600 leading-relaxed">
+          <h2 className="vebook-section-title">O que é o VEBOOK?</h2>
+          <p className="vebook-section-lead">
             O VEBOOK é uma plataforma para registro e consulta do histórico de serviços e manutenção de veículos.
           </p>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <p className="text-sm text-vebook-subtle leading-relaxed">
             Cada registro fica associado ao veículo, formando uma linha do tempo clara e consultável.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
-          <article className="bg-white p-7 sm:p-8 rounded-2xl border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] space-y-3">
-            <h3 className="text-lg font-semibold text-[#0B1E36]">Histórico</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+          <Card as="article" className="space-y-3">
+            <h3 className="text-lg font-semibold text-vebook-navy">Histórico</h3>
+            <p className="text-sm text-vebook-muted leading-relaxed">
               Registros organizados para acompanhar a trajetória de manutenção do veículo.
             </p>
-          </article>
+          </Card>
 
-          <article className="bg-white p-7 sm:p-8 rounded-2xl border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] space-y-3">
-            <h3 className="text-lg font-semibold text-[#0B1E36]">Transparência</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+          <Card as="article" className="space-y-3">
+            <h3 className="text-lg font-semibold text-vebook-navy">Transparência</h3>
+            <p className="text-sm text-vebook-muted leading-relaxed">
               Informações reunidas de forma clara para facilitar a consulta do histórico.
             </p>
-          </article>
+          </Card>
 
-          <article className="bg-white p-7 sm:p-8 rounded-2xl border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] space-y-3">
-            <h3 className="text-lg font-semibold text-[#0B1E36]">Registro</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+          <Card as="article" className="space-y-3">
+            <h3 className="text-lg font-semibold text-vebook-navy">Registro</h3>
+            <p className="text-sm text-vebook-muted leading-relaxed">
               Serviços realizados podem ser registrados e associados ao veículo.
             </p>
-          </article>
+          </Card>
         </div>
       </section>
 
-      {/* 3. CONSULTA */}
-      <section
-        id="home-consulta"
-        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28"
-      >
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_1px_3px_rgba(15,23,42,0.05)] px-6 py-10 sm:px-10 sm:py-14 space-y-8">
+      {/* 3. CONSULTA — ação principal */}
+      <section id="home-consulta" className="vebook-container vebook-section">
+        <Card padding="lg" className="space-y-8 border-vebook-border">
           <div className="max-w-xl mx-auto text-center space-y-3">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#0B1E36] tracking-tight">
-              Consulte um veículo
-            </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p className="text-xs font-semibold uppercase tracking-wider text-vebook-blue">
+              Ação principal
+            </p>
+            <h2 className="vebook-section-title">Consulte um veículo</h2>
+            <p className="vebook-section-lead">
               Consulte as informações disponíveis sobre o histórico registrado no VEBOOK.
             </p>
           </div>
 
           <form onSubmit={handleSearchSubmit} className="max-w-lg mx-auto space-y-4">
-            <label htmlFor="home-plate-input" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="home-plate-input" className="vebook-label">
               Digite a placa do veículo
             </label>
             <div className="flex flex-col sm:flex-row gap-3">
-              <input
+              <Input
                 id="home-plate-input"
                 type="text"
                 value={inputPlate}
@@ -168,98 +163,87 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 placeholder="Ex.: ABC1D23"
                 maxLength={7}
                 autoComplete="off"
-                aria-invalid={Boolean(plateError)}
+                invalid={Boolean(plateError)}
                 aria-describedby={plateError ? 'home-plate-error' : 'home-plate-hint'}
-                className="w-full px-4 py-3.5 text-base font-semibold tracking-widest text-[#0B1E36] uppercase placeholder:text-slate-400 placeholder:tracking-normal placeholder:font-normal bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0B1E36]/15 focus:border-slate-400"
+                className="font-semibold tracking-widest uppercase placeholder:tracking-normal"
               />
-              <button
-                type="submit"
-                className="px-6 py-3.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer shrink-0"
-              >
-                <Search className="w-4 h-4 text-sky-300" />
-                <span>Consultar veículo</span>
-              </button>
+              <Button type="submit" variant="primary" size="lg" className="shrink-0">
+                <Search className="w-4 h-4 text-vebook-blue-muted" aria-hidden />
+                Consultar veículo
+              </Button>
             </div>
-            <p id="home-plate-hint" className="text-xs text-slate-500">
+            <p id="home-plate-hint" className="vebook-hint">
               Use o formato Mercosul ou tradicional. O exemplo no campo é apenas de preenchimento.
             </p>
             {plateError && (
-              <p id="home-plate-error" className="text-xs text-rose-700" role="alert">
+              <p id="home-plate-error" className="vebook-error-text" role="alert">
                 {plateError}
               </p>
             )}
           </form>
-        </div>
+        </Card>
       </section>
 
       {/* 4. COMO FUNCIONA */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 space-y-12">
+      <section className="vebook-container vebook-section space-y-10 sm:space-y-12">
         <div className="max-w-2xl mx-auto text-center space-y-3">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#0B1E36] tracking-tight">
-            Como funciona
-          </h2>
-          <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+          <h2 className="vebook-section-title">Como funciona</h2>
+          <p className="vebook-section-lead">
             O histórico é construído a partir dos serviços registrados no veículo.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
-          <article className="bg-white p-7 sm:p-8 rounded-2xl border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] space-y-4">
-            <span className="text-xs font-semibold tracking-widest text-slate-400">01</span>
-            <h3 className="text-lg font-semibold text-[#0B1E36]">O serviço é realizado</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+          <Card as="article" className="space-y-3">
+            <span className="text-xs font-semibold tracking-widest text-vebook-blue">01</span>
+            <h3 className="text-lg font-semibold text-vebook-navy">O serviço é realizado</h3>
+            <p className="text-sm text-vebook-muted leading-relaxed">
               A oficina realiza o serviço no veículo.
             </p>
-          </article>
+          </Card>
 
-          <article className="bg-white p-7 sm:p-8 rounded-2xl border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] space-y-4">
-            <span className="text-xs font-semibold tracking-widest text-slate-400">02</span>
-            <h3 className="text-lg font-semibold text-[#0B1E36]">O serviço é registrado</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+          <Card as="article" className="space-y-3">
+            <span className="text-xs font-semibold tracking-widest text-vebook-blue">02</span>
+            <h3 className="text-lg font-semibold text-vebook-navy">O serviço é registrado</h3>
+            <p className="text-sm text-vebook-muted leading-relaxed">
               As informações do atendimento são registradas no VEBOOK.
             </p>
-          </article>
+          </Card>
 
-          <article className="bg-white p-7 sm:p-8 rounded-2xl border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] space-y-4">
-            <span className="text-xs font-semibold tracking-widest text-slate-400">03</span>
-            <h3 className="text-lg font-semibold text-[#0B1E36]">O histórico fica organizado</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+          <Card as="article" className="space-y-3">
+            <span className="text-xs font-semibold tracking-widest text-vebook-blue">03</span>
+            <h3 className="text-lg font-semibold text-vebook-navy">O histórico fica organizado</h3>
+            <p className="text-sm text-vebook-muted leading-relaxed">
               O registro passa a fazer parte do histórico disponível do veículo.
             </p>
-          </article>
+          </Card>
         </div>
       </section>
 
       {/* 5. PARA OFICINAS */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28">
-        <div className="bg-slate-50 rounded-2xl border border-slate-200 px-6 py-10 sm:px-10 sm:py-12 space-y-6">
+      <section className="vebook-container vebook-section">
+        <Card tone="muted" padding="lg" className="space-y-6">
           <div className="max-w-2xl space-y-3">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#0B1E36] tracking-tight">
-              Sua oficina pode fazer parte do VEBOOK.
-            </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <h2 className="vebook-section-title">Sua oficina pode fazer parte do VEBOOK.</h2>
+            <p className="vebook-section-lead">
               Registre os serviços realizados e ofereça aos seus clientes uma forma organizada de acompanhar o histórico do veículo.
             </p>
           </div>
           <div>
-            <button
-              type="button"
-              onClick={() => onNavigate('oficinas')}
-              className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-semibold text-sm transition-colors cursor-pointer"
-            >
+            <Button variant="primary" size="lg" onClick={() => onNavigate('oficinas')}>
               Conhecer o VEBOOK para oficinas
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
       </section>
 
       {/* 6. CONFIANÇA / INSTITUCIONAL */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28">
-        <div className="max-w-2xl mx-auto text-center space-y-4 border-t border-slate-200 pt-16">
-          <h2 className="text-xl sm:text-2xl font-bold text-[#0B1E36] tracking-tight">
+      <section className="vebook-container vebook-section">
+        <div className="max-w-2xl mx-auto text-center space-y-4 border-t border-vebook-border pt-14 sm:pt-16">
+          <h2 className="text-xl sm:text-2xl font-bold text-vebook-navy tracking-tight">
             Informação organizada. Consulta simples.
           </h2>
-          <p className="text-sm text-slate-600 leading-relaxed">
+          <p className="text-sm text-vebook-muted leading-relaxed">
             O VEBOOK trabalha com registros vinculados ao veículo, reunindo informações de serviços e manutenção para consulta de forma clara e responsável.
           </p>
         </div>
@@ -267,42 +251,39 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
       {/* Métricas reais — renderiza somente quando houver dados comprovados */}
       {hasRealMetrics(platformMetrics) && (
-        <section
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28"
-          aria-label="Indicadores da plataforma"
-        >
+        <section className="vebook-container vebook-section" aria-label="Indicadores da plataforma">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {typeof platformMetrics.vehiclesRegistered === 'number' && (
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-1">
-                <p className="text-2xl font-bold text-[#0B1E36]">
+              <Card className="text-center space-y-1" padding="md">
+                <p className="text-2xl font-bold text-vebook-navy">
                   {platformMetrics.vehiclesRegistered.toLocaleString('pt-BR')}
                 </p>
-                <p className="text-xs text-slate-500">Veículos registrados</p>
-              </div>
+                <p className="text-xs text-vebook-muted">Veículos registrados</p>
+              </Card>
             )}
             {typeof platformMetrics.participatingOffices === 'number' && (
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-1">
-                <p className="text-2xl font-bold text-[#0B1E36]">
+              <Card className="text-center space-y-1" padding="md">
+                <p className="text-2xl font-bold text-vebook-navy">
                   {platformMetrics.participatingOffices.toLocaleString('pt-BR')}
                 </p>
-                <p className="text-xs text-slate-500">Oficinas participantes</p>
-              </div>
+                <p className="text-xs text-vebook-muted">Oficinas participantes</p>
+              </Card>
             )}
             {typeof platformMetrics.servicesRegistered === 'number' && (
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-1">
-                <p className="text-2xl font-bold text-[#0B1E36]">
+              <Card className="text-center space-y-1" padding="md">
+                <p className="text-2xl font-bold text-vebook-navy">
                   {platformMetrics.servicesRegistered.toLocaleString('pt-BR')}
                 </p>
-                <p className="text-xs text-slate-500">Serviços registrados</p>
-              </div>
+                <p className="text-xs text-vebook-muted">Serviços registrados</p>
+              </Card>
             )}
             {typeof platformMetrics.consultations === 'number' && (
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-1">
-                <p className="text-2xl font-bold text-[#0B1E36]">
+              <Card className="text-center space-y-1" padding="md">
+                <p className="text-2xl font-bold text-vebook-navy">
                   {platformMetrics.consultations.toLocaleString('pt-BR')}
                 </p>
-                <p className="text-xs text-slate-500">Consultas realizadas</p>
-              </div>
+                <p className="text-xs text-vebook-muted">Consultas realizadas</p>
+              </Card>
             )}
           </div>
         </section>
