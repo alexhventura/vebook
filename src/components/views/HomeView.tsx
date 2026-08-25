@@ -8,6 +8,7 @@ import {
   Lock,
   ArrowRight,
   Mail,
+  ChevronDown,
 } from 'lucide-react';
 import { formatPlate, isValidPlateFormat } from '../../lib/utils';
 import { formatBRL } from '../../lib/currency';
@@ -48,6 +49,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [inputPlate, setInputPlate] = useState('');
   const [plateError, setPlateError] = useState<string | null>(null);
   const [openPillarId, setOpenPillarId] = useState<OfficePillarId | null>(null);
+  const [openGovId, setOpenGovId] = useState<string | null>(null);
+  const [faqOpen, setFaqOpen] = useState(false);
 
   const openPillar = OFFICE_PILLARS.find((item) => item.id === openPillarId) ?? null;
 
@@ -387,75 +390,118 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </section>
 
-      {/* ===== CONFIANÇA / GOVERNANÇA — antes do rodapé ===== */}
+      {/* ===== CONFIANÇA / GOVERNANÇA — bloco compacto ===== */}
       <section className="relative bg-vebook-navy-deep text-vebook-white">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_0%,rgba(107,158,196,0.12),transparent_50%)]" aria-hidden />
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-14">
-          <div className="max-w-2xl space-y-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard">Governança</p>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.1]">
-              Tecnologia a serviço da procedência.
-            </h2>
-            <p className="text-sm sm:text-base text-vebook-blue-muted leading-relaxed">
-              Rastreabilidade, segregação de dados e boas práticas de segurança — sem promessas absolutas.
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div className="max-w-xl space-y-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard">
+                Governança
+              </p>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight">
+                Tecnologia a serviço da procedência.
+              </h2>
+              <p className="text-sm text-vebook-blue-muted leading-relaxed">
+                Rastreabilidade, segregação de dados e boas práticas de segurança — sem promessas absolutas.
+              </p>
+            </div>
+            <p className="text-xs sm:text-sm text-vebook-mustard/90 max-w-xs sm:text-right leading-relaxed">
+              O VEBOOK organiza o histórico técnico do veículo — escrito pelas oficinas, preservado pela
+              plataforma.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
-              { icon: Shield, t: 'Origem', d: 'Registros com identificação dentro da plataforma.' },
-              { icon: Lock, t: 'Separação', d: 'Prontuário técnico do veículo ≠ dados pessoais do cliente.' },
-              { icon: FileCheck2, t: 'Documento', d: 'A Certidão retrata o disponível no momento da emissão.' },
-            ].map((item) => (
-              <div
-                key={item.t}
-                className="rounded-vebook-lg border border-vebook-mustard/65 bg-vebook-navy/50 p-6 space-y-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.16)]"
-              >
-                <item.icon className="w-5 h-5 text-vebook-mustard" aria-hidden />
-                <h3 className="text-base font-bold text-vebook-white">{item.t}</h3>
-                <p className="text-sm text-vebook-blue-muted leading-relaxed">{item.d}</p>
-              </div>
-            ))}
+              {
+                id: 'origem',
+                icon: Shield,
+                t: 'Origem',
+                d: 'Registros com identificação dentro da plataforma.',
+              },
+              {
+                id: 'separacao',
+                icon: Lock,
+                t: 'Separação',
+                d: 'Prontuário técnico do veículo ≠ dados pessoais do cliente.',
+              },
+              {
+                id: 'documento',
+                icon: FileCheck2,
+                t: 'Documento',
+                d: 'A Certidão retrata o disponível no momento da emissão.',
+              },
+            ].map((item) => {
+              const open = openGovId === item.id;
+              return (
+                <div
+                  key={item.id}
+                  className="rounded-vebook border border-vebook-mustard/55 bg-vebook-navy/40 overflow-hidden"
+                >
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-left cursor-pointer hover:bg-vebook-navy-mid/40"
+                    aria-expanded={open}
+                    onClick={() => setOpenGovId(open ? null : item.id)}
+                  >
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-vebook-white">
+                      <item.icon className="w-4 h-4 text-vebook-mustard shrink-0" aria-hidden />
+                      {item.t}
+                    </span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 shrink-0 text-vebook-mustard transition-transform ${open ? 'rotate-180' : ''}`}
+                      aria-hidden
+                    />
+                  </button>
+                  {open && (
+                    <p className="px-3.5 pb-3 text-xs text-vebook-blue-muted leading-relaxed border-t border-vebook-mustard/30 pt-2">
+                      {item.d}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            <div className="lg:col-span-7 space-y-4">
-              <h3 className="text-xl font-bold text-vebook-white">Perguntas frequentes</h3>
-              <HomeFaqAccordion />
-              <button
-                type="button"
-                onClick={() => onNavigate('transparencia')}
-                className="text-sm font-semibold text-vebook-mustard hover:text-vebook-mustard-soft transition-colors cursor-pointer"
-              >
-                FAQ e transparência completos →
-              </button>
-            </div>
-
-            <div className="lg:col-span-5 space-y-5">
-              <div className="rounded-vebook-lg border border-vebook-mustard/65 bg-vebook-navy/40 p-6 space-y-4 transition-all duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.16)]">
-                <h3 className="text-lg font-bold text-vebook-white flex items-center gap-2">
-                  <Mail className="w-5 h-5 text-vebook-mustard" aria-hidden />
-                  Contato
-                </h3>
-                <p className="text-sm text-vebook-blue-muted leading-relaxed">
-                  Canal institucional existente no VEBOOK. Informações oficiais serão ampliadas com a
-                  homologação operacional.
-                </p>
-                <Button variant="accent" onClick={() => onOpenContato?.()}>
-                  Abrir contato
-                </Button>
+          <div className="rounded-vebook border border-vebook-mustard/55 bg-vebook-navy/35 overflow-hidden">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left cursor-pointer hover:bg-vebook-navy-mid/30"
+              aria-expanded={faqOpen}
+              onClick={() => setFaqOpen((v) => !v)}
+            >
+              <span className="text-sm font-bold text-vebook-white">Perguntas frequentes</span>
+              <ChevronDown
+                className={`w-4 h-4 shrink-0 text-vebook-mustard transition-transform ${faqOpen ? 'rotate-180' : ''}`}
+                aria-hidden
+              />
+            </button>
+            {faqOpen && (
+              <div className="px-3 pb-3 sm:px-4 space-y-3 border-t border-vebook-mustard/30 pt-3">
+                <HomeFaqAccordion />
+                <button
+                  type="button"
+                  onClick={() => onNavigate('transparencia')}
+                  className="text-xs font-semibold text-vebook-mustard hover:text-vebook-mustard-soft transition-colors cursor-pointer"
+                >
+                  FAQ e transparência completos →
+                </button>
               </div>
+            )}
+          </div>
 
-              <div className="rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-mustard/10 p-6 space-y-3 transition-all duration-200 hover:border-vebook-mustard">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vebook-mustard">
-                  Em uma frase
-                </p>
-                <p className="text-lg font-semibold text-vebook-white leading-snug">
-                  O VEBOOK organiza o histórico técnico do veículo — escrito pelas oficinas, preservado
-                  pela plataforma.
-                </p>
-              </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-vebook border border-vebook-mustard/55 bg-vebook-navy/40 px-4 py-3">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <Mail className="w-4 h-4 text-vebook-mustard shrink-0 mt-0.5" aria-hidden />
+              <p className="text-xs sm:text-sm text-vebook-blue-muted leading-relaxed">
+                <strong className="text-vebook-white font-semibold">Contato</strong>
+                {' — '}
+                canal institucional; informações oficiais serão ampliadas com a homologação operacional.
+              </p>
             </div>
+            <Button type="button" variant="accent" size="sm" className="shrink-0" onClick={() => onOpenContato?.()}>
+              Abrir contato
+            </Button>
           </div>
         </div>
       </section>
