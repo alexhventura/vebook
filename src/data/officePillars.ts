@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, Globe } from 'lucide-react';
+import { LayoutDashboard, Globe, Network, CalendarClock } from 'lucide-react';
 
-export type OfficePillarId = 'pagina' | 'painel';
+export type OfficePillarId = 'pagina' | 'painel' | 'rede' | 'previsibilidade';
 
 export type OfficePillar = {
   id: OfficePillarId;
@@ -9,14 +9,16 @@ export type OfficePillar = {
   summary: string;
   icon: LucideIcon;
   lead: string;
-  /** Vantagens exibidas com ênfase no card da home */
+  /** Vantagens exibidas no card da home */
   highlights: string[];
   points: string[];
+  /** Cards principais (página e painel) vs apoio (rede e previsibilidade) */
+  emphasis: 'featured' | 'support';
 };
 
 /**
- * Dois pilares em destaque para oficinas na home:
- * página pública que a oficina ganha e painel de gestão.
+ * Pilares “Para oficinas” na home.
+ * Destaque: página e painel. Apoio: rede e previsibilidade.
  */
 export const OFFICE_PILLARS: OfficePillar[] = [
   {
@@ -24,6 +26,7 @@ export const OFFICE_PILLARS: OfficePillar[] = [
     title: 'Página da oficina',
     summary: 'Endereço digital próprio na infraestrutura VEBOOK.',
     icon: Globe,
+    emphasis: 'featured',
     lead:
       'Ao se credenciar, a oficina ganha uma página pública institucional — presença na rede VEBOOK, dados de contato e identificação clara como origem dos registros no prontuário do veículo.',
     highlights: [
@@ -44,6 +47,7 @@ export const OFFICE_PILLARS: OfficePillar[] = [
     title: 'Painel de gestão',
     summary: 'Operação do dia a dia: clientes, veículos, agenda e registros.',
     icon: LayoutDashboard,
+    emphasis: 'featured',
     lead:
       'O painel concentra a gestão da oficina — cadastros, agenda, retornos e o registro de atendimentos que alimentam o prontuário. Nesta fase a comunicação com o cliente permanece pelos canais da própria oficina.',
     highlights: [
@@ -59,7 +63,52 @@ export const OFFICE_PILLARS: OfficePillar[] = [
       'A oficina registra; o cliente valida; a VEBOOK preserva.',
     ],
   },
+  {
+    id: 'rede',
+    title: 'Rede',
+    summary: 'Participar da infraestrutura nacional de histórico veicular.',
+    icon: Network,
+    emphasis: 'support',
+    lead:
+      'A rede VEBOOK conecta oficinas que registram serviços no mesmo padrão de prontuário. Fazer parte dela significa contribuir para um histórico contínuo do veículo — com origem identificável e consulta objetiva.',
+    highlights: [
+      'Infraestrutura compartilhada de registro e consulta.',
+      'Sua oficina aparece como origem nos serviços lançados.',
+      'O veículo leva o histórico mesmo quando troca de oficina.',
+      'Credibilidade coletiva: cada registro reforça o prontuário.',
+    ],
+    points: [
+      'Não é um diretório isolado: é a base que alimenta o Diário Veicular.',
+      'Clientes e consulentes encontram continuidade técnica entre oficinas participantes.',
+      'A página e o painel ganham sentido dentro dessa rede — presença + operação.',
+      'O que não foi registrado na rede não aparece — e isso também é transparência.',
+    ],
+  },
+  {
+    id: 'previsibilidade',
+    title: 'Previsibilidade',
+    summary: 'Organização do fluxo que melhora o resultado da oficina.',
+    icon: CalendarClock,
+    emphasis: 'support',
+    lead:
+      'Com agenda, retornos e o histórico do que já foi feito no veículo, a oficina planeja melhor o próximo atendimento — menos improvisação, mais continuidade e melhor aproveitamento da carteira de clientes.',
+    highlights: [
+      'Retornos e revisões ficam visíveis no fluxo de trabalho.',
+      'Histórico do veículo ajuda a orientar a próxima OS.',
+      'Menos retrabalho: o que já foi registrado não se perde.',
+      'Carteira acompanhada melhora ocupação e relacionamento.',
+    ],
+    points: [
+      'Previsibilidade operacional: saber o que volta e o que já foi feito.',
+      'Decisões de serviço com base no prontuário, não só na memória do balcão.',
+      'Agenda e retornos no painel sustentam a rotina sem depender de mensagem automática do VEBOOK.',
+      'Resultado: atendimento mais consistente e histórico que valoriza a oficina e o veículo.',
+    ],
+  },
 ];
+
+export const OFFICE_PILLARS_FEATURED = OFFICE_PILLARS.filter((p) => p.emphasis === 'featured');
+export const OFFICE_PILLARS_SUPPORT = OFFICE_PILLARS.filter((p) => p.emphasis === 'support');
 
 export function officePillarById(id: OfficePillarId): OfficePillar | undefined {
   return OFFICE_PILLARS.find((item) => item.id === id);
