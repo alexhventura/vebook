@@ -40,6 +40,10 @@ const Spine: React.FC<{ className?: string }> = ({ className = '' }) => (
   />
 );
 
+/** Rótulo de seção — tamanho e cor únicos na home */
+const SECTION_LABEL =
+  'text-sm sm:text-base font-bold uppercase tracking-[0.18em] text-vebook-mustard-deep';
+
 export const HomeView: React.FC<HomeViewProps> = ({
   onNavigate,
   onSearchPlate,
