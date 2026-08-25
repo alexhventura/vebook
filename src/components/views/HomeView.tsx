@@ -319,31 +319,42 @@ export const HomeView: React.FC<HomeViewProps> = ({
               A oficina escreve. O VEBOOK preserva.
             </h2>
             <p className="text-sm sm:text-base text-vebook-blue-muted leading-relaxed">
-              Credenciamento, página própria, painel de gestão e registro de atendimentos que alimentam
-              o prontuário do veículo.
+              Credencie-se e ganhe página própria e painel de gestão — com registro de atendimentos
+              que alimentam o prontuário do veículo.
             </p>
           </div>
 
-          {/* Trilho de valor — cards clicáveis */}
-          <div className="rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-2 sm:p-3 shadow-vebook overflow-hidden">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-vebook-mustard/30">
-              {OFFICE_PILLARS.map((cell) => (
-                <button
-                  key={cell.id}
-                  type="button"
-                  onClick={() => setOpenPillarId(cell.id)}
-                  className="group w-full text-left p-5 sm:p-6 space-y-2.5 cursor-pointer transition-colors hover:bg-vebook-mustard-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-vebook-mustard/40"
-                >
-                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-vebook-navy group-hover:text-vebook-mustard-deep transition-colors">
-                    {cell.title}
-                  </h3>
-                  <p className="text-sm text-vebook-muted leading-relaxed">{cell.summary}</p>
-                  <span className="inline-flex text-xs font-semibold text-vebook-mustard-deep">
-                    Saiba mais →
-                  </span>
-                </button>
-              ))}
-            </div>
+          {/* Dois cards em destaque: página + painel */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
+            {OFFICE_PILLARS.map((cell) => (
+              <button
+                key={cell.id}
+                type="button"
+                onClick={() => setOpenPillarId(cell.id)}
+                className="group flex h-full w-full flex-col text-left rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-6 sm:p-8 shadow-vebook transition-all duration-300 hover:-translate-y-1 hover:border-vebook-mustard hover:shadow-[0_10px_28px_rgba(196,163,90,0.22)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40"
+              >
+                <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-vebook-navy group-hover:text-vebook-mustard-deep transition-colors">
+                  {cell.title}
+                </h3>
+                <p className="mt-2 text-sm sm:text-base text-vebook-muted leading-relaxed">
+                  {cell.summary}
+                </p>
+                <ul className="mt-5 flex-1 space-y-3">
+                  {cell.highlights.map((item) => (
+                    <li key={item} className="flex gap-3 text-sm sm:text-[15px] text-vebook-text leading-relaxed">
+                      <span
+                        className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-vebook-mustard-deep"
+                        aria-hidden
+                      />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <span className="mt-6 inline-flex text-sm font-semibold text-vebook-mustard-deep">
+                  Saiba mais →
+                </span>
+              </button>
+            ))}
           </div>
 
           {/* Planos — dois cards iguais */}
