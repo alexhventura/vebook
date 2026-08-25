@@ -4,8 +4,6 @@ import {
   Car,
   Wrench,
   FileCheck2,
-  Shield,
-  Lock,
   ArrowRight,
   Mail,
   ChevronDown,
