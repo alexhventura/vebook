@@ -6,7 +6,6 @@ import {
   FileCheck2,
   Shield,
   Lock,
-  Building2,
   ArrowRight,
   Mail,
 } from 'lucide-react';
@@ -14,10 +13,12 @@ import { formatPlate, isValidPlateFormat } from '../../lib/utils';
 import { formatBRL } from '../../lib/currency';
 import { PLAN_OFFERS } from '../../data/officePlans';
 import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
+import { OFFICE_PILLARS, type OfficePillarId } from '../../data/officePillars';
 import { AppView, PlanModality } from '../../types';
 import { Button, Input } from '../ui';
 import { HomeAtmosphere } from '../home/HomeAtmosphere';
 import { HomeFaqAccordion } from '../home/HomeFaqAccordion';
+import { OfficePillarModal } from '../modals/OfficePillarModal';
 
 interface HomeViewProps {
   onNavigate: (view: AppView) => void;
@@ -46,6 +47,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 }) => {
   const [inputPlate, setInputPlate] = useState('');
   const [plateError, setPlateError] = useState<string | null>(null);
+  const [openPillarId, setOpenPillarId] = useState<OfficePillarId | null>(null);
+
+  const openPillar = OFFICE_PILLARS.find((item) => item.id === openPillarId) ?? null;
 
   const startCadastro = (modality: PlanModality) => {
     if (onStartCadastro) onStartCadastro(modality);
@@ -283,20 +287,23 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </p>
           </div>
 
-          {/* Trilho de valor — composição horizontal densa */}
-          <div className="rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-2 sm:p-3 shadow-vebook overflow-hidden transition-[border-color,box-shadow] duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.14)]">
+          {/* Trilho de valor — cards clicáveis */}
+          <div className="rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-2 sm:p-3 shadow-vebook overflow-hidden">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-vebook-mustard/30">
-              {[
-                { icon: Building2, t: 'Rede', d: 'Presença na infraestrutura VEBOOK.' },
-                { icon: Wrench, t: 'Registro', d: 'Atendimentos no prontuário do veículo.' },
-                { icon: Car, t: 'Gestão', d: 'Clientes, veículos, agenda e retornos.' },
-                { icon: Shield, t: 'Credibilidade', d: 'Histórico com origem identificável.' },
-              ].map((cell) => (
-                <div key={cell.t} className="p-5 sm:p-6 space-y-3">
-                  <cell.icon className="w-5 h-5 text-vebook-navy" aria-hidden />
-                  <h3 className="text-base font-bold text-vebook-navy">{cell.t}</h3>
-                  <p className="text-sm text-vebook-muted leading-relaxed">{cell.d}</p>
-                </div>
+              {OFFICE_PILLARS.map((cell) => (
+                <button
+                  key={cell.id}
+                  type="button"
+                  onClick={() => setOpenPillarId(cell.id)}
+                  className="group w-full text-left p-5 sm:p-6 space-y-3 cursor-pointer transition-colors hover:bg-vebook-mustard-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-vebook-mustard/40"
+                >
+                  <cell.icon className="w-5 h-5 text-vebook-navy transition group-hover:text-vebook-mustard-deep" aria-hidden />
+                  <h3 className="text-base font-bold text-vebook-navy">{cell.title}</h3>
+                  <p className="text-sm text-vebook-muted leading-relaxed">{cell.summary}</p>
+                  <span className="inline-flex text-xs font-semibold text-vebook-mustard-deep">
+                    Saiba mais →
+                  </span>
+                </button>
               ))}
             </div>
           </div>
@@ -455,6 +462,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </div>
       </section>
+      <OfficePillarModal
+        pillar={openPillar}
+        onClose={() => setOpenPillarId(null)}
+        onStartCadastro={() => startCadastro('monthly')}
+      />
     </div>
   );
 };
