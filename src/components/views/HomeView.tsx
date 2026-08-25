@@ -114,14 +114,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [openGovId, setOpenGovId] = useState<GovernancePillarId | null>(null);
   const [openConsultaId, setOpenConsultaId] = useState<ConsultationPillarId | null>(null);
   const [faqOpen, setFaqOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<PlanModality>('annual');
 
   const openPillar = OFFICE_PILLARS.find((item) => item.id === openPillarId) ?? null;
   const openGovPillar = GOVERNANCE_PILLARS.find((item) => item.id === openGovId) ?? null;
   const openConsultaPillar = CONSULTATION_PILLARS.find((item) => item.id === openConsultaId) ?? null;
 
   const startCadastro = (modality: PlanModality) => {
-    setSelectedPlan(modality);
     if (onStartCadastro) onStartCadastro(modality);
     else onOpenCredenciamento();
   };
@@ -406,7 +404,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             ))}
           </div>
 
-          {/* Planos — seleção visual em mostarda escura */}
+          {/* Planos — fundo branco; destaque só no hover */}
           <div className="mx-auto grid w-full max-w-3xl grid-cols-1 gap-5 sm:grid-cols-2 sm:items-stretch">
             {(
               [
@@ -418,7 +416,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   detail: (
                     <>
                       Primeiro ano. Depois:{' '}
-                      <strong className={selectedPlan === 'monthly' ? 'text-vebook-navy-deep' : 'text-vebook-navy'}>
+                      <strong className="text-vebook-navy group-hover:text-vebook-navy-deep">
                         {formatBRL(PLAN_OFFERS.monthly.renewal)}/mês
                       </strong>
                     </>
@@ -433,7 +431,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   detail: (
                     <>
                       Economia de {formatBRL(PLAN_OFFERS.annual.firstYearSavings)}. Renovação:{' '}
-                      <strong className={selectedPlan === 'annual' ? 'text-vebook-navy-deep' : 'text-vebook-navy'}>
+                      <strong className="text-vebook-navy group-hover:text-vebook-navy-deep">
                         {formatBRL(PLAN_OFFERS.annual.renewal)}/ano
                       </strong>
                     </>
@@ -441,85 +439,39 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   badge: 'Economia no 1º ano',
                 },
               ] as const
-            ).map((plan) => {
-              const selected = selectedPlan === plan.modality;
-              return (
-                <div
-                  key={plan.modality}
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={selected}
-                  onClick={() => setSelectedPlan(plan.modality)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setSelectedPlan(plan.modality);
-                    }
-                  }}
-                  className={`relative flex h-full flex-col text-left rounded-vebook-lg border p-6 sm:p-7 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/50 ${
-                    selected
-                      ? 'border-vebook-mustard-deep bg-vebook-mustard-deep shadow-[0_10px_28px_rgba(168,134,63,0.45)] ring-2 ring-vebook-mustard/30 -translate-y-0.5'
-                      : 'border-vebook-mustard/70 bg-vebook-white shadow-vebook hover:-translate-y-0.5 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]'
-                  }`}
+            ).map((plan) => (
+              <div
+                key={plan.modality}
+                className="group relative flex h-full flex-col text-left rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-6 sm:p-7 shadow-vebook transition-all duration-200 hover:-translate-y-0.5 hover:border-vebook-mustard-deep hover:bg-vebook-mustard-deep hover:shadow-[0_10px_28px_rgba(168,134,63,0.45)]"
+              >
+                {plan.badge ? (
+                  <span className="absolute -top-2.5 right-5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-vebook-sm border bg-vebook-mustard text-vebook-navy-deep border-vebook-mustard-deep/40 group-hover:bg-vebook-navy-deep group-hover:text-vebook-mustard group-hover:border-vebook-navy-deep">
+                    {plan.badge}
+                  </span>
+                ) : null}
+                <p className="text-xs font-semibold uppercase tracking-wider text-vebook-mustard-deep group-hover:text-vebook-navy-deep">
+                  {plan.label}
+                </p>
+                <p className="mt-3 text-3xl font-bold text-vebook-navy group-hover:text-vebook-navy-deep">
+                  {formatBRL(plan.price)}
+                  <span className="text-sm font-semibold text-vebook-muted group-hover:text-vebook-navy-deep/75">
+                    {plan.period}
+                  </span>
+                </p>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-vebook-muted group-hover:text-vebook-navy-deep/90">
+                  {plan.detail}
+                </p>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  className="mt-6 group-hover:!bg-vebook-navy-deep group-hover:!text-vebook-mustard group-hover:!border-vebook-navy-deep"
+                  onClick={() => startCadastro(plan.modality)}
                 >
-                  {plan.badge ? (
-                    <span
-                      className={`absolute -top-2.5 right-5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-vebook-sm border ${
-                        selected
-                          ? 'bg-vebook-navy-deep text-vebook-mustard border-vebook-navy-deep'
-                          : 'bg-vebook-mustard text-vebook-navy-deep border-vebook-mustard-deep/40'
-                      }`}
-                    >
-                      {plan.badge}
-                    </span>
-                  ) : null}
-                  <p
-                    className={`text-xs font-semibold uppercase tracking-wider ${
-                      selected ? 'text-vebook-navy-deep' : 'text-vebook-mustard-deep'
-                    }`}
-                  >
-                    {plan.label}
-                  </p>
-                  <p
-                    className={`mt-3 text-3xl font-bold ${
-                      selected ? 'text-vebook-navy-deep' : 'text-vebook-navy'
-                    }`}
-                  >
-                    {formatBRL(plan.price)}
-                    <span
-                      className={`text-sm font-semibold ${
-                        selected ? 'text-vebook-navy-deep/75' : 'text-vebook-muted'
-                      }`}
-                    >
-                      {plan.period}
-                    </span>
-                  </p>
-                  <p
-                    className={`mt-3 flex-1 text-sm leading-relaxed ${
-                      selected ? 'text-vebook-navy-deep/90' : 'text-vebook-muted'
-                    }`}
-                  >
-                    {plan.detail}
-                  </p>
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    className={`mt-6 ${
-                      selected
-                        ? '!bg-vebook-navy-deep !text-vebook-mustard !border-vebook-navy-deep hover:!bg-vebook-navy hover:!text-vebook-white'
-                        : ''
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      startCadastro(plan.modality);
-                    }}
-                  >
-                    Fazer cadastro
-                  </Button>
-                </div>
-              );
-            })}
+                  Fazer cadastro
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       </section>
