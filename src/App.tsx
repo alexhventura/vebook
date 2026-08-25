@@ -146,6 +146,12 @@ export default function App() {
               handleNavigate('cadastro-oficina');
             }}
             onOpenJaCredenciado={() => handleNavigate('painel-oficina', { workshopSlug: undefined })}
+            onStartCadastro={(modality) => {
+              setSignupModality(modality);
+              setSignupPlanPreselected(true);
+              handleNavigate('cadastro-oficina');
+            }}
+            onOpenContato={() => setLegalModalType('contato')}
           />
         )}
 

@@ -108,4 +108,67 @@ body {
   .vebook-error-text {
     @apply text-xs text-vebook-error leading-relaxed;
   }
+
+  .vebook-card-lift {
+    @apply transition-[transform,box-shadow] duration-200 ease-out;
+  }
+
+  .vebook-card-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
+  }
+
+  .vebook-reveal {
+    animation: vebook-fade-up 0.65s ease-out both;
+  }
+
+  .vebook-reveal-delay-1 {
+    animation-delay: 0.08s;
+  }
+
+  .vebook-reveal-delay-2 {
+    animation-delay: 0.16s;
+  }
+
+  .vebook-reveal-delay-3 {
+    animation-delay: 0.24s;
+  }
+
+  .vebook-star-pulse {
+    animation: vebook-star-pulse 4.5s ease-in-out infinite;
+  }
+}
+
+@keyframes vebook-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes vebook-star-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vebook-reveal,
+  .vebook-star-pulse,
+  .vebook-card-lift {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .vebook-card-lift:hover {
+    transform: none;
+  }
 }
