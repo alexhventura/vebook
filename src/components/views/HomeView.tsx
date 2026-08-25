@@ -101,6 +101,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <p className="text-base sm:text-xl text-vebook-mustard font-medium max-w-xl mx-auto leading-relaxed">
               O histórico do veículo em um só lugar.
             </p>
+            <p className="text-sm sm:text-base text-vebook-subtle max-w-lg mx-auto leading-relaxed">
+              Consultável. Imutável. Rastreável.
+            </p>
           </div>
 
           {/* Portal dual — duas portas, um eixo */}
@@ -164,9 +167,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-stretch">
             <div className="lg:col-span-5 space-y-5">
               <div className="space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard-deep">
-                  O livro do veículo
-                </p>
+                <p className={SECTION_LABEL}>Para o veículo</p>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
                   Vantagens de ter o histórico no VEBOOK
                 </h2>
@@ -283,7 +284,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <section className="relative bg-vebook-blue-soft border-b border-vebook-border">
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="max-w-xl space-y-3 mb-10">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard-deep">Para quem consulta</p>
+            <p className={SECTION_LABEL}>Para quem consulta</p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
               Clareza antes da certidão.
             </h2>
@@ -313,7 +314,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <section id="home-oficinas" className="relative isolate z-10 overflow-hidden bg-vebook-navy border-b border-vebook-mustard/30">
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-12">
           <div className="max-w-2xl space-y-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard">Para oficinas</p>
+            <p className={SECTION_LABEL}>Para oficinas</p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-white leading-[1.1]">
               A oficina escreve. O VEBOOK preserva.
             </h2>
