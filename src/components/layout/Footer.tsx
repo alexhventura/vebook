@@ -1,7 +1,6 @@
 import React from 'react';
 import { AppView, TransparenciaSection } from '../../types';
 import { Logo } from './Logo';
-import { Info } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (view: AppView) => void;
@@ -144,20 +143,6 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
             </ul>
           </div>
-        </div>
-
-        <div className="p-4 rounded-vebook-md bg-vebook-navy/40 border border-vebook-mustard/55 text-[11px] text-vebook-subtle space-y-1.5 leading-relaxed">
-          <div className="flex items-center gap-1.5 font-semibold text-vebook-blue-muted">
-            <Info className="w-3.5 h-3.5 text-vebook-blue" aria-hidden />
-            <span>Aviso legal</span>
-          </div>
-          <p>
-            A <strong className="text-vebook-white/90">VEBOOK</strong> é uma plataforma tecnológica de
-            registro, organização e histórico veicular. A VEBOOK não é órgão governamental, cartório
-            ou substituto dos órgãos do Sistema Nacional de Trânsito (SENATRAN/CONTRAN/Detran), não
-            atesta propriedade jurídica ou quitação tributária, não substitui o CRLV/ATPV-e e não
-            substitui laudo de vistoria cautelar veicular.
-          </p>
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-vebook-subtle/80 pt-1">
