@@ -270,15 +270,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </section>
 
       {/* ===== OFICINAS — infraestrutura, não pitch ===== */}
-      <section id="home-oficinas" className="relative bg-vebook-gray border-b border-vebook-border">
-        <Spine />
+      <section id="home-oficinas" className="relative isolate z-10 overflow-hidden bg-vebook-navy border-b border-vebook-mustard/30">
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-12">
           <div className="max-w-2xl space-y-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard-deep">Para oficinas</p>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard">Para oficinas</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-white leading-[1.1]">
               A oficina escreve. O VEBOOK preserva.
             </h2>
-            <p className="text-sm sm:text-base text-vebook-muted leading-relaxed">
+            <p className="text-sm sm:text-base text-vebook-blue-muted leading-relaxed">
               Credenciamento, página própria, painel de gestão e registro de atendimentos que alimentam
               o prontuário do veículo.
             </p>
