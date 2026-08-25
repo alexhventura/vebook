@@ -36,49 +36,6 @@ const Spine: React.FC<{ className?: string }> = ({ className = '' }) => (
   />
 );
 
-const LedgerPage: React.FC = () => (
-  <div
-    className="relative rounded-vebook-lg overflow-hidden border border-vebook-mustard/70 bg-vebook-white shadow-vebook-md transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
-    aria-hidden
-  >
-    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-vebook-mustard via-vebook-mustard-deep to-vebook-navy" />
-    <div className="pl-5 pr-5 py-5 space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-vebook-mustard-deep">Prontuário</p>
-          <p className="text-sm font-bold text-vebook-navy mt-1">Linha do tempo do veículo</p>
-        </div>
-        <span className="font-mono text-[10px] px-2 py-1 rounded-vebook-sm border border-vebook-mustard/60 text-vebook-subtle bg-vebook-gray">
-          PLACA
-        </span>
-      </div>
-      <div className="space-y-0">
-        {[
-          { k: 'Atendimento', tone: 'bg-vebook-mustard' },
-          { k: 'Manutenção', tone: 'bg-vebook-navy' },
-          { k: 'Atendimento', tone: 'bg-vebook-mustard/70' },
-          { k: 'Registro', tone: 'bg-vebook-mustard-deep' },
-        ].map((row, i) => (
-          <div key={`${row.k}-${i}`} className="flex gap-3 py-3 border-t border-vebook-mustard/25">
-            <div className="pt-1.5">
-              <span className={`block w-2 h-2 rounded-full ${row.tone}`} />
-            </div>
-            <div className="flex-1 min-w-0 space-y-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-vebook-navy">{row.k} registrado</p>
-                <span className="text-[10px] uppercase tracking-wider text-vebook-subtle">Data</span>
-              </div>
-              <div className="h-1.5 rounded-full bg-vebook-gray w-[72%]" />
-              <div className="h-1.5 rounded-full bg-vebook-gray/70 w-[44%]" />
-            </div>
-          </div>
-        ))}
-      </div>
-      <p className="text-[10px] text-vebook-subtle">Representação conceitual — sem dados reais.</p>
-    </div>
-  </div>
-);
-
 export const HomeView: React.FC<HomeViewProps> = ({
   onNavigate,
   onSearchPlate,
@@ -194,7 +151,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <section id="home-ledger" className="relative bg-vebook-surface border-b border-vebook-border">
         <Spine />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-stretch">
             <div className="lg:col-span-5 space-y-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard-deep">O livro do veículo</p>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
@@ -221,22 +178,20 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </ol>
             </div>
 
-            <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-5">
-              <LedgerPage />
-
+            <div className="lg:col-span-7">
               <form
                 id="home-consulta"
                 onSubmit={handleSearchSubmit}
-                className="rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-navy text-vebook-white p-6 sm:p-7 space-y-5 shadow-vebook-md transition-[transform,box-shadow,border-color] duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
+                className="h-full rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-navy text-vebook-white p-6 sm:p-8 lg:p-10 space-y-6 shadow-vebook-md transition-[transform,box-shadow,border-color] duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
               >
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-vebook-mustard">Consulta</p>
-                  <h3 className="text-xl font-bold tracking-tight">Informe a placa</h3>
-                  <p className="text-sm text-vebook-blue-muted leading-relaxed">
+                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">Informe a placa</h3>
+                  <p className="text-sm sm:text-base text-vebook-blue-muted leading-relaxed max-w-xl">
                     Consulta inicial gratuita. A Certidão apresenta os registros disponíveis no momento da emissão.
                   </p>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-4 max-w-xl">
                   <label htmlFor="home-plate-input" className="block text-sm font-medium text-vebook-blue-muted">
                     Digite a placa
                   </label>
@@ -253,7 +208,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     autoComplete="off"
                     invalid={Boolean(plateError)}
                     aria-describedby={plateError ? 'home-plate-error' : 'home-plate-hint'}
-                    className="bg-vebook-white font-semibold tracking-widest uppercase placeholder:tracking-normal"
+                    className="bg-vebook-white h-14 text-center text-lg font-semibold tracking-widest uppercase placeholder:tracking-normal"
                   />
                   <Button type="submit" variant="accent" size="lg" fullWidth>
                     <Search className="w-4 h-4" aria-hidden />
