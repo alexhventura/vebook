@@ -164,9 +164,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </p>
           </div>
 
-          {/* Portal dual — duas portas, um eixo */}
+          {/* Portal dual — duas portas */}
           <div className="vebook-reveal vebook-reveal-delay-1 mt-12 sm:mt-16 relative max-w-4xl mx-auto">
-            <div className="hidden md:block absolute left-1/2 top-6 bottom-6 w-px -translate-x-1/2 bg-vebook-mustard/35" aria-hidden />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
               <button
                 type="button"
@@ -356,8 +355,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 onClick={() => setOpenConsultaId(item.id)}
                 className="group rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-5 sm:p-6 text-left shadow-vebook transition-all duration-300 hover:-translate-y-1 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40"
               >
-                <item.icon className="w-5 h-5 text-vebook-mustard-deep" aria-hidden />
-                <h3 className="mt-3 text-lg font-bold text-vebook-navy">{item.title}</h3>
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-vebook-navy group-hover:text-vebook-mustard-deep transition-colors">
+                  {item.title}
+                </h3>
                 <p className="mt-2 text-sm text-vebook-muted leading-relaxed">{item.summary}</p>
                 <span className="mt-4 inline-flex text-xs font-semibold text-vebook-mustard-deep group-hover:text-vebook-mustard">
                   Saiba mais →
@@ -551,11 +551,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 key={item.id}
                 type="button"
                 onClick={() => setOpenGovId(item.id)}
-                className="group rounded-vebook-lg border border-vebook-mustard/65 bg-vebook-navy/45 p-4 text-left cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40"
+                className="group rounded-vebook-lg border border-vebook-mustard/65 bg-vebook-navy/45 p-4 sm:p-5 text-left cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40"
               >
-                <item.icon className="w-5 h-5 text-vebook-mustard mb-3" aria-hidden />
-                <h3 className="text-base font-bold text-vebook-white">{item.title}</h3>
-                <p className="mt-1.5 text-xs text-vebook-blue-muted leading-relaxed">{item.summary}</p>
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-vebook-white group-hover:text-vebook-mustard transition-colors">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-xs sm:text-sm text-vebook-blue-muted leading-relaxed">{item.summary}</p>
                 <span className="mt-3 inline-flex text-xs font-semibold text-vebook-mustard group-hover:text-vebook-mustard-soft">
                   Saiba mais →
                 </span>
@@ -566,13 +567,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="rounded-vebook border border-vebook-mustard/55 bg-vebook-navy/35 overflow-hidden">
             <button
               type="button"
-              className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left cursor-pointer hover:bg-vebook-navy-mid/30"
+              className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left cursor-pointer hover:bg-vebook-navy-mid/30"
               aria-expanded={faqOpen}
               onClick={() => setFaqOpen((v) => !v)}
             >
-              <span className="text-sm font-bold text-vebook-white">Perguntas frequentes</span>
+              <span className="text-xl sm:text-2xl font-bold tracking-tight text-vebook-white">
+                Perguntas frequentes
+              </span>
               <ChevronDown
-                className={`w-4 h-4 shrink-0 text-vebook-mustard transition-transform ${faqOpen ? 'rotate-180' : ''}`}
+                className={`w-5 h-5 shrink-0 text-vebook-mustard transition-transform ${faqOpen ? 'rotate-180' : ''}`}
                 aria-hidden
               />
             </button>

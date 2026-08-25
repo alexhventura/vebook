@@ -12,7 +12,7 @@ interface FooterProps {
 }
 
 /**
- * Rodapé com a navegação completa da plataforma (única fonte de atalhos).
+ * Rodapé compacto — navegação completa sem ocupar meia tela.
  */
 export const Footer: React.FC<FooterProps> = ({
   onNavigate,
@@ -33,27 +33,27 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   const linkClass =
-    'hover:text-vebook-white transition-colors cursor-pointer text-left text-sm text-vebook-subtle';
+    'hover:text-vebook-white transition-colors cursor-pointer text-left text-xs text-vebook-subtle leading-snug';
 
   return (
     <footer
       id="footer-institucional-vebook"
-      className="bg-vebook-navy-deep text-vebook-subtle py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-t border-vebook-navy-mid"
+      className="bg-vebook-navy-deep text-vebook-subtle py-7 sm:py-8 px-4 sm:px-6 lg:px-8 border-t border-vebook-navy-mid"
     >
-      <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 pb-10 border-b border-vebook-navy-mid">
-          <div className="space-y-4 sm:col-span-2 lg:col-span-1">
-            <Logo size="md" variant="light" />
-            <p className="text-sm text-vebook-blue-muted leading-relaxed">
+      <div className="max-w-6xl mx-auto space-y-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5 pb-5 border-b border-vebook-navy-mid">
+          <div className="col-span-2 sm:col-span-3 lg:col-span-1 space-y-2">
+            <Logo size="sm" variant="light" />
+            <p className="text-[11px] text-vebook-blue-muted leading-snug max-w-[16rem]">
               A oficina registra. O cliente valida. A VEBOOK preserva.
             </p>
           </div>
 
-          <div className="space-y-4">
-            <h4 className="text-xs font-semibold uppercase text-vebook-white tracking-wider">
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-semibold uppercase text-vebook-white tracking-wider">
               Navegação
             </h4>
-            <ul className="space-y-2.5">
+            <ul className="space-y-1">
               <li>
                 <button type="button" onClick={() => handleNav('home')} className={linkClass}>
                   Início
@@ -97,11 +97,11 @@ export const Footer: React.FC<FooterProps> = ({
             </ul>
           </div>
 
-          <div className="space-y-4">
-            <h4 className="text-xs font-semibold uppercase text-vebook-white tracking-wider">
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-semibold uppercase text-vebook-white tracking-wider">
               Institucional
             </h4>
-            <ul className="space-y-2.5">
+            <ul className="space-y-1">
               <li>
                 <button type="button" onClick={() => handleTransparencia('termos')} className={linkClass}>
                   Termos
@@ -133,16 +133,16 @@ export const Footer: React.FC<FooterProps> = ({
             </ul>
           </div>
 
-          <div className="space-y-4">
-            <h4 className="text-xs font-semibold uppercase text-vebook-subtle/70 tracking-wider">
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-semibold uppercase text-vebook-subtle/70 tracking-wider">
               Área restrita
             </h4>
-            <ul className="space-y-2.5">
+            <ul className="space-y-1">
               <li>
                 <button
                   type="button"
                   onClick={() => handleNav('painel-oficina')}
-                  className="text-vebook-subtle/70 hover:text-vebook-subtle transition-colors cursor-pointer text-left text-xs"
+                  className="text-vebook-subtle/70 hover:text-vebook-subtle transition-colors cursor-pointer text-left text-[11px]"
                 >
                   Acesso administrativo
                 </button>
@@ -151,9 +151,9 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-vebook-subtle/80 pt-1">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-vebook-subtle/80">
           <div>© 2026 VEBOOK</div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <button
               type="button"
               onClick={() => handleTransparencia('cookies')}
