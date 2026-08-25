@@ -284,15 +284,15 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
             return (
               <li
                 key={item.id}
-                className={`rounded-xl border px-2 py-2 text-center text-[11px] font-bold ${
+                className={`flex min-h-11 items-center justify-center rounded-vebook border px-2 py-2 text-center text-[11px] font-semibold leading-tight tracking-wide ${
                   active
-                    ? 'border-[#0B1E36] bg-[#0B1E36] text-white'
+                    ? 'border-vebook-mustard bg-vebook-navy text-vebook-mustard'
                     : done
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                      : 'border-slate-200 bg-white text-slate-500'
+                      ? 'border-vebook-mustard/65 bg-vebook-mustard-soft text-vebook-navy'
+                      : 'border-vebook-mustard/40 bg-vebook-white text-vebook-muted'
                 }`}
               >
-                {item.id}. {item.label}
+                <span className="block w-full text-center">{item.label}</span>
               </li>
             );
           })}
