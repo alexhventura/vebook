@@ -298,7 +298,7 @@ export const VEHICLES_MOCK: Record<string, Vehicle> = {
     identifiedProductsCount: 24,
     identifiedBrandsCount: 18,
     participatingWorkshopsCount: 5,
-    firstRegisteredDate: '2022-09-15',
+    firstRegisteredDate: '2022-09-14',
     lastServiceDate: '2026-08-21',
   },
   'ABC1D23': {

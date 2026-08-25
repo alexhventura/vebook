@@ -157,6 +157,7 @@ export default function App() {
 
         {currentView === 'diario' && (
           <DiarioVeicularView
+            initialPlate={selectedPlateForCertidao}
             onNavigate={handleNavigate}
             onEmitirCertidaoForPlate={handleEmitirCertidaoForPlate}
             onOpenContestacaoModalForRecord={handleOpenContestacaoForRecord}
