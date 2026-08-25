@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Wrench, 
   MapPin, 
   Phone, 
   MessageSquare, 
@@ -8,25 +7,13 @@ import {
   Globe, 
   ShieldCheck, 
   CheckCircle2, 
-  Calendar, 
-  ArrowRight, 
   ExternalLink, 
-  Sparkles, 
-  Car, 
-  Check, 
   Share2, 
-  Layers, 
-  Info, 
   X, 
-  Send,
-  Building,
-  FileCheck2,
   ChevronRight,
-  Sliders,
   ChevronDown
 } from 'lucide-react';
-import { Workshop, WorkshopServiceItem } from '../../types';
-import { getOfficeBySlug, listWorkshopsForPublicSite, createAppointment, toPublicWorkshop } from '../../data/officeStore';
+import { getOfficeBySlug, listWorkshopsForPublicSite, toPublicWorkshop } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { AppView } from '../../types';
 
@@ -40,7 +27,7 @@ interface WorkshopSiteViewProps {
 
 export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
   onNavigate,
-  onSearchPlate,
+  onSearchPlate: _onSearchPlate,
   initialWorkshopId = 'ws-prisma',
   workshopSlug,
   onOpenPanel,
@@ -51,29 +38,12 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
   const [currentWorkshopId, setCurrentWorkshopId] = useState<string>(
     officeFromSlug?.id || initialWorkshopId,
   );
-  const [selectedServiceCategory, setSelectedServiceCategory] = useState<string>('todos');
-  const [activeTabNav, setActiveTabNav] = useState<'inicio' | 'servicos' | 'sobre' | 'localizacao' | 'vebook' | 'contato'>('inicio');
+  const [activeTabNav, setActiveTabNav] = useState<'inicio' | 'servicos' | 'localizacao' | 'contato'>('inicio');
   
   // Custom Color Theme Switcher state (Allows real-time demo preview of different brand colors)
   const [customColor, setCustomColor] = useState<'amber' | 'blue' | 'emerald' | 'rose' | 'indigo'>('amber');
 
-  // Modals inside workshop site
-  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
-  const [selectedServiceForSchedule, setSelectedServiceForSchedule] = useState<WorkshopServiceItem | null>(null);
   const [mapModalOpen, setMapModalOpen] = useState(false);
-  const [howItWorksModalOpen, setHowItWorksModalOpen] = useState(false);
-  const [scheduleSuccessToast, setScheduleSuccessToast] = useState(false);
-
-  // Scheduling Form State
-  const [scheduleForm, setScheduleForm] = useState({
-    name: '',
-    phone: '',
-    plate: '',
-    service: '',
-    date: '',
-    period: 'manha',
-    notes: '',
-  });
 
   const workshop =
     (officeFromSlug ? toPublicWorkshop(officeFromSlug) : undefined) ||
@@ -87,8 +57,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
       </div>
     );
   }
-
-  const officeRecord = officeFromSlug || getOfficeBySlug(workshop.subdomain.split('.')[0] || '');
 
   // Helper color mappings
   const themeClasses = {
@@ -162,34 +130,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
     }
   };
 
-  const handleOpenSchedule = (service?: WorkshopServiceItem) => {
-    setSelectedServiceForSchedule(service || null);
-    if (service) {
-      setScheduleForm(prev => ({ ...prev, service: service.title }));
-    }
-    setScheduleModalOpen(true);
-  };
-
-  const handleScheduleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (officeRecord) {
-      createAppointment(officeRecord.officeId, {
-        customerName: scheduleForm.name,
-        phone: scheduleForm.phone,
-        plate: scheduleForm.plate,
-        service: scheduleForm.service,
-        date: scheduleForm.date,
-        period: scheduleForm.period,
-        notes: scheduleForm.notes,
-      });
-    }
-    setScheduleModalOpen(false);
-    setScheduleSuccessToast(true);
-    setTimeout(() => {
-      setScheduleSuccessToast(false);
-    }, 5000);
-  };
-
   const scrollToSection = (sectionId: string, tabName: typeof activeTabNav) => {
     setActiveTabNav(tabName);
     const element = document.getElementById(sectionId);
@@ -198,42 +138,13 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
     }
   };
 
-  // Filtered Services List
-  const allServices = workshop.servicesList || [
-    {
-      id: 'srv-gen1',
-      title: 'Manutenção Preventiva & Revisão',
-      category: 'Revisão',
-      shortDescription: 'Checklist completo de 32 itens de segurança e funcionamento mecânico.',
-      estimatedTime: '2h',
-      warrantyPeriod: '90 dias',
-      featured: true,
-    },
-    {
-      id: 'srv-gen2',
-      title: 'Troca de Óleo e Filtros Homologados',
-      category: 'Lubrificação',
-      shortDescription: 'Substituição com lubrificantes e filtros com especificação original.',
-      estimatedTime: '40 min',
-      warrantyPeriod: '10.000 km',
-      featured: true,
-    },
-    {
-      id: 'srv-gen3',
-      title: 'Sistema de Freios & ABS',
-      category: 'Freios',
-      shortDescription: 'Substituição de pastilhas, sangria e verificação dos discos.',
-      estimatedTime: '1h30',
-      warrantyPeriod: '6 meses',
-      featured: true,
-    },
-  ];
-
-  const categories = ['todos', ...Array.from(new Set(allServices.map(s => s.category)))];
-
-  const filteredServices = selectedServiceCategory === 'todos' 
-    ? allServices 
-    : allServices.filter(s => s.category === selectedServiceCategory);
+  /** Texto dos serviços — sem cards de catálogo */
+  const serviceTextItems =
+    workshop.servicesList && workshop.servicesList.length > 0
+      ? workshop.servicesList.map((item) => item.title)
+      : workshop.specialties && workshop.specialties.length > 0
+        ? workshop.specialties
+        : [];
 
   return (
     <div className="min-h-screen bg-[#F1F5F9] text-slate-800 font-['Plus_Jakarta_Sans',sans-serif]">
@@ -313,26 +224,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
 
         </div>
       </div>
-
-      {/* TOAST DE AGENDAMENTO SIMULADO */}
-      {scheduleSuccessToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#0B1E36] text-white p-4 rounded-2xl shadow-2xl border border-emerald-500/50 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
-          <div className="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-            <Check className="w-5 h-5" />
-          </div>
-          <div className="space-y-0.5 text-xs">
-            <strong className="block text-white font-bold text-sm">Solicitação de Agendamento Enviada!</strong>
-            <p className="text-slate-300">A equipe da <strong>{workshop.name}</strong> entrará em contato via WhatsApp para confirmar seu horário.</p>
-          </div>
-          <button 
-            onClick={() => setScheduleSuccessToast(false)}
-            className="text-slate-400 hover:text-white p-1"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
       {/* ========================================================================= */}
       {/* COMPOSIÇÃO DO ECOSSISTEMA: LATERAL ESQUERDA | SITE CENTRAL | LATERAL DIREITA */}
       {/* ========================================================================= */}
@@ -429,24 +320,16 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 </div>
               </div>
 
-              {/* Botões Rápidos de Ação / Contato */}
+              {/* Contato */}
               <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => handleOpenSchedule()}
-                  className={`px-4 py-2.5 rounded-xl ${themeClasses.primary} font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer`}
-                >
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>Agendar Serviço</span>
-                </button>
-
                 <a
                   href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3.5 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className={`px-4 py-2.5 rounded-xl ${themeClasses.primary} font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer`}
                 >
-                  <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="hidden sm:inline">WhatsApp</span>
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Contato</span>
                 </a>
               </div>
 
@@ -464,13 +347,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 onClick={() => scrollToSection('sec-servicos', 'servicos')}
                 className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${activeTabNav === 'servicos' ? `${themeClasses.badge} font-extrabold` : 'hover:bg-slate-50'}`}
               >
-                Serviços & Peças
-              </button>
-              <button
-                onClick={() => scrollToSection('sec-sobre', 'sobre')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${activeTabNav === 'sobre' ? `${themeClasses.badge} font-extrabold` : 'hover:bg-slate-50'}`}
-              >
-                Sobre a Oficina
+                Serviços
               </button>
               <button
                 onClick={() => scrollToSection('sec-localizacao', 'localizacao')}
@@ -479,11 +356,10 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 Localização & Horário
               </button>
               <button
-                onClick={() => scrollToSection('sec-vebook', 'vebook')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 flex items-center gap-1 ${activeTabNav === 'vebook' ? 'bg-[#0B1E36] text-white font-extrabold' : 'text-[#0B1E36] bg-slate-100 hover:bg-slate-200'}`}
+                onClick={() => scrollToSection('sec-localizacao', 'contato')}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${activeTabNav === 'contato' ? `${themeClasses.badge} font-extrabold` : 'hover:bg-slate-50'}`}
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
-                <span>Diário VEBOOK</span>
+                Contato
               </button>
             </nav>
           </header>
@@ -531,32 +407,16 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 </p>
               </div>
 
-              {/* 3 Botões de Ação Imediata */}
+              {/* Contato */}
               <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button
-                  onClick={() => setHowItWorksModalOpen(true)}
-                  className={`px-6 py-3.5 rounded-xl ${themeClasses.primary} font-extrabold text-sm transition-all shadow-md flex items-center gap-2 cursor-pointer`}
-                >
-                  <Wrench className="w-4 h-4" />
-                  <span>Como funciona</span>
-                </button>
-
-                <button
-                  onClick={() => scrollToSection('sec-sobre', 'sobre')}
-                  className="px-5 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm border border-slate-300 transition-all flex items-center gap-2 cursor-pointer"
-                >
-                  <Info className="w-4 h-4 text-slate-400" />
-                  <span>Perguntas frequentes</span>
-                </button>
-
                 <a
-                  href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}?text=Ol%C3%A1%2C%20gostaria%20de%20um%20or%C3%A7amento%20na%20${encodeURIComponent(workshop.name)}`}
+                  href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20com%20a%20${encodeURIComponent(workshop.name)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-5 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm border border-slate-300 transition-all flex items-center gap-2 cursor-pointer"
+                  className={`px-6 py-3.5 rounded-xl ${themeClasses.primary} font-extrabold text-sm transition-all shadow-md flex items-center gap-2 cursor-pointer`}
                 >
-                  <MessageSquare className="w-4 h-4 text-emerald-600" />
-                  <span>Falar com a oficina</span>
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Contato</span>
                 </a>
               </div>
             </div>
@@ -590,7 +450,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                   className={`inline-flex items-center gap-1.5 text-xs font-bold ${themeClasses.accentText} hover:underline cursor-pointer pt-1`}
                 >
                   <span>Ver no mapa e rotas</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
@@ -723,219 +583,35 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
             </div>
           </section>
 
-          {/* 4. SEÇÃO DE SERVIÇOS ESPECIALIZADOS DA OFICINA */}
-          <section id="sec-servicos" className="p-6 sm:p-8 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-              <div>
-                <span className={`text-xs font-bold uppercase tracking-wider ${themeClasses.accentText} block`}>
-                  Catálogo Técnico
-                </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                  Serviços Realizados na {workshop.name}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  Todos os serviços são executados com peças homologadas e lançados com especificação técnica.
-                </p>
-              </div>
-
-              {/* Botão de Agendamento Geral */}
-              <button
-                onClick={() => handleOpenSchedule()}
-                className={`px-5 py-2.5 rounded-xl ${themeClasses.primary} font-bold text-xs flex items-center gap-1.5 shrink-0 cursor-pointer`}
-              >
-                <Calendar className="w-4 h-4" />
-                <span>Solicitar Orçamento Geral</span>
-              </button>
+          {/* 4. SERVIÇOS — texto dos itens realizados */}
+          <section id="sec-servicos" className="p-6 sm:p-8 space-y-5">
+            <div className="space-y-2">
+              <span className={`text-xs font-bold uppercase tracking-wider ${themeClasses.accentText} block`}>
+                Serviços
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+                Serviços realizados pela oficina
+              </h3>
+              <p className="text-sm text-slate-500 max-w-2xl">
+                Itens e especialidades oferecidos por {workshop.name}. O detalhamento acompanha o cadastro da oficina.
+              </p>
             </div>
 
-            {/* Abas de Categorias de Serviços */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 no-scrollbar">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedServiceCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer shrink-0 ${
-                    selectedServiceCategory === cat
-                      ? `${themeClasses.primarySolid} shadow-2xs`
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            {/* Grid de Cards de Serviços */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredServices.map((service) => (
-                <div
-                  key={service.id}
-                  className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-slate-300 shadow-2xs hover:shadow-md transition-all space-y-3 flex flex-col justify-between"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                        {service.category}
-                      </span>
-                      {service.warrantyPeriod && (
-                        <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                          Garantia: {service.warrantyPeriod}
-                        </span>
-                      )}
-                    </div>
-
-                    <h4 className="text-base font-extrabold text-slate-900">
-                      {service.title}
-                    </h4>
-
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      {service.shortDescription}
-                    </p>
-
-                    {service.tags && (
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        {service.tags.map((tag, idx) => (
-                          <span key={idx} className="text-[10px] text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-[11px] text-slate-400">
-                      {service.estimatedTime ? `Tempo estimado: ${service.estimatedTime}` : 'Consulte disponibilidade'}
-                    </span>
-                    <button
-                      onClick={() => handleOpenSchedule(service)}
-                      className={`text-xs font-bold ${themeClasses.accentText} hover:underline flex items-center gap-1 cursor-pointer`}
-                    >
-                      <span>Agendar este</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* 5. SEÇÃO SOBRE A OFICINA & INFRAESTRUTURA TÉCNICA */}
-          <section id="sec-sobre" className="p-6 sm:p-8 bg-slate-50/70 border-t border-slate-100 space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              
-              <div className="space-y-4">
-                <span className={`text-xs font-bold uppercase tracking-wider ${themeClasses.accentText} block`}>
-                  Nossa Estrutura & História
-                </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                  Compromisso com precisão mecânica e transparência
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  {workshop.aboutHistory || workshop.description}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xs">
+              {serviceTextItems.length > 0 ? (
+                <ul className="space-y-2.5">
+                  {serviceTextItems.map((item) => (
+                    <li key={item} className="flex gap-3 text-sm sm:text-base text-slate-700 leading-relaxed">
+                      <span className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${themeClasses.primarySolid}`} aria-hidden />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  A oficina ainda não publicou a lista de serviços. Em breve os itens realizados aparecerão neste espaço.
                 </p>
-
-                {workshop.infrastructure && workshop.infrastructure.length > 0 && (
-                  <div className="space-y-2 pt-2">
-                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wide block">
-                      Infraestrutura do Centro Automotivo:
-                    </span>
-                    <ul className="space-y-1.5 text-xs text-slate-600">
-                      {workshop.infrastructure.map((item, index) => (
-                        <li key={index} className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-
-              {/* Card Resumo de Qualidade */}
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl ${themeClasses.iconBg} flex items-center justify-center font-bold`}>
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-slate-900 text-sm">
-                      Padrão de Atendimento {workshop.name}
-                    </h4>
-                    <span className="text-xs text-slate-500">Credenciada VEBOOK desde {new Date(workshop.certifiedSince).getFullYear()}</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-center">
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <span className="text-2xl font-black text-slate-900">+{workshop.totalServicesRegistered}</span>
-                    <span className="text-[11px] text-slate-500 block">Serviços no Diário</span>
-                  </div>
-                  <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-emerald-900">
-                    <span className="text-2xl font-black text-emerald-700">{workshop.validationRate}%</span>
-                    <span className="text-[11px] text-emerald-700 block">Aprovação de Clientes</span>
-                  </div>
-                </div>
-
-                <p className="text-[11px] text-slate-500 leading-relaxed italic border-t border-slate-100 pt-3">
-                  "Nossa prioridade é cuidar do seu veículo com as melhores peças do mercado, assegurando que o histórico oficial preserve o valor real do seu patrimônio."
-                </p>
-              </div>
-
-            </div>
-          </section>
-
-          {/* 6. BLOCO DE INTEGRAÇÃO & CONFIANÇA VEBOOK (ELEGANTE, SEM DOMINAR) */}
-          <section id="sec-vebook" className="p-6 sm:p-8 bg-[#0B1E36] text-white space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-700">
-              <div className="space-y-2 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-950/90 text-sky-300 text-xs font-bold uppercase border border-sky-600/40">
-                  <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
-                  <span>Histórico Permanente por VEBOOK</span>
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                  Todo serviço feito aqui fica registrado no Diário Veicular
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  A <strong>{workshop.name}</strong> integra a rede nacional VEBOOK. Ao retirar seu carro, o serviço fica registrado no Diário Veicular para consulta de marcas, modelos de peças e quilometragem real.
-                </p>
-              </div>
-
-              <button
-                onClick={() => {
-                  if (onSearchPlate) {
-                    onSearchPlate('BRA2E19');
-                  } else {
-                    onNavigate('diario');
-                  }
-                }}
-                className="px-6 py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-[#0B1E36] font-black text-xs sm:text-sm transition-all shadow-md shrink-0 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Conhecer o Diário Veicular</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Os 3 Pilares da Confiança VEBOOK na Oficina */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-              <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700 space-y-1.5">
-                <span className="font-bold text-sky-400 text-sm">1. A Oficina Registra</span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
-                  Lançamos óleo, filtros, correias e peças aplicadas com código e especificação da montadora.
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700 space-y-1.5">
-                <span className="font-bold text-sky-400 text-sm">2. O Cliente Valida</span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
-                  Você confere os dados diretamente no seu celular e confirma com total segurança e transparência.
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700 space-y-1.5">
-                <span className="font-bold text-sky-400 text-sm">3. A VEBOOK Preserva</span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
-                  O histórico acompanha o chassi do carro, gerando certidão com QR Code e valorizando a revenda.
-                </p>
-              </div>
+              )}
             </div>
           </section>
 
@@ -1056,154 +732,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
       {/* MODAIS INTERATIVOS DENTRO DA EXPERIÊNCIA DA OFICINA */}
       {/* ========================================================================= */}
 
-      {/* 1. MODAL DE AGENDAMENTO DE SERVIÇO */}
-      {scheduleModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <span className={`text-xs font-bold uppercase tracking-wider ${themeClasses.accentText}`}>
-                  Agendamento Online
-                </span>
-                <h3 className="text-xl font-black text-slate-900">
-                  Agendar na {workshop.name}
-                </h3>
-              </div>
-              <button
-                onClick={() => setScheduleModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <form onSubmit={handleScheduleSubmit} className="space-y-4 text-xs">
-              
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Seu Nome Completo *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: Carlos Eduardo Silveira"
-                  value={scheduleForm.name}
-                  onChange={(e) => setScheduleForm({ ...scheduleForm, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm font-medium"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">WhatsApp / Telefone *</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="(11) 99999-9999"
-                    value={scheduleForm.phone}
-                    onChange={(e) => setScheduleForm({ ...scheduleForm, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm font-medium"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Placa do Veículo *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: BRA2E19"
-                    maxLength={7}
-                    value={scheduleForm.plate}
-                    onChange={(e) => setScheduleForm({ ...scheduleForm, plate: e.target.value.toUpperCase() })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 text-sm font-bold uppercase tracking-wider"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Serviço Desejado</label>
-                <select
-                  value={scheduleForm.service}
-                  onChange={(e) => setScheduleForm({ ...scheduleForm, service: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 text-xs font-semibold"
-                >
-                  <option value="">Selecione um serviço ou revisão geral</option>
-                  {allServices.map((s) => (
-                    <option key={s.id} value={s.title}>
-                      {s.title} ({s.category})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Data Preferencial</label>
-                  <input
-                    type="date"
-                    value={scheduleForm.date}
-                    onChange={(e) => setScheduleForm({ ...scheduleForm, date: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 text-xs font-medium"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Período</label>
-                  <select
-                    value={scheduleForm.period}
-                    onChange={(e) => setScheduleForm({ ...scheduleForm, period: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 text-xs font-medium"
-                  >
-                    <option value="manha">Manhã (08h às 12h)</option>
-                    <option value="tarde">Tarde (13h às 18h)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Observações adicionais (opcional)</label>
-                <textarea
-                  rows={2}
-                  placeholder="Ex: Barulho na roda dianteira ao frear, luz de injeção acesa..."
-                  value={scheduleForm.notes}
-                  onChange={(e) => setScheduleForm({ ...scheduleForm, notes: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 text-xs font-normal"
-                />
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 space-y-1">
-                <div className="flex items-center gap-1.5 font-bold text-slate-700">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Garantia VEBOOK de Transparência</span>
-                </div>
-                <p>
-                  Ao realizar o serviço na {workshop.name}, as peças aplicadas serão documentadas e enviadas para o seu Diário Veicular.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setScheduleModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-slate-600 font-bold hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className={`px-6 py-2.5 rounded-xl ${themeClasses.primary} font-extrabold shadow-md cursor-pointer flex items-center gap-2`}
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Confirmar Solicitação</span>
-                </button>
-              </div>
-
-            </form>
-
-          </div>
-        </div>
-      )}
-
-      {/* 2. MODAL DE LOCALIZAÇÃO / MAPA INTERATIVO */}
       {mapModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
@@ -1215,6 +743,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setMapModalOpen(false)}
                 className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
               >
@@ -1222,13 +751,11 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               </button>
             </div>
 
-            {/* Mockup visual de Mapa */}
             <div className="h-56 bg-slate-100 rounded-2xl overflow-hidden border border-slate-300 relative flex items-center justify-center">
-              {/* Visual de Mapa Cartográfico */}
               <div className="absolute inset-0 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
               <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10 space-y-2">
-                <div className={`w-10 h-10 rounded-full ${themeClasses.primarySolid} flex items-center justify-center shadow-lg animate-bounce`}>
-                  <Wrench className="w-5 h-5" />
+                <div className={`w-10 h-10 rounded-full ${themeClasses.primarySolid} flex items-center justify-center shadow-lg`}>
+                  <MapPin className="w-5 h-5" />
                 </div>
                 <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 shadow-md text-xs font-bold text-slate-800">
                   {workshop.name}
@@ -1238,9 +765,14 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
             </div>
 
             <div className="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <div><strong>Endereço:</strong> {workshop.address} — {workshop.neighborhood}</div>
-              <div><strong>Cidade/UF:</strong> {workshop.city} - {workshop.state} · CEP {workshop.zipCode}</div>
-              <div><strong>Ponto de Referência:</strong> Próximo à avenida principal da região com fácil estacionamento para clientes.</div>
+              <div>
+                <strong>Endereço:</strong> {workshop.address}
+                {workshop.neighborhood ? ` — ${workshop.neighborhood}` : ''}
+              </div>
+              <div>
+                <strong>Cidade/UF:</strong> {workshop.city} - {workshop.state}
+                {workshop.zipCode ? ` · CEP ${workshop.zipCode}` : ''}
+              </div>
             </div>
 
             <div className="flex gap-2">
@@ -1262,78 +794,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 <ExternalLink className="w-4 h-4" />
                 <span>Traçar Rota no Waze</span>
               </a>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. MODAL "COMO FUNCIONA NA OFICINA" */}
-      {howItWorksModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Wrench className={`w-5 h-5 ${themeClasses.accentText}`} />
-                <h3 className="font-extrabold text-slate-900 text-lg">
-                  Como Funciona o Atendimento
-                </h3>
-              </div>
-              <button
-                onClick={() => setHowItWorksModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <div className="flex gap-3">
-                <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center font-bold shrink-0">
-                  1
-                </div>
-                <div className="space-y-0.5">
-                  <strong className="text-slate-900 font-bold text-sm block">Recepção & Diagnóstico Técnico</strong>
-                  <p className="text-slate-600 leading-relaxed">
-                    Seu veículo é inspecionado com equipamentos de diagnóstico e você recebe o orçamento detalhado com peças e mão de obra antes da aprovação.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center font-bold shrink-0">
-                  2
-                </div>
-                <div className="space-y-0.5">
-                  <strong className="text-slate-900 font-bold text-sm block">Execução com Peças Homologadas</strong>
-                  <p className="text-slate-600 leading-relaxed">
-                    Aplicamos apenas lubrificantes e componentes de marcas certificadas com garantia comprovada e respeito às especificações da montadora.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="w-7 h-7 rounded-full bg-[#0B1E36] text-white flex items-center justify-center font-bold shrink-0">
-                  3
-                </div>
-                <div className="space-y-0.5">
-                  <strong className="text-slate-900 font-bold text-sm block">Registro Oficial no Diário VEBOOK</strong>
-                  <p className="text-slate-600 leading-relaxed">
-                    O serviço passa a integrar o histórico permanente do chassi do seu veículo no Diário Veicular. A oficina registra; o VEBOOK organiza e preserva.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <button
-                onClick={() => {
-                  setHowItWorksModalOpen(false);
-                  handleOpenSchedule();
-                }}
-                className={`w-full py-3 rounded-xl ${themeClasses.primary} font-extrabold text-xs shadow-md cursor-pointer`}
-              >
-                Agendar Meu Atendimento Agora
-              </button>
             </div>
           </div>
         </div>
