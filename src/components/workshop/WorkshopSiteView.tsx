@@ -147,25 +147,45 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
 
   return (
     <div className="min-h-screen bg-[#F1F5F9] text-slate-800 font-['Plus_Jakarta_Sans',sans-serif]">
-      
-      {/* 0. TOPO DE SIMULAÇÃO DO ECOSSISTEMA VEBOOK (DEMONSTRAÇÃO DE DOMÍNIO E CONTROLE) */}
-      <div className="bg-[#0B1E36] text-white text-xs px-4 py-2 border-b border-slate-700 sticky top-0 z-50">
+
+      {/* Cabeçalho VEBOOK — rente ao topo */}
+      <header className="sticky top-0 z-50 bg-[#0B1E36] border-b border-slate-700 px-4 sm:px-6 lg:px-8 py-3.5">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <button
+            type="button"
+            onClick={() => onNavigate('home')}
+            className="flex items-center gap-2 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40 rounded-vebook-sm"
+            aria-label="VEBOOK Início"
+          >
+            <Logo size="md" variant="light" />
+          </button>
+
+          <a
+            href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2.5 rounded-xl bg-vebook-mustard hover:bg-vebook-mustard-deep text-vebook-navy-deep font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Contato</span>
+          </a>
+        </div>
+      </header>
+
+      {/* Controles de demonstração (abaixo do cabeçalho, sem empurrar a foto) */}
+      <div className="bg-[#071526] text-white text-xs px-4 py-2 border-b border-slate-800">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          
-          {/* Subdomínio e Status Oficial */}
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-mono font-bold text-sky-300">
               https://{workshop.subdomain}
             </span>
             <span className="hidden sm:inline text-slate-400 font-light">
-              — Segunda Camada do Ecossistema VEBOOK
+              — Demonstração do site da oficina
             </span>
           </div>
 
-          {/* Controles de Demonstração: Trocar de Oficina e Trocar Paleta */}
           <div className="flex items-center gap-3">
-            {/* Seletor de Oficinas */}
             <div className="flex items-center gap-1.5 bg-slate-800/80 px-2 py-1 rounded-md border border-slate-700">
               <span className="text-[11px] text-slate-300 hidden md:inline">Oficina Demo:</span>
               <select
@@ -181,38 +201,42 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               </select>
             </div>
 
-            {/* Paleta de Cores */}
             <div className="flex items-center gap-1 bg-slate-800/80 px-2 py-1 rounded-md border border-slate-700">
               <span className="text-[11px] text-slate-400 hidden lg:inline mr-1">Cor:</span>
               <button
+                type="button"
                 onClick={() => setCustomColor('amber')}
                 title="Laranja / Âmbar"
                 className={`w-3.5 h-3.5 rounded-full bg-amber-500 cursor-pointer transition-transform ${customColor === 'amber' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
               />
               <button
+                type="button"
                 onClick={() => setCustomColor('blue')}
                 title="Azul Técnico"
                 className={`w-3.5 h-3.5 rounded-full bg-sky-500 cursor-pointer transition-transform ${customColor === 'blue' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
               />
               <button
+                type="button"
                 onClick={() => setCustomColor('emerald')}
                 title="Verde Sustentável"
                 className={`w-3.5 h-3.5 rounded-full bg-emerald-500 cursor-pointer transition-transform ${customColor === 'emerald' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
               />
               <button
+                type="button"
                 onClick={() => setCustomColor('rose')}
                 title="Vermelho Esportivo"
                 className={`w-3.5 h-3.5 rounded-full bg-rose-500 cursor-pointer transition-transform ${customColor === 'rose' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
               />
               <button
+                type="button"
                 onClick={() => setCustomColor('indigo')}
                 title="Índigo Corporativo"
                 className={`w-3.5 h-3.5 rounded-full bg-indigo-500 cursor-pointer transition-transform ${customColor === 'indigo' ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
               />
             </div>
 
-            {/* Voltar à Plataforma VEBOOK */}
             <button
+              type="button"
               onClick={() => onNavigate('home')}
               className="text-[11px] font-bold text-sky-300 hover:text-white flex items-center gap-1 bg-sky-950/80 hover:bg-sky-900 px-2.5 py-1 rounded border border-sky-800 transition-colors cursor-pointer"
             >
@@ -220,22 +244,13 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-
         </div>
       </div>
-      {/* ========================================================================= */}
-      {/* COMPOSIÇÃO DO ECOSSISTEMA: LATERAL ESQUERDA | SITE CENTRAL | LATERAL DIREITA */}
-      {/* ========================================================================= */}
+
       <div className="max-w-[1600px] mx-auto flex justify-center px-2 sm:px-4 lg:px-6 py-6 gap-6">
-        
-        {/* ---------------------------------------------------- */}
-        {/* LATERAL ESQUERDA (DESKTOP): ESPAÇO PARA PARCEIROS VEBOOK */}
-        {/* ---------------------------------------------------- */}
-        <aside className="hidden xl:block w-56 shrink-0 space-y-4 pt-20">
-          
+
+        <aside className="hidden xl:block w-56 shrink-0 space-y-4 pt-6">
           <div className="sticky top-24 space-y-4">
-            
-            {/* Bloco 1 de Parceiro */}
             <div className="p-4 rounded-2xl bg-white/70 border border-slate-200/80 shadow-2xs space-y-3 text-center backdrop-blur-xs">
               <span className="text-[10px] font-bold tracking-wider uppercase text-slate-600 block">
                 Parceiro Homologado
@@ -249,7 +264,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               </p>
             </div>
 
-            {/* Bloco 2 de Parceiro */}
             <div className="p-4 rounded-2xl bg-white/70 border border-slate-200/80 shadow-2xs space-y-3 text-center backdrop-blur-xs">
               <span className="text-[10px] font-bold tracking-wider uppercase text-slate-600 block">
                 Parceiro Homologado
@@ -263,7 +277,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               </p>
             </div>
 
-            {/* Bloco de Anúncio / Espaço para Fabricante */}
             <div className="p-4 rounded-2xl bg-slate-100/80 border border-dashed border-slate-300 text-center space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
                 Espaço para Parceiro
@@ -272,92 +285,51 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 Anuncie para motoristas que cuidam do carro nesta oficina.
               </p>
               <button
+                type="button"
                 onClick={() => alert('Simulação: Abrir canal de mídia para marcas e fabricantes parceiros do ecossistema VEBOOK.')}
                 className="text-[11px] font-bold text-slate-700 hover:text-slate-900 underline block mx-auto cursor-pointer"
               >
                 Quero anunciar
               </button>
             </div>
-
           </div>
-
         </aside>
 
-        {/* ---------------------------------------------------- */}
-        {/* CONTEÚDO PRINCIPAL: SITE OFICIAL DA OFICINA PARCEIRA */}
-        {/* ---------------------------------------------------- */}
         <main className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden transition-all">
-          
-          {/* 1. CABEÇALHO VEBOOK — sem identidade da oficina */}
-          <header className="bg-[#0B1E36] border-b border-slate-700 sticky top-10 z-40 px-6 sm:px-8 py-3.5">
-            <div className="flex items-center justify-between gap-4">
-              <button
-                type="button"
-                onClick={() => onNavigate('home')}
-                className="flex items-center gap-2 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40 rounded-vebook-sm"
-                aria-label="VEBOOK Início"
-              >
-                <Logo size="md" variant="light" />
-              </button>
 
-              <a
-                href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2.5 rounded-xl bg-vebook-mustard hover:bg-vebook-mustard-deep text-vebook-navy-deep font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>Contato</span>
-              </a>
-            </div>
-          </header>
-
-          {/* 2. HERO DA OFICINA COM FOTO REAL DE QUALIDADE & CALL TO ACTIONS */}
-          <section id="sec-hero" className="p-6 sm:p-8 space-y-6">
-            
-            {/* Banner com Imagem da Oficina */}
-            <div className="relative rounded-3xl overflow-hidden shadow-md aspect-[21/9] sm:aspect-[2.4/1] bg-slate-900 group">
+          {/* Foto da oficina — nome na tarja personalizada sobre a imagem */}
+          <section id="sec-hero" className="relative">
+            <div className="relative aspect-[16/9] sm:aspect-[2.2/1] bg-slate-900 overflow-hidden">
               <img
                 src={workshop.coverImageUrl || 'https://images.unsplash.com/photo-1613214149922-f1809c99b414?auto=format&fit=crop&w=1400&q=80'}
                 alt={workshop.name}
-                className="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-700 opacity-90"
+                className="w-full h-full object-cover object-center"
               />
-              
-              {/* Gradiente sutil inferior */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
-              
-              <div className="absolute bottom-4 left-4 right-4 text-white flex items-center justify-between text-xs font-medium">
-                <span className="bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-                  {workshop.neighborhood || 'Centro'} · {workshop.city} - {workshop.state}
-                </span>
-              </div>
-            </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
 
-            {/* Apresentação Principal e Slogan */}
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              {/* Tarja personalizada com o nome da oficina */}
+              <div className={`absolute bottom-0 left-0 right-0 ${themeClasses.primarySolid} px-5 sm:px-8 py-4 sm:py-5`}>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
                   {workshop.name}
-                </h2>
-                <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed">
-                  {workshop.description}
-                </p>
-              </div>
-
-              {/* Contato */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <a
-                  href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20com%20a%20${encodeURIComponent(workshop.name)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`px-6 py-3.5 rounded-xl ${themeClasses.primary} font-extrabold text-sm transition-all shadow-md flex items-center gap-2 cursor-pointer`}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Contato</span>
-                </a>
+                </h1>
               </div>
             </div>
+          </section>
 
+          {/* Dados da oficina — abaixo da foto */}
+          <section className="p-6 sm:p-8 space-y-5 border-b border-slate-100">
+            <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed">
+              {workshop.description}
+            </p>
+            <a
+              href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20com%20a%20${encodeURIComponent(workshop.name)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center gap-2 px-6 py-3.5 rounded-xl ${themeClasses.primary} font-extrabold text-sm transition-all shadow-md cursor-pointer`}
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>Contato</span>
+            </a>
           </section>
 
           {/* 3. GRID ESTRUTURADO DE INFORMAÇÕES (ENDEREÇO, CONTATO, REDES, HORÁRIO) */}
