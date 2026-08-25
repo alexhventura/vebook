@@ -5,14 +5,13 @@ import {
   MessageSquare, 
   Clock, 
   Globe, 
-  ShieldCheck, 
-  CheckCircle2, 
   ExternalLink, 
   Share2, 
   X, 
   ChevronRight,
   ChevronDown
 } from 'lucide-react';
+import { Logo } from '../layout/Logo';
 import { getOfficeBySlug, listWorkshopsForPublicSite, toPublicWorkshop } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { AppView } from '../../types';
@@ -289,75 +288,63 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
         {/* ---------------------------------------------------- */}
         <main className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden transition-all">
           
-          {/* 1. CABEÇALHO DO SITE DA OFICINA */}
-          <header className="bg-white border-b border-slate-100 sticky top-10 z-40 px-6 sm:px-8 py-4 backdrop-blur-md bg-white/95">
+          {/* 1. CABEÇALHO VEBOOK */}
+          <header className="bg-[#0B1E36] border-b border-slate-700 sticky top-10 z-40 px-6 sm:px-8 py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              
-              {/* Identidade da Oficina + Endosso VEBOOK */}
-              <div className="flex items-center gap-3.5">
-                {/* Logo / Emblema da Oficina com a cor própria */}
-                <div className={`w-12 h-12 rounded-2xl ${themeClasses.primarySolid} flex items-center justify-center font-black text-xl shadow-md shrink-0`}>
-                  {workshop.name.charAt(0)}
-                </div>
+              <button
+                type="button"
+                onClick={() => onNavigate('home')}
+                className="flex items-center gap-2 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40 rounded-vebook-sm"
+                aria-label="VEBOOK Início"
+              >
+                <Logo size="md" variant="light" />
+              </button>
 
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none">
-                      {workshop.name}
-                    </h1>
-                  </div>
-
-                  {/* Badge Elegante de Relação com VEBOOK */}
-                  <div className="flex items-center gap-1.5 pt-1">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0B1E36] text-white text-[10px] font-bold tracking-wide">
-                      <ShieldCheck className="w-3 h-3 text-sky-400" />
-                      <span>Oficina credenciada VEBOOK</span>
-                    </span>
-                    <span className="text-[11px] text-slate-400 font-mono hidden md:inline">
-                      · {workshop.city}/{workshop.state}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contato */}
-              <div className="flex items-center gap-2 shrink-0">
-                <a
-                  href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`px-4 py-2.5 rounded-xl ${themeClasses.primary} font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer`}
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Contato</span>
-                </a>
-              </div>
-
+              <a
+                href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 rounded-xl bg-vebook-mustard hover:bg-vebook-mustard-deep text-vebook-navy-deep font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Contato</span>
+              </a>
             </div>
 
-            {/* Menu de Navegação Institucional do Site da Oficina */}
-            <nav className="flex items-center gap-1 sm:gap-2 pt-4 mt-2 border-t border-slate-100 overflow-x-auto no-scrollbar text-xs font-bold text-slate-600">
+            <nav className="flex items-center gap-1 sm:gap-2 pt-4 mt-2 border-t border-slate-700/80 overflow-x-auto no-scrollbar text-xs font-bold text-slate-300">
               <button
+                type="button"
                 onClick={() => scrollToSection('sec-hero', 'inicio')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${activeTabNav === 'inicio' ? `${themeClasses.badge} font-extrabold` : 'hover:bg-slate-50'}`}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                  activeTabNav === 'inicio' ? 'bg-white/10 text-white font-extrabold' : 'hover:bg-white/5 hover:text-white'
+                }`}
               >
                 Início
               </button>
               <button
+                type="button"
                 onClick={() => scrollToSection('sec-servicos', 'servicos')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${activeTabNav === 'servicos' ? `${themeClasses.badge} font-extrabold` : 'hover:bg-slate-50'}`}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                  activeTabNav === 'servicos' ? 'bg-white/10 text-white font-extrabold' : 'hover:bg-white/5 hover:text-white'
+                }`}
               >
                 Serviços
               </button>
               <button
+                type="button"
                 onClick={() => scrollToSection('sec-localizacao', 'localizacao')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${activeTabNav === 'localizacao' ? `${themeClasses.badge} font-extrabold` : 'hover:bg-slate-50'}`}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                  activeTabNav === 'localizacao' ? 'bg-white/10 text-white font-extrabold' : 'hover:bg-white/5 hover:text-white'
+                }`}
               >
                 Localização & Horário
               </button>
               <button
+                type="button"
                 onClick={() => scrollToSection('sec-localizacao', 'contato')}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${activeTabNav === 'contato' ? `${themeClasses.badge} font-extrabold` : 'hover:bg-slate-50'}`}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                  activeTabNav === 'contato' ? 'bg-white/10 text-white font-extrabold' : 'hover:bg-white/5 hover:text-white'
+                }`}
               >
                 Contato
               </button>
@@ -375,23 +362,12 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 className="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-700 opacity-90"
               />
               
-              {/* Badge "Oficina Verificada" sobre a imagem exatamente como na referência */}
-              <div className="absolute top-4 left-4 z-10">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${themeClasses.heroTag} font-black text-xs shadow-lg uppercase tracking-wider`}>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Oficina verificada</span>
-                </span>
-              </div>
-
               {/* Gradiente sutil inferior */}
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
               
               <div className="absolute bottom-4 left-4 right-4 text-white flex items-center justify-between text-xs font-medium">
                 <span className="bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
                   {workshop.neighborhood || 'Centro'} · {workshop.city} - {workshop.state}
-                </span>
-                <span className="bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 hidden sm:inline">
-                  Ambiente Auditado VEBOOK
                 </span>
               </div>
             </div>
@@ -624,7 +600,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 </div>
                 <div>
                   <strong className="text-white block font-bold text-sm">{workshop.name}</strong>
-                  <span className="text-[11px] text-slate-400">Oficina parceira da rede VEBOOK</span>
+                  <span className="text-[11px] text-slate-400">{workshop.city}/{workshop.state}</span>
                 </div>
               </div>
 
@@ -708,17 +684,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               </div>
               <p className="text-[11px] text-slate-600 leading-tight">
                 Pivôs, bieletas e amortecedores de qualidade original.
-              </p>
-            </div>
-
-            {/* Bloco Certificação VEBOOK */}
-            <div className="p-4 rounded-2xl bg-sky-950 text-white shadow-md text-center space-y-2">
-              <ShieldCheck className="w-6 h-6 text-sky-400 mx-auto" />
-              <span className="text-[11px] font-bold block text-sky-200">
-                Rede Credenciada
-              </span>
-              <p className="text-[10px] text-slate-300 leading-tight">
-                Oficinas que honram a verdade técnica em cada manutenção.
               </p>
             </div>
 
