@@ -14,6 +14,7 @@ import {
 import { formatPlate, isValidPlateFormat } from '../../lib/utils';
 import { formatBRL } from '../../lib/currency';
 import { PLAN_OFFERS, planPricingFootnote } from '../../data/officePlans';
+import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
 import { AppView, PlanModality } from '../../types';
 import { Button, Input } from '../ui';
 import { HomeAtmosphere } from '../home/HomeAtmosphere';
@@ -152,30 +153,68 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <Spine />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-stretch">
-            <div className="lg:col-span-5 space-y-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard-deep">O livro do veículo</p>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
-                Cada atendimento pode se tornar memória.
-              </h2>
-              <p className="text-sm sm:text-base text-vebook-muted leading-relaxed">
-                Oficinas participantes registram serviços. O VEBOOK organiza esses registros em um
-                histórico associado ao veículo — consultável e, quando necessário, documentável.
-              </p>
-              <ol className="space-y-3 pt-2">
-                {[
-                  'Oficina realiza o atendimento',
-                  'Registro entra no prontuário',
-                  'Histórico acompanha o veículo',
-                  'Certidão documenta o disponível',
-                ].map((step, i) => (
-                  <li key={step} className="flex items-start gap-3 text-sm text-vebook-text">
-                    <span className="mt-0.5 w-6 h-6 rounded-full bg-vebook-navy text-vebook-white text-[11px] font-bold flex items-center justify-center shrink-0">
-                      {i + 1}
-                    </span>
-                    <span className="leading-relaxed pt-0.5">{step}</span>
-                  </li>
-                ))}
-              </ol>
+            <div className="lg:col-span-5 space-y-6">
+              <div className="space-y-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-vebook-mustard-deep">
+                  O livro do veículo
+                </p>
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-navy leading-[1.1]">
+                  Como funciona a consulta
+                </h2>
+                <p className="text-sm sm:text-base text-vebook-muted leading-relaxed">
+                  Informe a placa e abra o Diário Veicular. A consulta pública mostra um panorama
+                  numérico do que existe no histórico — quantidade de registros e indicadores
+                  objetivos — para você decidir, com clareza, se precisa do documento completo.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-4 space-y-2 transition-all duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.14)]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vebook-mustard-deep">
+                    Consulta
+                  </p>
+                  <p className="text-sm font-bold text-vebook-navy">Dados numéricos</p>
+                  <p className="text-xs text-vebook-muted leading-relaxed">
+                    Visão resumida e gratuita: totais, contagens e existência de registros associados
+                    à placa — sem o detalhamento completo dos serviços.
+                  </p>
+                </div>
+                <div className="rounded-vebook-lg border border-vebook-mustard bg-vebook-mustard-soft/60 p-4 space-y-2 transition-all duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vebook-mustard-deep">
+                    Certidão
+                  </p>
+                  <p className="text-sm font-bold text-vebook-navy">Informação completa</p>
+                  <p className="text-xs text-vebook-muted leading-relaxed">
+                    Documento formal com o histórico detalhado disponível na plataforma até o
+                    momento da emissão — útil em compra, venda e due diligence.
+                  </p>
+                  <p className="pt-1 text-lg font-bold text-vebook-navy">
+                    {formatBRL(CERTIDAO_PRICE)}
+                    <span className="ml-1 text-xs font-semibold text-vebook-muted">por certidão</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-vebook-mustard-deep">
+                  Vantagens de ter o histórico no VEBOOK
+                </p>
+                <ul className="space-y-2.5">
+                  {[
+                    'Continuidade: o registro acompanha o veículo ao longo da vida útil, mesmo com troca de dono ou de oficina.',
+                    'Transparência objetiva: a consulta mostra o que há no prontuário antes de você solicitar a certidão.',
+                    'Documento formal: a Certidão consolida a informação completa para apresentação a terceiros.',
+                    'Origem identificável: serviços entram com oficina, data e descrição preservadas pela plataforma.',
+                    'Privacidade: o foco é o histórico técnico do veículo — dados pessoais do cliente permanecem sob responsabilidade da oficina.',
+                    'Decisão informada: números na consulta; narrativa completa só na certidão, quando a formalidade importa.',
+                  ].map((item) => (
+                    <li key={item} className="flex gap-3 text-sm text-vebook-text leading-relaxed">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-vebook-mustard" aria-hidden />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
             <div className="lg:col-span-7">
@@ -188,7 +227,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-vebook-mustard">Consulta</p>
                   <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">Informe a placa</h3>
                   <p className="text-sm sm:text-base text-vebook-blue-muted leading-relaxed max-w-xl">
-                    Consulta inicial gratuita. A Certidão apresenta os registros disponíveis no momento da emissão.
+                    A consulta é gratuita e traz os dados numéricos do histórico. A Certidão VEBOOK,
+                    por {formatBRL(CERTIDAO_PRICE)}, entrega a informação completa e documentada.
                   </p>
                 </div>
                 <div className="space-y-4 max-w-xl">
@@ -229,7 +269,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   className="inline-flex items-center gap-2 text-sm font-semibold text-vebook-mustard hover:text-vebook-mustard-soft transition-colors cursor-pointer"
                 >
                   <FileCheck2 className="w-4 h-4" aria-hidden />
-                  Solicitar certidão
+                  Solicitar certidão · {formatBRL(CERTIDAO_PRICE)}
                   <ChevronRight className="w-4 h-4" aria-hidden />
                 </button>
               </form>
