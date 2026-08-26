@@ -57,10 +57,10 @@ function VebookSymbolMark({ className = '' }: { className?: string }) {
 function PageWatermark() {
   return (
     <div
-      className="cert-page-watermark pointer-events-none absolute inset-0 flex items-center justify-center z-0"
+      className="cert-page-watermark pointer-events-none absolute inset-0 flex items-center justify-center z-20"
       aria-hidden
     >
-      <VebookSymbolMark className="w-[42%] max-w-[160mm] h-auto opacity-[0.07] print:opacity-[0.08]" />
+      <VebookSymbolMark className="w-[42%] max-w-[160mm] h-auto opacity-[0.035] print:opacity-[0.04]" />
     </div>
   );
 }
