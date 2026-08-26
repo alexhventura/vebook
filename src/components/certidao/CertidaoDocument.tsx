@@ -113,7 +113,7 @@ function AttendanceBlock({
   attendanceNumber: number;
 }) {
   return (
-    <article className="cert-attendance border border-slate-200 rounded-md p-2.5 space-y-2 text-[10px] text-slate-700 break-inside-avoid">
+    <article className="cert-attendance break-inside-avoid page-break-inside-avoid rounded-md border border-vebook-navy/25 bg-slate-50/60 p-2.5 space-y-2 text-[10px] text-slate-700 shadow-[inset_3px_0_0_0_#0B1E36]">
       <header className="flex flex-wrap items-baseline justify-between gap-1 border-b border-slate-100 pb-1">
         <p className="font-extrabold text-[#0B1E36] uppercase tracking-wide text-[11px]">
           Atendimento nº {String(attendanceNumber).padStart(2, '0')}

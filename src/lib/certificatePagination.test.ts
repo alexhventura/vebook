@@ -7,8 +7,10 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { CertificateHistoryEntry } from '../types';
 import {
+  FIRST_PAGE_ATTENDANCES,
   FIRST_PAGE_CAPACITY,
   PAGE_CAPACITY,
+  TARGET_ATTENDANCES_PER_PAGE,
   estimateEntryUnits,
   pageIdFromDocument,
   pageTrackingCode,
@@ -130,13 +132,13 @@ describe('Paginação da Certidão', () => {
     assert.ok(last.blocks.some((b) => b.kind === 'summary'));
   });
 
-  it('não parte um atendimento entre páginas (preferência)', () => {
+  it('não parte um atendimento entre páginas (bloco íntegro)', () => {
     const small = makeEntry('s1');
     const large = makeEntry('s2', {
-      description: 'y'.repeat(250),
-      laborDetails: 'mão de obra',
-      observations: 'obs '.repeat(40),
-      products: Array.from({ length: 6 }, (_, j) => ({
+      description: 'y'.repeat(320),
+      laborDetails: 'mão de obra '.repeat(20),
+      observations: 'obs '.repeat(50),
+      products: Array.from({ length: 8 }, (_, j) => ({
         id: `lp-${j}`,
         category: 'Peça',
         commercialName: `Item ${j}`,
@@ -153,15 +155,21 @@ describe('Paginação da Certidão', () => {
           newValue: 'B',
           rectifiedAt: '2026-08-16T12:00:00',
         },
+        {
+          id: 'rr2',
+          field: 'mileageKm',
+          fieldLabel: 'KM',
+          previousValue: '1',
+          newValue: '2',
+          rectifiedAt: '2026-08-16T13:00:00',
+        },
       ],
       contestation: { exists: true, statusLabel: 'Aberta', contestedAt: '2026-08-17T09:00:00' },
     });
-    const unitsLarge = estimateEntryUnits(large);
-    assert.ok(unitsLarge >= 5);
+    assert.ok(estimateEntryUnits(large) >= 2);
     const pages = paginateCertificateEntries([small, large]);
     for (const page of pages) {
       const entriesOnPage = page.blocks.filter((b) => b.kind === 'entry');
-      // cada entry aparece no máximo uma vez por página (e no documento)
       const ids = entriesOnPage.map((b) => (b.kind === 'entry' ? b.entry.id : ''));
       assert.equal(new Set(ids).size, ids.length);
     }
@@ -170,6 +178,15 @@ describe('Paginação da Certidão', () => {
       .filter((b) => b.kind === 'entry')
       .map((b) => (b.kind === 'entry' ? b.entry.id : ''));
     assert.deepEqual(allIds.sort(), ['s1', 's2'].sort());
+    // bloco pesado não compartilha folha com outro atendimento
+    const pageWithLarge = pages.find((p) =>
+      p.blocks.some((b) => b.kind === 'entry' && b.entry.id === 's2'),
+    );
+    assert.ok(pageWithLarge);
+    assert.equal(
+      pageWithLarge!.blocks.filter((b) => b.kind === 'entry').length,
+      1,
+    );
   });
 
   it('capa só na primeira página; resumo na última', () => {
@@ -187,9 +204,31 @@ describe('Paginação da Certidão', () => {
     assert.ok(last.blocks.some((b) => b.kind === 'summary'));
   });
 
-  it('capacidades de página são dinâmicas (não fixas em 3)', () => {
-    assert.ok(FIRST_PAGE_CAPACITY > 0);
-    assert.ok(PAGE_CAPACITY > FIRST_PAGE_CAPACITY);
+  it('meta de até 3 blocos de atendimento por folha', () => {
+    assert.equal(TARGET_ATTENDANCES_PER_PAGE, 3);
+    assert.equal(FIRST_PAGE_ATTENDANCES, 2);
+    assert.equal(PAGE_CAPACITY, 3);
+    assert.equal(FIRST_PAGE_CAPACITY, 2);
+
+    const entries = Array.from({ length: 9 }, (_, i) => makeEntry(`t${i}`));
+    const pages = paginateCertificateEntries(entries);
+    for (const page of pages) {
+      const n = page.blocks.filter((b) => b.kind === 'entry').length;
+      assert.ok(n <= TARGET_ATTENDANCES_PER_PAGE, `página ${page.pageNumber} tem ${n} blocos`);
+    }
+    const firstEntries = pages[0].blocks.filter((b) => b.kind === 'entry').length;
+    assert.ok(firstEntries <= FIRST_PAGE_ATTENDANCES);
+    // folhas intermediárias de conteúdo tendem a 3
+    const middle = pages.filter(
+      (p) =>
+        !p.blocks.some((b) => b.kind === 'cover') &&
+        !p.blocks.some((b) => b.kind === 'summary') &&
+        p.blocks.some((b) => b.kind === 'entry'),
+    );
+    assert.ok(middle.length >= 1);
+    for (const p of middle) {
+      assert.equal(p.blocks.filter((b) => b.kind === 'entry').length, 3);
+    }
   });
 });
 
