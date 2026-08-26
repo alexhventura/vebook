@@ -120,19 +120,13 @@ export function getPublicHistory(plate: string): PublicHistoryItem[] {
     .sort((a, b) => b.serviceDate.localeCompare(a.serviceDate));
 }
 
-/** Certidão: histórico completo + ID sequencial por veículo. */
+/** Certidão: histórico completo + ID sequencial por veículo (mais antigo → mais recente). */
 export function getCertificateHistory(plate: string): CertificateHistoryEntry[] {
   const records = SERVICES_MOCK[plate] || [];
   const chronological = [...records].sort((a, b) =>
     recordChronologyKey(a).localeCompare(recordChronologyKey(b)),
   );
-  const seqById = new Map<string, number>();
-  chronological.forEach((r, index) => {
-    seqById.set(r.id, index + 1);
-  });
-  return records
-    .map((r) => toCertificateHistoryEntry(r, seqById.get(r.id) || 1))
-    .sort((a, b) => b.serviceDate.localeCompare(a.serviceDate));
+  return chronological.map((r, index) => toCertificateHistoryEntry(r, index + 1));
 }
 
 export function getPublicVehicle(plate: string): PublicVehicleIdentity | null {

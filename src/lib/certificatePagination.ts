@@ -4,15 +4,15 @@
  * Regras:
  * - Cada atendimento é um bloco indivisível.
  * - Se o bloco não cabe no restante da folha, vai integralmente para a próxima.
- * - Meta: até TARGET_ATTENDANCES_PER_PAGE (3) blocos por folha.
+ * - Meta: até TARGET_ATTENDANCES_PER_PAGE (2) blocos por folha.
  * - Sem capa nem resumo — identificação fica no cabeçalho de cada página.
  */
 
 import type { CertificateHistoryEntry } from '../types';
 
 /** Meta de blocos de atendimento por folha. */
-export const TARGET_ATTENDANCES_PER_PAGE = 3;
-/** Compat: todas as folhas usam a mesma meta (sem capa). */
+export const TARGET_ATTENDANCES_PER_PAGE = 2;
+/** Compat: todas as folhas usam a mesma meta. */
 export const FIRST_PAGE_ATTENDANCES = TARGET_ATTENDANCES_PER_PAGE;
 export const PAGE_CAPACITY = TARGET_ATTENDANCES_PER_PAGE;
 export const FIRST_PAGE_CAPACITY = FIRST_PAGE_ATTENDANCES;
@@ -29,19 +29,18 @@ export type CertificateDocumentPage = {
 };
 
 /**
- * Estima “peso” do bloco (1 = cabe junto com outros; ≥3 = folha exclusiva).
+ * Estima “peso” do bloco (1 = cabe junto; ≥2 = folha exclusiva).
  * Usado só para decidir se o bloco cabe com os demais — nunca para partir o conteúdo.
  */
 export function estimateEntryUnits(entry: CertificateHistoryEntry): number {
   let weight = 1;
   const productCount = entry.products?.length || 0;
-  if (productCount >= 4) weight += 1;
-  if (productCount >= 8) weight += 1;
-  if ((entry.description || '').length > 280) weight += 1;
-  if ((entry.observations || '').length > 180) weight += 1;
-  if (entry.laborDetails && entry.laborDetails.length > 120) weight += 1;
-  weight += Math.min(entry.rectifications?.length || 0, 2);
-  if (entry.contestation?.exists) weight += 1;
+  if (productCount >= 5) weight += 1;
+  if ((entry.description || '').length > 320) weight += 1;
+  if ((entry.observations || '').length > 200) weight += 1;
+  if (entry.laborDetails && entry.laborDetails.length > 160) weight += 1;
+  weight += Math.min(entry.rectifications?.length || 0, 1);
+  if (entry.contestation?.exists && productCount >= 3) weight += 1;
   return Math.max(1, Math.min(weight, TARGET_ATTENDANCES_PER_PAGE));
 }
 
@@ -55,7 +54,7 @@ function usedWeight(blocks: CertificatePageContent[]): number {
 
 /**
  * Empacota blocos sem partir um atendimento entre páginas.
- * Prioriza até 3 atendimentos por folha; move o bloco inteiro se não couber.
+ * Prioriza até 2 atendimentos por folha; move o bloco inteiro se não couber.
  */
 export function paginateCertificateEntries(
   entries: CertificateHistoryEntry[],
@@ -69,7 +68,6 @@ export function paginateCertificateEntries(
     current = [];
   };
 
-  /** O bloco cabe inteiro na folha atual? (nunca parcial) */
   const fitsIntact = (entry: CertificateHistoryEntry): boolean => {
     const count = entryCount(current);
     if (count >= TARGET_ATTENDANCES_PER_PAGE) return false;
@@ -87,7 +85,7 @@ export function paginateCertificateEntries(
     const block: CertificatePageContent = {
       kind: 'entry',
       entry,
-      attendanceNumber: index + 1,
+      attendanceNumber: entry.vehicleAttendanceSeq || index + 1,
     };
 
     if (!fitsIntact(entry)) {

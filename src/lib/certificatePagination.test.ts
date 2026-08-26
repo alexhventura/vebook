@@ -185,18 +185,18 @@ describe('Paginação da Certidão', () => {
     }
   });
 
-  it('meta de até 3 blocos de atendimento por folha', () => {
-    assert.equal(TARGET_ATTENDANCES_PER_PAGE, 3);
-    assert.equal(FIRST_PAGE_ATTENDANCES, 3);
-    assert.equal(PAGE_CAPACITY, 3);
-    assert.equal(FIRST_PAGE_CAPACITY, 3);
+  it('meta de até 2 blocos de atendimento por folha', () => {
+    assert.equal(TARGET_ATTENDANCES_PER_PAGE, 2);
+    assert.equal(FIRST_PAGE_ATTENDANCES, 2);
+    assert.equal(PAGE_CAPACITY, 2);
+    assert.equal(FIRST_PAGE_CAPACITY, 2);
 
-    const entries = Array.from({ length: 9 }, (_, i) => makeEntry(`t${i}`));
+    const entries = Array.from({ length: 6 }, (_, i) => makeEntry(`t${i}`));
     const pages = paginateCertificateEntries(entries);
     assert.equal(pages.length, 3);
     for (const page of pages) {
       assert.ok(page.blocks.length <= TARGET_ATTENDANCES_PER_PAGE);
-      assert.equal(page.blocks.length, 3);
+      assert.equal(page.blocks.length, 2);
     }
   });
 });
@@ -272,18 +272,26 @@ describe('Identificação e autenticidade por página', () => {
     assert.notEqual(h1, h2);
   });
 
-  it('histórico real do mock pagina e IDs sequenciais por veículo', () => {
+  it('histórico real do mock pagina e IDs sequenciais por veículo (antigo → recente)', () => {
     const entries = getCertificateHistory('BRA2E19');
     assert.ok(entries.length > 0);
     assert.ok(entries.every((e) => /^BRA2E19-\d{4}$/.test(e.vehicleAttendanceId)));
-    const seqs = entries.map((e) => e.vehicleAttendanceSeq).sort((a, b) => a - b);
-    assert.deepEqual(seqs, Array.from({ length: entries.length }, (_, i) => i + 1));
-    assert.ok(entries.some((e) => e.products.length > 0));
-    assert.ok(entries.some((e) => e.contestation.exists));
-    assert.ok(entries.some((e) => e.rectifications.length > 0));
+    for (let i = 1; i < entries.length; i += 1) {
+      assert.ok(
+        entries[i].vehicleAttendanceSeq > entries[i - 1].vehicleAttendanceSeq,
+        'ordem deve ser do mais antigo para o mais recente',
+      );
+      assert.ok(
+        entries[i].serviceDate >= entries[i - 1].serviceDate ||
+          entries[i].recordedAt >= entries[i - 1].recordedAt,
+      );
+    }
     const pages = paginateCertificateEntries(entries);
     assert.ok(pages.length >= 1);
     const flat = pages.flatMap((p) => p.blocks);
     assert.equal(flat.length, entries.length);
+    for (const page of pages) {
+      assert.ok(page.blocks.length <= 2);
+    }
   });
 });

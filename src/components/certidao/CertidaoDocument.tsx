@@ -32,6 +32,10 @@ function buildVerifyAbsoluteUrl(verifyPath: string): string {
   return `${base}${verifyPath.startsWith('#') ? verifyPath : `#${verifyPath}`}`;
 }
 
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <strong className="font-bold text-slate-800">{children}</strong>;
+}
+
 function QrBlock({ identity }: { identity: CertificatePageIdentity }) {
   const data = encodeURIComponent(buildVerifyAbsoluteUrl(identity.verifyPath));
   return (
@@ -40,44 +44,41 @@ function QrBlock({ identity }: { identity: CertificatePageIdentity }) {
       alt="QR Code de verificação da Certidão VEBOOK"
       width={72}
       height={72}
-      className="w-16 h-16 border border-white/40 bg-white print:w-[18mm] print:h-[18mm]"
+      className="w-14 h-14 sm:w-16 sm:h-16 border border-white/40 bg-white print:w-[18mm] print:h-[18mm]"
     />
   );
 }
 
 function PageHeader({ identity }: { identity: CertificatePageIdentity }) {
   return (
-    <header className="cert-page-header px-[14mm] py-3.5 mb-0 bg-vebook-navy text-vebook-white border-b border-vebook-mustard/40 print:bg-[#0B1E36] print:text-white">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1.5">
-          <Logo size="sm" variant="light" />
+    <header className="cert-page-header px-[12mm] sm:px-[14mm] py-3.5 mb-0 bg-vebook-navy text-vebook-white border-b border-vebook-mustard/40 print:bg-[#0B1E36] print:text-white">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0 flex-1 space-y-1.5 text-[10px] sm:text-[11px]">
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-vebook-mustard">
             Certidão de Histórico do Veículo
           </p>
+          <p>
+            <strong className="font-bold text-vebook-subtle">Placa:</strong>{' '}
+            <span className="font-mono font-bold text-vebook-white">{identity.vehiclePlate}</span>
+          </p>
+          <p>
+            <strong className="font-bold text-vebook-subtle">Veículo:</strong>{' '}
+            <span className="text-vebook-white">
+              {identity.vehicleBrand} {identity.vehicleModelName} · {identity.vehicleColor} ·{' '}
+              {identity.vehicleYearLabel}
+            </span>
+          </p>
+          <p>
+            <strong className="font-bold text-vebook-mustard">Código de autenticidade:</strong>{' '}
+            <span className="font-mono font-bold text-vebook-white tracking-wide">
+              {identity.authenticityCode}
+            </span>
+          </p>
         </div>
-        <p className="text-[10px] font-bold tracking-wide text-vebook-white shrink-0">VEBOOK</p>
-      </div>
 
-      <div className="mt-3 grid grid-cols-1 gap-1 text-[10px] text-vebook-blue-muted">
-        <p>
-          <span className="font-semibold text-vebook-subtle">Placa:</span>{' '}
-          <span className="font-mono font-bold text-vebook-white text-[11px]">
-            {identity.vehiclePlate}
-          </span>
-        </p>
-        <p>
-          <span className="font-semibold text-vebook-subtle">Veículo:</span>{' '}
-          <span className="text-vebook-white">
-            {identity.vehicleBrand} {identity.vehicleModelName} · {identity.vehicleColor} ·{' '}
-            {identity.vehicleYearLabel}
-          </span>
-        </p>
-        <p className="pt-0.5">
-          <span className="font-semibold text-vebook-mustard">Código de autenticidade:</span>{' '}
-          <span className="font-mono font-bold text-vebook-white tracking-wide text-[11px]">
-            {identity.authenticityCode}
-          </span>
-        </p>
+        <div className="shrink-0 flex items-center justify-center self-center">
+          <Logo size="md" variant="light" />
+        </div>
       </div>
     </header>
   );
@@ -85,24 +86,25 @@ function PageHeader({ identity }: { identity: CertificatePageIdentity }) {
 
 function PageFooter({ identity }: { identity: CertificatePageIdentity }) {
   return (
-    <footer className="cert-page-footer mt-auto px-[14mm] py-2.5 grid grid-cols-3 items-end gap-2 bg-vebook-navy-deep text-vebook-subtle border-t border-vebook-navy-mid print:bg-[#071527] print:text-[#94a3b8]">
-      <div className="min-w-0 text-[8px] space-y-0.5">
-        <p className="font-bold text-vebook-mustard">Código de autenticidade</p>
-        <p className="font-mono break-all text-vebook-blue-muted text-[9px]">
-          {identity.authenticityCode}
-        </p>
+    <footer className="cert-page-footer mt-auto px-[12mm] sm:px-[14mm] py-3 grid grid-cols-3 items-center gap-3 bg-vebook-navy-deep text-vebook-subtle border-t border-vebook-navy-mid print:bg-[#071527] print:text-[#94a3b8]">
+      <div className="min-w-0 text-left text-[8px] sm:text-[9px] space-y-1 leading-snug">
         <p>
-          Emissão: <span className="text-vebook-blue-muted">{formatDateTime(identity.issuedAt)}</span>
+          <strong className="font-bold text-vebook-mustard">Código de autenticidade</strong>
+        </p>
+        <p className="font-mono break-all text-vebook-blue-muted">{identity.authenticityCode}</p>
+        <p>
+          <strong className="font-bold text-vebook-subtle">Emissão:</strong>{' '}
+          <span className="text-vebook-blue-muted">{formatDateTime(identity.issuedAt)}</span>
         </p>
       </div>
 
-      <div className="flex items-center justify-center self-center">
-        <p className="text-[12px] font-bold text-vebook-mustard tabular-nums">
+      <div className="flex items-center justify-center text-center">
+        <p className="text-[11px] sm:text-[12px] font-bold text-vebook-mustard tabular-nums">
           Página {identity.pageNumber}/{identity.totalPages}
         </p>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end">
         <QrBlock identity={identity} />
       </div>
     </footer>
@@ -110,44 +112,37 @@ function PageFooter({ identity }: { identity: CertificatePageIdentity }) {
 }
 
 function AttendanceBlock({ entry }: { entry: CertificateHistoryEntry }) {
+  const idLabel = String(entry.vehicleAttendanceSeq).padStart(2, '0');
+
   return (
-    <article className="cert-attendance break-inside-avoid page-break-inside-avoid rounded-md border border-vebook-navy/25 bg-slate-50/60 p-2.5 space-y-2 text-[10px] text-slate-700 shadow-[inset_3px_0_0_0_#0B1E36]">
-      <header className="flex flex-wrap items-baseline justify-between gap-1 border-b border-slate-100 pb-1">
-        <div className="space-y-0.5">
-          <p className="font-extrabold text-[#0B1E36] uppercase tracking-wide text-[11px]">
-            Atendimento {entry.vehicleAttendanceId}
-          </p>
-          <p className="text-[9px] font-mono text-slate-500">
-            ID sequencial do veículo · nº {String(entry.vehicleAttendanceSeq).padStart(4, '0')}
-          </p>
-        </div>
-        <p className="font-semibold text-sky-900">{entry.serviceType}</p>
+    <article className="cert-attendance flex-1 break-inside-avoid page-break-inside-avoid rounded-md border-2 border-vebook-mustard-deep bg-white p-3 sm:p-3.5 space-y-2.5 text-[10px] sm:text-[11px] text-slate-700">
+      <header className="flex flex-wrap items-baseline justify-between gap-2 border-b border-vebook-mustard/40 pb-1.5">
+        <p className="font-extrabold text-[#0B1E36] uppercase tracking-wide text-[11px] sm:text-[12px]">
+          Atendimento {idLabel}
+        </p>
+        <p className="font-bold text-sky-900">{entry.serviceType}</p>
       </header>
 
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1.5">
         <p>
-          <span className="font-semibold text-slate-500">Data do serviço:</span>{' '}
-          {formatDate(entry.serviceDate)}
-        </p>
-        <p>
-          <span className="font-semibold text-slate-500">Quilometragem:</span>{' '}
-          {entry.mileageKm.toLocaleString('pt-BR')} km
-        </p>
-        <p className="col-span-2">
-          <span className="font-semibold text-slate-500">Oficina:</span> {entry.workshopName} —{' '}
-          {entry.workshopCity}/{entry.workshopState}
-        </p>
-        <p className="col-span-2">
-          <span className="font-semibold text-slate-500">Registro VEBOOK:</span>{' '}
-          {formatDateTime(entry.recordedAt)}
+          <FieldLabel>Data do serviço:</FieldLabel> {formatDate(entry.serviceDate)}
         </p>
         <p>
-          <span className="font-semibold text-slate-500">Validação:</span>{' '}
-          {validationLabel(entry.validationStatus)}
+          <FieldLabel>Quilometragem:</FieldLabel> {entry.mileageKm.toLocaleString('pt-BR')} km
+        </p>
+        <p className="sm:col-span-2">
+          <FieldLabel>Oficina:</FieldLabel> {entry.workshopName} ({entry.workshopCity}/
+          {entry.workshopState})
+        </p>
+        <p className="sm:col-span-2">
+          <FieldLabel>Registro:</FieldLabel> {formatDateTime(entry.recordedAt)}
+        </p>
+        <p>
+          <FieldLabel>Validação:</FieldLabel> {validationLabel(entry.validationStatus)}
           {entry.validatedAt ? ` (${formatDateTime(entry.validatedAt)})` : ''}
         </p>
         <p>
-          <span className="font-semibold text-slate-500">Contestações:</span>{' '}
+          <FieldLabel>Contestações:</FieldLabel>{' '}
           {entry.contestation.exists
             ? `${entry.contestation.statusLabel}${entry.contestation.contestedAt ? ` · ${formatDateTime(entry.contestation.contestedAt)}` : ''}`
             : 'Nenhuma registrada'}
@@ -155,26 +150,30 @@ function AttendanceBlock({ entry }: { entry: CertificateHistoryEntry }) {
       </div>
 
       <div>
-        <p className="font-semibold text-slate-500">Detalhes:</p>
-        <p className="leading-snug">{entry.description}</p>
+        <p>
+          <FieldLabel>Detalhes:</FieldLabel>
+        </p>
+        <p className="leading-snug mt-0.5">{entry.description}</p>
         {entry.laborDetails ? (
           <p className="leading-snug mt-1 text-slate-600">{entry.laborDetails}</p>
         ) : null}
         {entry.observations ? (
           <p className="leading-snug mt-1 text-slate-600">
-            <span className="font-semibold">Observações:</span> {entry.observations}
+            <FieldLabel>Observações:</FieldLabel> {entry.observations}
           </p>
         ) : null}
         {entry.responsibleName ? (
           <p className="mt-1">
-            <span className="font-semibold text-slate-500">Responsável:</span> {entry.responsibleName}
+            <FieldLabel>Responsável:</FieldLabel> {entry.responsibleName}
           </p>
         ) : null}
       </div>
 
       {entry.products.length > 0 ? (
         <div>
-          <p className="font-semibold text-slate-500">Produtos e peças:</p>
+          <p>
+            <FieldLabel>Produtos e peças:</FieldLabel>
+          </p>
           <ul className="mt-0.5 space-y-0.5">
             {entry.products.map((p) => (
               <li key={p.id}>
@@ -187,9 +186,11 @@ function AttendanceBlock({ entry }: { entry: CertificateHistoryEntry }) {
       ) : null}
 
       <div>
-        <p className="font-semibold text-slate-500">Retificações:</p>
+        <p>
+          <FieldLabel>Retificações:</FieldLabel>
+        </p>
         {entry.rectifications.length === 0 ? (
-          <p>Nenhuma registrada.</p>
+          <p className="mt-0.5">Nenhuma registrada.</p>
         ) : (
           <ul className="mt-0.5 space-y-1">
             {entry.rectifications.map((r) => (
@@ -230,7 +231,7 @@ export function CertidaoDocumentPages({
             data-cert-code={identity.authenticityCode}
           >
             <PageHeader identity={identity} />
-            <div className="cert-page-body flex-1 space-y-2.5 min-h-0">
+            <div className="cert-page-body flex-1 flex flex-col gap-3 sm:gap-4 min-h-0 justify-stretch">
               {page.blocks.length === 0 ? (
                 <p className="text-[10px] text-slate-500 italic">
                   Nenhum atendimento registrado neste snapshot.

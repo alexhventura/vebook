@@ -192,10 +192,17 @@ body {
 }
 
 .cert-a4-page .cert-page-body {
-  padding-left: 14mm;
-  padding-right: 14mm;
-  padding-top: 3mm;
-  padding-bottom: 3mm;
+  padding-left: 12mm;
+  padding-right: 12mm;
+  padding-top: 4mm;
+  padding-bottom: 4mm;
+}
+
+@media (min-width: 640px) {
+  .cert-a4-page .cert-page-body {
+    padding-left: 14mm;
+    padding-right: 14mm;
+  }
 }
 
 .cert-page-body {
