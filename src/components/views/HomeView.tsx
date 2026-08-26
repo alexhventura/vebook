@@ -12,7 +12,7 @@ import { formatPlate, isValidPlateFormat } from '../../lib/utils';
 import { formatBRL } from '../../lib/currency';
 import { PLAN_OFFERS } from '../../data/officePlans';
 import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
-import { OFFICE_PILLARS, OFFICE_PILLARS_FEATURED, OFFICE_PILLARS_SUPPORT, type OfficePillarId } from '../../data/officePillars';
+import { OFFICE_PILLARS, type OfficePillarId } from '../../data/officePillars';
 import { GOVERNANCE_PILLARS, type GovernancePillarId } from '../../data/governancePillars';
 import { CONSULTATION_PILLARS, type ConsultationPillarId } from '../../data/consultationPillars';
 import { AppView, PlanModality } from '../../types';
@@ -47,58 +47,33 @@ const SECTION_LABEL =
 
 const OfficeAdvantageCard: React.FC<{
   cell: OfficePillar;
-  variant: 'featured' | 'support';
   onOpen: () => void;
-}> = ({ cell, variant, onOpen }) => {
-  const featured = variant === 'featured';
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className={`group flex h-full w-full flex-col text-left rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white shadow-vebook transition-all duration-300 hover:-translate-y-1 hover:border-vebook-mustard hover:shadow-[0_10px_28px_rgba(196,163,90,0.22)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40 ${
-        featured ? 'p-6 sm:p-8' : 'p-5 sm:p-6'
-      }`}
-    >
-      <h3
-        className={`font-bold tracking-tight text-vebook-navy group-hover:text-vebook-mustard-deep transition-colors ${
-          featured ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'
-        }`}
-      >
-        {cell.title}
-      </h3>
-      <p
-        className={`mt-2 text-vebook-muted leading-relaxed ${
-          featured ? 'text-sm sm:text-base' : 'text-sm'
-        }`}
-      >
-        {cell.summary}
-      </p>
-      <ul className={`mt-4 flex-1 space-y-2.5 ${featured ? 'sm:mt-5 sm:space-y-3' : ''}`}>
-        {cell.highlights.map((item) => (
-          <li
-            key={item}
-            className={`flex gap-3 text-vebook-text leading-relaxed ${
-              featured ? 'text-sm sm:text-[15px]' : 'text-sm'
-            }`}
-          >
-            <span
-              className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-vebook-mustard-deep"
-              aria-hidden
-            />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-      <span
-        className={`mt-5 inline-flex font-semibold text-vebook-mustard-deep ${
-          featured ? 'mt-6 text-sm' : 'text-xs'
-        }`}
-      >
-        Saiba mais →
-      </span>
-    </button>
-  );
-};
+}> = ({ cell, onOpen }) => (
+  <button
+    type="button"
+    onClick={onOpen}
+    className="group flex h-full w-full flex-col text-left rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-5 sm:p-6 shadow-vebook transition-all duration-300 hover:-translate-y-1 hover:border-vebook-mustard hover:shadow-[0_10px_28px_rgba(196,163,90,0.22)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40"
+  >
+    <h3 className="text-xl font-bold tracking-tight text-vebook-navy transition-colors group-hover:text-vebook-mustard-deep sm:text-2xl">
+      {cell.title}
+    </h3>
+    <p className="mt-2 text-sm leading-relaxed text-vebook-muted">{cell.summary}</p>
+    <ul className="mt-4 flex-1 space-y-2.5">
+      {cell.highlights.map((item) => (
+        <li key={item} className="flex gap-3 text-sm leading-relaxed text-vebook-text">
+          <span
+            className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-vebook-mustard-deep"
+            aria-hidden
+          />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+    <span className="mt-5 inline-flex text-sm font-semibold text-vebook-mustard-deep">
+      Saiba mais →
+    </span>
+  </button>
+);
 
 export const HomeView: React.FC<HomeViewProps> = ({
   onNavigate,
@@ -368,7 +343,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
       {/* ===== OFICINAS — infraestrutura, não pitch ===== */}
       <section id="home-oficinas" className="relative isolate z-10 overflow-hidden bg-vebook-navy border-b border-vebook-mustard/30">
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-12">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-12">
           <div className="max-w-2xl space-y-4">
             <p className={SECTION_LABEL}>Para oficinas</p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-vebook-white leading-[1.1]">
@@ -380,25 +355,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </p>
           </div>
 
-          {/* Destaque: página + painel */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
-            {OFFICE_PILLARS_FEATURED.map((cell) => (
+          {/* Quatro pilares em fileira: página, painel, rede, previsibilidade */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+            {OFFICE_PILLARS.map((cell) => (
               <OfficeAdvantageCard
                 key={cell.id}
                 cell={cell}
-                variant="featured"
-                onOpen={() => setOpenPillarId(cell.id)}
-              />
-            ))}
-          </div>
-
-          {/* Apoio: rede + previsibilidade */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-            {OFFICE_PILLARS_SUPPORT.map((cell) => (
-              <OfficeAdvantageCard
-                key={cell.id}
-                cell={cell}
-                variant="support"
                 onOpen={() => setOpenPillarId(cell.id)}
               />
             ))}
