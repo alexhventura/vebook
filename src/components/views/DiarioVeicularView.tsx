@@ -116,11 +116,7 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
           </p>
         </div>
 
-        <section className="space-y-4" aria-label="Linha do tempo de serviços">
-          <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-vebook-mustard-deep">
-            O que foi feito
-          </h2>
-
+        <section className="space-y-3" aria-label="Histórico de serviços">
           {history.length === 0 ? (
             <p className="text-sm text-vebook-muted rounded-vebook border border-vebook-border bg-vebook-white p-5">
               Nenhum serviço registrado neste veículo na rede VEBOOK.
@@ -130,7 +126,7 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
               {history.map((item) => (
                 <li
                   key={item.id}
-                  className="rounded-vebook border border-vebook-border bg-vebook-white px-5 py-4 space-y-1.5"
+                  className="rounded-vebook border-2 border-vebook-blue bg-vebook-white px-5 py-4 space-y-1.5"
                 >
                   <p className="text-xs font-semibold text-vebook-mustard-deep">
                     {formatServiceDate(item.serviceDate)}
