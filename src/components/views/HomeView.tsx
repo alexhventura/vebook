@@ -217,16 +217,36 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
               <ul className="space-y-3">
                 {[
-                  'Continuidade: o registro acompanha o veículo ao longo da vida útil, mesmo com troca de dono ou de oficina.',
-                  'Transparência objetiva: a consulta mostra o que há no prontuário antes de você solicitar a certidão.',
-                  'Documento formal: a Certidão consolida a informação completa para apresentação a terceiros.',
-                  'Origem identificável: serviços entram com oficina, data e descrição preservadas pela plataforma.',
-                  'Privacidade: o foco é o histórico técnico do veículo — dados pessoais do cliente permanecem sob responsabilidade da oficina.',
-                  'Decisão informada: números na consulta; narrativa completa só na certidão, quando a formalidade importa.',
+                  {
+                    title: 'Continuidade',
+                    text: 'o registro acompanha o veículo ao longo da vida útil, mesmo com troca de dono ou de oficina.',
+                  },
+                  {
+                    title: 'Transparência objetiva',
+                    text: 'a consulta mostra o que há no prontuário antes de você solicitar a certidão.',
+                  },
+                  {
+                    title: 'Documento formal',
+                    text: 'a Certidão consolida a informação completa para apresentação a terceiros.',
+                  },
+                  {
+                    title: 'Origem identificável',
+                    text: 'serviços entram com oficina, data e descrição preservadas pela plataforma.',
+                  },
+                  {
+                    title: 'Privacidade',
+                    text: 'o foco é o histórico técnico do veículo. Dados pessoais do cliente permanecem sob responsabilidade da oficina.',
+                  },
+                  {
+                    title: 'Decisão informada',
+                    text: 'números na consulta; narrativa completa só na certidão, quando a formalidade importa.',
+                  },
                 ].map((item) => (
-                  <li key={item} className="flex gap-3 text-sm sm:text-base text-vebook-text leading-relaxed">
+                  <li key={item.title} className="flex gap-3 text-sm sm:text-base text-vebook-text leading-relaxed">
                     <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-vebook-mustard" aria-hidden />
-                    <span>{item}</span>
+                    <span>
+                      <strong className="font-bold text-vebook-navy">{item.title}:</strong> {item.text}
+                    </span>
                   </li>
                 ))}
               </ul>
