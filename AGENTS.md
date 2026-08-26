@@ -31,3 +31,10 @@ npm run dev
 npm run lint
 npm run build
 ```
+
+## Testes e evidências (preferência do time)
+
+- **Não** gerar screenshots, gravações de tela nem walkthrough em vídeo/imagem por padrão.
+- Só produzir imagem ou vídeo quando o pedido **deixar explícito** (ex.: “mande um print”, “grave um vídeo”, “mostre evidência visual”).
+- Atalho para pular testes: incluir `/no-test` no pedido.
+- Validação leve (lint, build ou checagem pontual no código) continua ok quando for útil à tarefa; o que se evita é o overhead de captura visual.
