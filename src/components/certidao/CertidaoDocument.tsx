@@ -251,7 +251,7 @@ export function CertidaoDocumentPages({
   const totalPages = docPages.length;
 
   return (
-    <div className="cert-document space-y-6 print:space-y-0">
+    <div className="cert-document space-y-6 print:space-y-0 print:block">
       {docPages.map((page) => {
         const identity = buildPageIdentity(cert, page.pageNumber, totalPages);
         return (

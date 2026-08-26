@@ -240,36 +240,84 @@ body {
   html,
   body {
     background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
-  .cert-document {
-    display: block;
+  /* Isola a Certidão: só as folhas A4 entram no PDF */
+  body.vebook-print-certidao .vebook-no-print {
+    display: none !important;
   }
 
-  .cert-a4-page {
-    width: 210mm;
-    min-height: 297mm;
-    height: 297mm;
+  body.vebook-print-certidao main {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.vebook-print-certidao .cert-print-area {
+    display: block !important;
+    position: static !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  body.vebook-print-certidao .cert-document {
+    display: block !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  body.vebook-print-certidao .cert-a4-page {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 210mm !important;
+    min-width: 210mm !important;
+    max-width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
     page-break-after: always;
     break-after: page;
-    overflow: hidden;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
-  .cert-a4-page:last-child {
+  body.vebook-print-certidao .cert-a4-page:last-child {
     page-break-after: auto;
     break-after: auto;
   }
 
-  .cert-page-header,
-  .cert-page-footer {
+  body.vebook-print-certidao .cert-page-header,
+  body.vebook-print-certidao .cert-page-footer,
+  body.vebook-print-certidao .cert-attendance {
     break-inside: avoid;
+    page-break-inside: avoid;
     print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.vebook-print-certidao .cert-page-watermark {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Evita que o navegador injete cabeçalho/rodapé padrão (quando suportado via CSS) */
+  body.vebook-print-certidao {
     -webkit-print-color-adjust: exact;
   }
 }

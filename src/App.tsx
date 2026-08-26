@@ -139,7 +139,9 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-vebook-surface text-vebook-text font-sans">
       {!immersive && (
-        <Header onNavigate={handleNavigate} />
+        <div className="vebook-no-print">
+          <Header onNavigate={handleNavigate} />
+        </div>
       )}
 
       <main className="flex-1">
@@ -260,65 +262,69 @@ export default function App() {
       </main>
 
       {!immersive && (
-        <Footer
-          onNavigate={handleNavigate}
-          onNavigateTransparencia={handleNavigateTransparencia}
-          onOpenCookiesConfig={() => setIsCookieConfigModalOpen(true)}
-          onOpenPrivacidadeModal={() => setIsPrivacidadeModalOpen(true)}
-          onOpenContestacaoModal={handleOpenContestacaoGeneric}
-          onOpenContato={() => setLegalModalType('contato')}
-          onOpenDemoWorkshopSite={() => {
-            handleNavigate('site-oficina', { workshopSlug: 'prisma' });
-          }}
-          onOpenDemoPanel={async () => {
-            await loginDemoOffice('prisma');
-            handleNavigate('painel-oficina', { workshopSlug: 'prisma' });
-          }}
-        />
+        <div className="vebook-no-print">
+          <Footer
+            onNavigate={handleNavigate}
+            onNavigateTransparencia={handleNavigateTransparencia}
+            onOpenCookiesConfig={() => setIsCookieConfigModalOpen(true)}
+            onOpenPrivacidadeModal={() => setIsPrivacidadeModalOpen(true)}
+            onOpenContestacaoModal={handleOpenContestacaoGeneric}
+            onOpenContato={() => setLegalModalType('contato')}
+            onOpenDemoWorkshopSite={() => {
+              handleNavigate('site-oficina', { workshopSlug: 'prisma' });
+            }}
+            onOpenDemoPanel={async () => {
+              await loginDemoOffice('prisma');
+              handleNavigate('painel-oficina', { workshopSlug: 'prisma' });
+            }}
+          />
+        </div>
       )}
 
-      <CookieBanner
-        isOpenModalExternally={isCookieConfigModalOpen}
-        onCloseExternalModal={() => setIsCookieConfigModalOpen(false)}
-      />
-
-      <MinhaPrivacidadeModal
-        isOpen={isPrivacidadeModalOpen}
-        onClose={() => setIsPrivacidadeModalOpen(false)}
-        onOpenCookiesConfig={() => {
-          setIsPrivacidadeModalOpen(false);
-          setIsCookieConfigModalOpen(true);
-        }}
-      />
-
-      <ContestacaoModal
-        isOpen={isContestacaoModalOpen}
-        onClose={() => {
-          setIsContestacaoModalOpen(false);
-          setTargetContestationRecord(null);
-        }}
-        targetRecord={targetContestationRecord}
-        onSuccessContestation={(submission) => {
-          const officeId = submission.officeId || targetContestationRecord?.workshopId;
-          if (!officeId) return;
-          const contestedAt = submission.createdAt;
-          ingestContestationFact({
-            id: submission.id,
-            officeId,
-            attendanceId: submission.serviceRecordId,
-            contestedAt,
-            responseDueAt: submission.responseDueAt || dueDateFromContestedAt(contestedAt),
-            respondedAt: submission.resolvedAt,
-          });
-        }}
-      />
-
-      {legalModalType && (
-        <LegalModal
-          type={legalModalType}
-          onClose={() => setLegalModalType(null)}
+      <div className="vebook-no-print">
+        <CookieBanner
+          isOpenModalExternally={isCookieConfigModalOpen}
+          onCloseExternalModal={() => setIsCookieConfigModalOpen(false)}
         />
-      )}
+
+        <MinhaPrivacidadeModal
+          isOpen={isPrivacidadeModalOpen}
+          onClose={() => setIsPrivacidadeModalOpen(false)}
+          onOpenCookiesConfig={() => {
+            setIsPrivacidadeModalOpen(false);
+            setIsCookieConfigModalOpen(true);
+          }}
+        />
+
+        <ContestacaoModal
+          isOpen={isContestacaoModalOpen}
+          onClose={() => {
+            setIsContestacaoModalOpen(false);
+            setTargetContestationRecord(null);
+          }}
+          targetRecord={targetContestationRecord}
+          onSuccessContestation={(submission) => {
+            const officeId = submission.officeId || targetContestationRecord?.workshopId;
+            if (!officeId) return;
+            const contestedAt = submission.createdAt;
+            ingestContestationFact({
+              id: submission.id,
+              officeId,
+              attendanceId: submission.serviceRecordId,
+              contestedAt,
+              responseDueAt: submission.responseDueAt || dueDateFromContestedAt(contestedAt),
+              respondedAt: submission.resolvedAt,
+            });
+          }}
+        />
+
+        {legalModalType && (
+          <LegalModal
+            type={legalModalType}
+            onClose={() => setLegalModalType(null)}
+          />
+        )}
+      </div>
     </div>
   );
 }

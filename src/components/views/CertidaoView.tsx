@@ -49,6 +49,17 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
     setIssued(null);
   }, [initialPlate]);
 
+  useEffect(() => {
+    document.body.classList.add('vebook-print-certidao');
+    return () => {
+      document.body.classList.remove('vebook-print-certidao');
+    };
+  }, []);
+
+  const handlePrint = () => {
+    if (!isPaid || !issued) return;
+    window.print();
+  };
   const vehicle = VEHICLES_MOCK[plate] || VEHICLES_MOCK['BRA2E19'];
 
   const previewCert = useMemo((): IssuedCertificate => {
@@ -103,9 +114,9 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
   };
 
   return (
-    <div className="bg-[#E8EEF4] min-h-screen py-10 px-4 sm:px-6 lg:px-8 print:bg-white print:p-0">
-      <div className="max-w-5xl mx-auto space-y-6 print:max-w-none print:space-y-0">
-        <div className="text-center max-w-3xl mx-auto space-y-3 print:hidden">
+    <div className="bg-[#E8EEF4] min-h-screen py-10 px-4 sm:px-6 lg:px-8 print:bg-white print:p-0 print:min-h-0">
+      <div className="max-w-5xl mx-auto space-y-6 print:max-w-none print:space-y-0 print:m-0">
+        <div className="text-center max-w-3xl mx-auto space-y-3 vebook-no-print">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-50 text-sky-900 rounded-md border border-sky-200 text-xs font-bold uppercase tracking-wider">
             <Shield className="w-3.5 h-3.5" />
             <span>Documento de histórico e rastreabilidade</span>
@@ -119,7 +130,7 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
           </p>
         </div>
 
-        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 print:hidden">
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 vebook-no-print">
           <h2 className="text-base font-bold text-[#0B1E36] flex items-center gap-2">
             <FileCheck2 className="w-5 h-5 text-sky-700" />
             Emissão da Certidão
@@ -177,7 +188,7 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 vebook-no-print">
           {isPaid ? (
             <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-vebook-mustard" />
@@ -206,7 +217,7 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
             ) : null}
             <button
               type="button"
-              onClick={() => isPaid && window.print()}
+              onClick={handlePrint}
               disabled={!isPaid}
               className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-bold text-xs disabled:opacity-40 cursor-pointer inline-flex items-center gap-1"
             >
@@ -216,7 +227,7 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
             <button
               type="button"
               disabled={!isPaid}
-              onClick={() => isPaid && window.print()}
+              onClick={handlePrint}
               className="px-3.5 py-1.5 rounded-lg bg-[#0B1E36] text-white font-bold text-xs disabled:opacity-40 cursor-pointer inline-flex items-center gap-1"
             >
               <Download className="w-3.5 h-3.5" />
@@ -225,9 +236,9 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
           </div>
         </div>
 
-        <div className="relative">
+        <div className={`relative ${isPaid ? 'cert-print-area' : 'vebook-no-print'}`}>
           {!isPaid ? (
-            <div className="absolute inset-0 z-10 flex items-start justify-center pt-24 bg-[#E8EEF4]/40 backdrop-blur-[1px] print:hidden">
+            <div className="absolute inset-0 z-10 flex items-start justify-center pt-24 bg-[#E8EEF4]/40 backdrop-blur-[1px] vebook-no-print">
               <div className="mx-4 max-w-sm rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white px-5 py-4 text-center shadow-lg">
                 <Lock className="mx-auto h-6 w-6 text-vebook-mustard" aria-hidden />
                 <p className="mt-2 text-sm font-bold text-vebook-navy">Certidão bloqueada</p>
@@ -247,12 +258,12 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
             </div>
           ) : null}
 
-          <div className={!isPaid ? 'select-none blur-[1.5px] print:blur-0' : ''}>
+          <div className={!isPaid ? 'select-none blur-[1.5px]' : undefined}>
             <CertidaoDocumentPages cert={activeCert} pages={pages} />
           </div>
         </div>
 
-        <div className="flex justify-center print:hidden">
+        <div className="flex justify-center vebook-no-print">
           <button
             type="button"
             onClick={() => onNavigate('diario')}
@@ -263,12 +274,14 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
         </div>
       </div>
 
-      <CertidaoPagamentoModal
-        open={paymentOpen && !isPaid}
-        plate={vehicle.plate}
-        onClose={() => setPaymentOpen(false)}
-        onPaid={handlePaid}
-      />
+      <div className="vebook-no-print">
+        <CertidaoPagamentoModal
+          open={paymentOpen && !isPaid}
+          plate={vehicle.plate}
+          onClose={() => setPaymentOpen(false)}
+          onPaid={handlePaid}
+        />
+      </div>
     </div>
   );
 };
