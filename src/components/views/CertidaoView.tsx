@@ -114,8 +114,8 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
   };
 
   return (
-    <div className="bg-[#E8EEF4] min-h-screen py-10 px-4 sm:px-6 lg:px-8 print:bg-white print:p-0 print:min-h-0">
-      <div className="max-w-5xl mx-auto space-y-6 print:max-w-none print:space-y-0 print:m-0">
+    <div className="cert-print-root bg-[#E8EEF4] min-h-screen py-10 px-4 sm:px-6 lg:px-8 print:bg-white print:p-0 print:min-h-0 print:w-auto">
+      <div className="cert-print-inner max-w-5xl mx-auto space-y-6 print:max-w-none print:space-y-0 print:m-0 print:p-0">
         <div className="text-center max-w-3xl mx-auto space-y-3 vebook-no-print">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-50 text-sky-900 rounded-md border border-sky-200 text-xs font-bold uppercase tracking-wider">
             <Shield className="w-3.5 h-3.5" />

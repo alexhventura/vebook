@@ -294,7 +294,7 @@ body {
 
 @media print {
   @page {
-    size: A4 portrait;
+    size: 210mm 297mm;
     margin: 0;
   }
 
@@ -303,20 +303,39 @@ body {
     background: white !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  body.vebook-print-certidao {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   body.vebook-print-certidao .vebook-no-print {
     display: none !important;
   }
 
+  /* Remove chrome da SPA — só o documento entra na folha */
+  body.vebook-print-certidao #root,
+  body.vebook-print-certidao #root > div,
   body.vebook-print-certidao main {
     display: block !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: 0 !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
+    background: white !important;
+    flex: none !important;
   }
 
+  body.vebook-print-certidao .cert-print-root,
+  body.vebook-print-certidao .cert-print-inner,
   body.vebook-print-certidao .cert-print-area {
     display: block !important;
     position: static !important;
@@ -325,26 +344,35 @@ body {
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
+    min-height: 0 !important;
+    height: auto !important;
   }
 
   body.vebook-print-certidao .cert-document {
     display: block !important;
     width: 210mm !important;
+    max-width: 210mm !important;
     margin: 0 !important;
     padding: 0 !important;
     gap: 0 !important;
   }
 
+  /*
+   * Cada .cert-a4-page = exatamente 1 folha A4.
+   * 100% / 100vh preenchem a caixa @page (210×297 mm, margin 0),
+   * evitando margens brancas e corte de cabeçalho/rodapé por escala.
+   */
   body.vebook-print-certidao .cert-a4-page {
     position: relative !important;
     display: flex !important;
     flex-direction: column !important;
-    width: 210mm !important;
-    min-width: 210mm !important;
-    max-width: 210mm !important;
-    height: 297mm !important;
-    min-height: 297mm !important;
-    max-height: 297mm !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    max-height: 100vh !important;
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
@@ -362,8 +390,30 @@ body {
     break-after: auto;
   }
 
+  body.vebook-print-certidao .cert-a4-page > .cert-page-shell {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+
+  body.vebook-print-certidao .cert-page-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
   body.vebook-print-certidao .cert-page-header,
-  body.vebook-print-certidao .cert-page-footer,
+  body.vebook-print-certidao .cert-page-footer {
+    flex: 0 0 auto !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
   body.vebook-print-certidao .cert-attendance {
     break-inside: avoid;
     page-break-inside: avoid;
@@ -379,10 +429,6 @@ body {
   body.vebook-print-certidao .cert-field-leader {
     background: rgba(11, 30, 54, 0.12) !important;
     print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
-  body.vebook-print-certidao {
     -webkit-print-color-adjust: exact;
   }
 }
