@@ -180,16 +180,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
             <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed">
               {workshop.description}
             </p>
-            <a
-              href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20com%20a%20${encodeURIComponent(workshop.name)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-extrabold text-sm sm:text-base transition-all shadow-md cursor-pointer hover:opacity-90"
-              style={themeSolid}
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>Contato</span>
-            </a>
           </section>
 
           {/* 3. GRID ESTRUTURADO DE INFORMAÇÕES (ENDEREÇO, CONTATO, REDES, HORÁRIO) */}
