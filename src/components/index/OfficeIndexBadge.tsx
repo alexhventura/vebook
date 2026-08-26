@@ -1,4 +1,5 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { OfficeReputationSnapshot } from '../../types';
 import { formatOfficeIndexLine } from '../../lib/officeRegularityIndex';
 import { OFFICE_INDEX_EXPLAINER } from '../../data/officeIndexExplainer';
@@ -11,9 +12,12 @@ type OfficeIndexBadgeProps = {
   className?: string;
 };
 
+type PopoverPos = { top: number; left: number; width: number };
+
 /**
- * Badge discreto do Índice VEBOOK — confiança institucional, não review/estrelas.
- * O painel abre ao clicar e permanece até fechar (fora / Escape / link).
+ * Badge discreto do Índice VEBOOK.
+ * O painel abre ao clicar, fica em portal (fora de overflow do layout) e
+ * permanece até clique fora, Escape ou “Como calculamos”.
  */
 export const OfficeIndexBadge: React.FC<OfficeIndexBadgeProps> = ({
   snapshot,
@@ -22,42 +26,121 @@ export const OfficeIndexBadge: React.FC<OfficeIndexBadgeProps> = ({
   className = '',
 }) => {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<PopoverPos | null>(null);
   const tipId = useId();
-  const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const line = formatOfficeIndexLine(snapshot);
+
+  const updatePosition = () => {
+    const el = buttonRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const width = Math.min(320, Math.max(240, window.innerWidth - 32));
+    let left = rect.left;
+    if (left + width > window.innerWidth - 16) {
+      left = Math.max(16, window.innerWidth - width - 16);
+    }
+    setPos({
+      top: rect.bottom + 8,
+      left,
+      width,
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updatePosition();
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
 
     const onPointerDown = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node | null;
-      if (rootRef.current && target && !rootRef.current.contains(target)) {
-        setOpen(false);
-      }
+      if (!target) return;
+      if (buttonRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpen(false);
     };
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
 
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('touchstart', onPointerDown);
+    const onReposition = () => updatePosition();
+
+    // capture: evita conflito com overlays; ignora o mesmo gesto que abriu
+    const timer = window.setTimeout(() => {
+      document.addEventListener('mousedown', onPointerDown, true);
+      document.addEventListener('touchstart', onPointerDown, true);
+    }, 0);
+
     document.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onReposition);
+    window.addEventListener('scroll', onReposition, true);
+
     return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('touchstart', onPointerDown);
+      window.clearTimeout(timer);
+      document.removeEventListener('mousedown', onPointerDown, true);
+      document.removeEventListener('touchstart', onPointerDown, true);
       document.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
     };
   }, [open]);
 
+  const panel =
+    open && pos
+      ? createPortal(
+          <div
+            ref={panelRef}
+            id={tipId}
+            role="dialog"
+            aria-label={OFFICE_INDEX_EXPLAINER.title}
+            className="fixed z-[70] rounded-vebook-lg border border-vebook-mustard/60 bg-vebook-white p-3.5 shadow-[0_12px_32px_rgba(11,30,54,0.2)]"
+            style={{ top: pos.top, left: pos.left, width: pos.width }}
+          >
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-vebook-mustard-deep">
+              {OFFICE_INDEX_EXPLAINER.title}
+            </p>
+            <p className="mt-1.5 text-xs text-vebook-text leading-relaxed">
+              {OFFICE_INDEX_EXPLAINER.summary}
+            </p>
+            <p className="mt-2 text-xs text-vebook-muted leading-relaxed">
+              {OFFICE_INDEX_EXPLAINER.disclaimer}
+            </p>
+            {onOpenHowItWorks ? (
+              <button
+                type="button"
+                className="mt-3 text-xs font-semibold text-vebook-mustard-deep underline underline-offset-2 cursor-pointer"
+                onClick={() => {
+                  setOpen(false);
+                  onOpenHowItWorks();
+                }}
+              >
+                {OFFICE_INDEX_EXPLAINER.howWeCalculateLabel} →
+              </button>
+            ) : null}
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
-    <div ref={rootRef} className={`relative inline-flex flex-col items-start gap-1 ${className}`}>
+    <div className={`relative inline-flex flex-col items-start gap-1 ${className}`}>
       <button
+        ref={buttonRef}
         type="button"
         className="group inline-flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-vebook-sm border border-vebook-mustard/50 bg-vebook-white/95 px-2.5 py-1.5 text-left shadow-sm transition-colors hover:border-vebook-mustard cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40"
         aria-expanded={open}
-        aria-controls={tipId}
-        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="dialog"
+        aria-controls={open ? tipId : undefined}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
       >
         <span className="text-[11px] sm:text-xs font-bold tracking-wide text-vebook-navy">
           {line}
@@ -69,36 +152,7 @@ export const OfficeIndexBadge: React.FC<OfficeIndexBadgeProps> = ({
         ) : null}
       </button>
 
-      {open ? (
-        <div
-          id={tipId}
-          role="dialog"
-          aria-label={OFFICE_INDEX_EXPLAINER.title}
-          className="absolute left-0 top-full z-30 mt-2 w-[min(100vw-2rem,20rem)] rounded-vebook-lg border border-vebook-mustard/60 bg-vebook-white p-3.5 shadow-[0_12px_32px_rgba(11,30,54,0.2)]"
-        >
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-vebook-mustard-deep">
-            {OFFICE_INDEX_EXPLAINER.title}
-          </p>
-          <p className="mt-1.5 text-xs text-vebook-text leading-relaxed">
-            {OFFICE_INDEX_EXPLAINER.summary}
-          </p>
-          <p className="mt-2 text-xs text-vebook-muted leading-relaxed">
-            {OFFICE_INDEX_EXPLAINER.disclaimer}
-          </p>
-          {onOpenHowItWorks ? (
-            <button
-              type="button"
-              className="mt-3 text-xs font-semibold text-vebook-mustard-deep underline underline-offset-2 cursor-pointer"
-              onClick={() => {
-                setOpen(false);
-                onOpenHowItWorks();
-              }}
-            >
-              {OFFICE_INDEX_EXPLAINER.howWeCalculateLabel} →
-            </button>
-          ) : null}
-        </div>
-      ) : null}
+      {panel}
 
       {variant === 'detailed' ? (
         <dl className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-vebook-muted sm:grid-cols-4">
