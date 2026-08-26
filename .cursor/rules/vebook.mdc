@@ -13,3 +13,4 @@ Plataforma nacional de Diário Veicular. A oficina registra, o cliente valida, a
 - Tipos: `src/types.ts`.
 - Layout: `src/components/layout/`.
 - Telas: `src/components/views/`, painel em `src/components/panel/`.
+- Sem screenshots/vídeos de walkthrough salvo pedido explícito. Atalho `/no-test` pula testes.
