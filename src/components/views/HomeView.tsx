@@ -133,7 +133,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(19,44,77,0.9),rgba(7,21,39,1)_70%)]" />
         <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
           <div className="vebook-reveal max-w-3xl mx-auto text-center space-y-6">
-            <h1 className="text-[clamp(2.75rem,8vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.95] text-vebook-white">
+            <h1
+              className="text-[clamp(2.75rem,8vw,5.5rem)] font-bold tracking-[-0.04em] leading-[0.95] text-vebook-white"
+              style={{
+                WebkitTextStroke: '0.85px color-mix(in srgb, var(--color-vebook-mustard-deep) 72%, transparent)',
+                paintOrder: 'stroke fill',
+              }}
+            >
               VEBOOK
             </h1>
             <p className="text-base sm:text-xl text-vebook-mustard font-medium max-w-xl mx-auto leading-relaxed">
