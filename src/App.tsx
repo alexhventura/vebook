@@ -35,6 +35,7 @@ export default function App() {
   );
   const [selectedPlateForCertidao, setSelectedPlateForCertidao] = useState<string>('BRA2E19');
   const [certificateCode, setCertificateCode] = useState<string | undefined>(initial.certificateCode);
+  const [certificatePage, setCertificatePage] = useState<number | undefined>(initial.certificatePage);
   const [legalModalType, setLegalModalType] = useState<'termos' | 'privacidade' | 'contato' | 'comercial' | null>(null);
   const [workshopSlug, setWorkshopSlug] = useState<string | undefined>(initial.workshopSlug);
   const [panelSection, setPanelSection] = useState<PanelSection>(initial.panelSection || 'inicio');
@@ -64,6 +65,8 @@ export default function App() {
       if (next.transparenciaSection) setTransparenciaSection(next.transparenciaSection);
       if (next.certificateCode) setCertificateCode(next.certificateCode);
       else if (next.view !== 'validar-certidao') setCertificateCode(undefined);
+      if (next.certificatePage) setCertificatePage(next.certificatePage);
+      else if (next.view !== 'validar-certidao') setCertificatePage(undefined);
     };
     window.addEventListener('hashchange', sync);
     if (!window.location.hash) {
@@ -72,7 +75,7 @@ export default function App() {
     return () => window.removeEventListener('hashchange', sync);
   }, []);
 
-  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string; certificateCode?: string }) => {
+  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string; certificateCode?: string; certificatePage?: number }) => {
     if (extra && 'workshopSlug' in extra) {
       setWorkshopSlug(extra.workshopSlug);
     }
@@ -85,16 +88,21 @@ export default function App() {
     if (extra && 'certificateCode' in extra) {
       setCertificateCode(extra.certificateCode);
     }
+    if (extra && 'certificatePage' in extra) {
+      setCertificatePage(extra.certificatePage);
+    }
     setCurrentView(view);
     const slug = extra && 'workshopSlug' in extra ? extra.workshopSlug : workshopSlug;
     const nextTab = extra && 'panelTab' in extra ? extra.panelTab : extra?.panelSection ? undefined : panelTab;
     const code = extra && 'certificateCode' in extra ? extra.certificateCode : certificateCode;
+    const page = extra && 'certificatePage' in extra ? extra.certificatePage : certificatePage;
     applyHash({
       view,
       workshopSlug: view === 'site-oficina' ? slug || 'prisma' : view === 'painel-oficina' ? slug : undefined,
       panelSection: extra?.panelSection ?? (view === 'painel-oficina' ? panelSection : undefined),
       panelTab: view === 'painel-oficina' ? nextTab : undefined,
       certificateCode: view === 'validar-certidao' ? code : undefined,
+      certificatePage: view === 'validar-certidao' ? page : undefined,
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -183,6 +191,7 @@ export default function App() {
         {currentView === 'validar-certidao' && (
           <ValidarCertidaoView
             initialCode={certificateCode}
+            initialPage={certificatePage}
             onNavigate={handleNavigate}
           />
         )}

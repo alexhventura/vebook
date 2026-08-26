@@ -542,12 +542,23 @@ export interface SignupDraft {
 
 export interface Certificate {
   id: string;
+  /** Número documental sequencial (ex.: 00001284) — identificador, não autenticação. */
+  documentNumber: string;
+  /** Código seguro de autenticidade (não previsível). */
+  authenticityCode: string;
+  /** @deprecated Prefer authenticityCode — mantido por compatibilidade. */
   validationCode: string;
+  /** Código de rastreabilidade do documento (sem página). */
+  trackingCode: string;
+  /** Hash de integridade do snapshot emitido. */
+  integrityHash: string;
+  /** Histórico consultado até (ISO) — fotografia documental. */
+  historyAsOf: string;
   qrCodeUrl?: string;
   vehiclePlate: string;
   vehicleModel: string;
   requesterName: string;
-  requesterDocumentMasked: string; // Ex: CPF 123.***.***-00
+  requesterDocumentMasked: string;
   issuedAt: string;
   historyPeriodStart: string;
   historyPeriodEnd: string;
@@ -556,7 +567,23 @@ export interface Certificate {
   contestedCount: number;
   pendingCount: number;
   workshopsCount: number;
+  rectificationCount: number;
   servicesSnapshot: ServiceRecord[];
+}
+
+/** Identidade de uma página da Certidão (auto-contida). */
+export interface CertificatePageIdentity {
+  documentNumber: string;
+  authenticityCode: string;
+  trackingCode: string;
+  pageTrackingCode: string;
+  pageId: string;
+  pageNumber: number;
+  totalPages: number;
+  vehiclePlate: string;
+  issuedAt: string;
+  verifyPath: string;
+  integrityHash: string;
 }
 
 /**

@@ -1,12 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Search, ShieldCheck } from 'lucide-react';
-import { findCertificateByCode } from '../../data/certificateStore';
+import React, { useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, Search, ShieldCheck, XCircle } from 'lucide-react';
+import {
+  findCertificateByCode,
+  parseCertificateLookup,
+  buildCertificatePages,
+  buildPageIdentity,
+} from '../../data/certificateStore';
 import { AppView } from '../../types';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 
 interface ValidarCertidaoViewProps {
   initialCode?: string;
+  initialPage?: number;
   onNavigate: (view: AppView) => void;
 }
 
@@ -28,11 +34,11 @@ function formatDateTime(iso: string): string {
  */
 export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
   initialCode = '',
+  initialPage,
   onNavigate,
 }) => {
   const [code, setCode] = useState(initialCode);
   const [submitted, setSubmitted] = useState(initialCode);
-  const cert = submitted ? findCertificateByCode(submitted) : undefined;
 
   useEffect(() => {
     if (initialCode) {
@@ -40,6 +46,19 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
       setSubmitted(initialCode);
     }
   }, [initialCode]);
+
+  const lookup = useMemo(
+    () => (submitted ? parseCertificateLookup(submitted) : null),
+    [submitted],
+  );
+  const cert = submitted ? findCertificateByCode(submitted) : undefined;
+  const pageFromCode = lookup?.pageNumber;
+  const pageNumber = pageFromCode || initialPage;
+
+  const pageIdentity =
+    cert && pageNumber
+      ? buildPageIdentity(cert, pageNumber, buildCertificatePages(cert).length)
+      : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +77,8 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
             Verificar Certidão VEBOOK
           </h1>
           <p className="text-sm text-vebook-muted leading-relaxed">
-            Informe o código de autenticidade impresso no documento ou obtido via QR Code.
+            Informe o código de autenticidade, o número da Certidão ou o código de página impresso
+            no documento / QR Code.
           </p>
         </div>
 
@@ -66,7 +86,7 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
           <Input
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="VBK-2026-…"
+            placeholder="VBK-… ou 00001284-01"
             className="font-mono"
           />
           <Button type="submit" variant="primary">
@@ -83,18 +103,28 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
                 <div>
                   <p className="text-lg font-extrabold text-vebook-navy">Certidão VEBOOK válida</p>
                   <p className="text-sm text-vebook-muted mt-1">
-                    Este código corresponde a uma emissão autenticada na plataforma.
+                    Este identificador corresponde a uma emissão autenticada na plataforma.
                   </p>
                 </div>
               </div>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
-                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Código</dt>
-                  <dd className="font-mono font-semibold text-vebook-navy">{cert.validationCode}</dd>
+                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Nº da Certidão</dt>
+                  <dd className="font-mono font-semibold text-vebook-navy">{cert.documentNumber}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Autenticidade</dt>
+                  <dd className="font-mono font-semibold text-vebook-navy text-xs break-all">
+                    {cert.authenticityCode}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-xs font-bold uppercase text-vebook-subtle">Emitida em</dt>
                   <dd className="text-vebook-navy">{formatDateTime(cert.issuedAt)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Histórico até</dt>
+                  <dd className="text-vebook-navy">{formatDateTime(cert.historyAsOf)}</dd>
                 </div>
                 <div>
                   <dt className="text-xs font-bold uppercase text-vebook-subtle">Veículo</dt>
@@ -109,14 +139,41 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
                   <dd className="text-vebook-navy">{cert.totalServices}</dd>
                 </div>
                 <div>
+                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Rastreabilidade</dt>
+                  <dd className="font-mono text-xs text-vebook-navy break-all">{cert.trackingCode}</dd>
+                </div>
+                {pageIdentity ? (
+                  <>
+                    <div>
+                      <dt className="text-xs font-bold uppercase text-vebook-subtle">Página</dt>
+                      <dd className="font-mono font-semibold text-vebook-navy">
+                        {pageIdentity.pageNumber}/{pageIdentity.totalPages}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-bold uppercase text-vebook-subtle">ID da página</dt>
+                      <dd className="font-mono text-xs text-vebook-navy">{pageIdentity.pageId}</dd>
+                    </div>
+                  </>
+                ) : null}
+                <div className="sm:col-span-2">
                   <dt className="text-xs font-bold uppercase text-vebook-subtle">Solicitante</dt>
                   <dd className="text-vebook-navy">{cert.requesterDocumentMasked}</dd>
                 </div>
               </dl>
             </div>
           ) : (
-            <div className="rounded-vebook-lg border border-rose-200 bg-rose-50/50 p-5 text-sm text-vebook-navy">
-              Código não encontrado. Confira o número impresso na Certidão ou no QR Code.
+            <div className="rounded-vebook-lg border border-rose-200 bg-rose-50/50 p-5 flex items-start gap-3">
+              <XCircle className="h-6 w-6 text-rose-700 shrink-0" aria-hidden />
+              <div>
+                <p className="text-base font-extrabold text-vebook-navy">
+                  Certidão não localizada ou inválida.
+                </p>
+                <p className="text-sm text-vebook-muted mt-1">
+                  Confira o código impresso na Certidão ou no QR Code. Identificadores inexistentes
+                  ou adulterados não são reconhecidos.
+                </p>
+              </div>
             </div>
           )
         ) : null}

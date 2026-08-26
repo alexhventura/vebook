@@ -180,3 +180,74 @@ body {
     transform: none;
   }
 }
+
+/* —— Certidão VEBOOK: documento A4 paginado —— */
+.cert-a4-page {
+  width: 210mm;
+  max-width: 100%;
+  min-height: 297mm;
+  padding: 12mm 14mm;
+  box-sizing: border-box;
+}
+
+.cert-page-body {
+  flex: 1 1 auto;
+}
+
+.cert-attendance {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+@media screen and (max-width: 900px) {
+  .cert-document {
+    overflow-x: auto;
+  }
+
+  .cert-a4-page {
+    width: 210mm;
+    min-height: auto;
+    transform-origin: top center;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: white !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .cert-document {
+    display: block;
+  }
+
+  .cert-a4-page {
+    width: 210mm;
+    min-height: 297mm;
+    height: 297mm;
+    margin: 0 !important;
+    padding: 12mm 14mm;
+    box-shadow: none !important;
+    border: none !important;
+    page-break-after: always;
+    break-after: page;
+    overflow: hidden;
+  }
+
+  .cert-a4-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .cert-page-header,
+  .cert-page-footer {
+    break-inside: avoid;
+  }
+}

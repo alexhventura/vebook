@@ -7,6 +7,8 @@ export interface RouteState {
   panelTab?: string;
   transparenciaSection?: TransparenciaSection;
   certificateCode?: string;
+  /** Página da Certidão quando o QR aponta para ?p=N */
+  certificatePage?: number;
 }
 
 export type PanelSection =
@@ -37,7 +39,14 @@ export function parseHash(hash = window.location.hash): RouteState {
   if (parts[0] === 'certidao') return { view: 'certidao' };
   if (parts[0] === 'validacao') return { view: 'validacao' };
   if (parts[0] === 'validar' && parts[1]) {
-    return { view: 'validar-certidao', certificateCode: decodeURIComponent(parts[1]) };
+    const pageRaw = params.get('p');
+    const pageNum = pageRaw ? Number(pageRaw) : undefined;
+    return {
+      view: 'validar-certidao',
+      certificateCode: decodeURIComponent(parts[1]),
+      certificatePage:
+        pageNum && Number.isFinite(pageNum) && pageNum > 0 ? pageNum : undefined,
+    };
   }
   if (parts[0] === 'validar') return { view: 'validar-certidao' };
   if (parts[0] === 'transparencia') {
@@ -94,10 +103,14 @@ export function toHash(state: RouteState): string {
       return '#/oficinas/cadastro';
     case 'validacao':
       return '#/validacao';
-    case 'validar-certidao':
-      return state.certificateCode
-        ? `#/validar/${encodeURIComponent(state.certificateCode)}`
-        : '#/validar';
+    case 'validar-certidao': {
+      if (!state.certificateCode) return '#/validar';
+      const page =
+        state.certificatePage && state.certificatePage > 0
+          ? `?p=${state.certificatePage}`
+          : '';
+      return `#/validar/${encodeURIComponent(state.certificateCode)}${page}`;
+    }
     case 'transparencia':
       return state.transparenciaSection
         ? `#/transparencia/${state.transparenciaSection}`

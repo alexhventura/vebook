@@ -786,7 +786,12 @@ export const SERVICES_MOCK: Record<string, ServiceRecord[]> = {
 export const CERTIFICATES_MOCK: Certificate[] = [
   {
     id: 'cert-01',
-    validationCode: 'VBK-2026-89412-BR',
+    documentNumber: '00001284',
+    authenticityCode: 'VBK-8F72-A3C1-9D2E',
+    validationCode: 'VBK-8F72-A3C1-9D2E',
+    trackingCode: 'VBK-8F72-2026-00001284',
+    integrityHash: 'H00A1B2C3',
+    historyAsOf: '2026-08-21T14:30:00',
     vehiclePlate: 'BRA2E19',
     vehicleModel: 'Toyota Corolla XEi 2.0 16V Flex (2022/2023)',
     requesterName: 'João Carlos da Silva',
@@ -799,6 +804,7 @@ export const CERTIFICATES_MOCK: Certificate[] = [
     contestedCount: 2,
     pendingCount: 4,
     workshopsCount: 5,
+    rectificationCount: 1,
     servicesSnapshot: SERVICES_MOCK['BRA2E19'],
   },
 ];
