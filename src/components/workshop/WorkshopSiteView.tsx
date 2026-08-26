@@ -97,7 +97,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
 
       {/* Cabeçalho VEBOOK — rente ao topo */}
       <header className="sticky top-0 z-50 bg-[#0B1E36] border-b border-slate-700 px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto flex items-center">
           <button
             type="button"
             onClick={() => onNavigate('home')}
@@ -106,16 +106,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
           >
             <Logo size="md" variant="light" />
           </button>
-
-          <a
-            href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2.5 rounded-xl bg-vebook-mustard hover:bg-vebook-mustard-deep text-vebook-navy-deep font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span>Contato</span>
-          </a>
         </div>
       </header>
 
