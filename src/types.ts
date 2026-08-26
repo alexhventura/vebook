@@ -121,8 +121,8 @@ export interface CertificateContestationSummary {
 export interface CertificateHistoryEntry {
   id: string;
   /**
-   * ID sequencial do atendimento no veículo (ex.: BRA2E19-0008).
-   * Estável e cronológico — dificulta troca/adulteração de blocos.
+   * ID rastreável do atendimento: PLACA-OFICINA-SEQUÊNCIA
+   * (ex.: BRA2E19-ws-01-0008).
    */
   vehicleAttendanceId: string;
   /** Sequência numérica no veículo (1 = mais antigo). */
@@ -134,6 +134,7 @@ export interface CertificateHistoryEntry {
   description: string;
   laborDetails?: string;
   observations?: string;
+  workshopId: string;
   workshopName: string;
   workshopCity: string;
   workshopState: string;

@@ -29,11 +29,12 @@ function makeEntry(
 ): CertificateHistoryEntry {
   return {
     id,
-    vehicleAttendanceId: `TST-${id}`,
+    vehicleAttendanceId: `TST-ws-00-${id}`,
     vehicleAttendanceSeq: 1,
     serviceDate: '2026-08-15',
     serviceType: 'Troca de óleo',
     mileageKm: 80000,
+    workshopId: 'ws-00',
     workshopName: 'Oficina Teste',
     workshopCity: 'São Paulo',
     workshopState: 'SP',
@@ -68,8 +69,9 @@ describe('Paginação da Certidão', () => {
   it('gera 3+ páginas com múltiplos atendimentos', () => {
     const entries = Array.from({ length: 8 }, (_, i) =>
       makeEntry(`e${i}`, {
-        vehicleAttendanceId: `BRA2E19-${String(i + 1).padStart(4, '0')}`,
+        vehicleAttendanceId: `BRA2E19-ws-01-${String(i + 1).padStart(4, '0')}`,
         vehicleAttendanceSeq: i + 1,
+        workshopId: 'ws-01',
         description: 'x'.repeat(200),
         products: [
           {
@@ -276,7 +278,9 @@ describe('Identificação e autenticidade por página', () => {
   it('histórico real do mock pagina e IDs sequenciais por veículo (antigo → recente)', () => {
     const entries = getCertificateHistory('BRA2E19');
     assert.ok(entries.length > 0);
-    assert.ok(entries.every((e) => /^BRA2E19-\d{4}$/.test(e.vehicleAttendanceId)));
+    assert.ok(entries.every((e) => /^BRA2E19-ws-\d{2}-\d{4}$/.test(e.vehicleAttendanceId)));
+    assert.ok(entries.every((e) => e.vehicleAttendanceId.includes(e.workshopId)));
+    assert.ok(entries.every((e) => e.vehicleAttendanceId.startsWith('BRA2E19-')));
     for (let i = 1; i < entries.length; i += 1) {
       assert.ok(
         entries[i].vehicleAttendanceSeq > entries[i - 1].vehicleAttendanceSeq,

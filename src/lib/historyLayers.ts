@@ -61,11 +61,17 @@ function recordChronologyKey(record: ServiceRecord): string {
 }
 
 /**
- * ID sequencial por veículo (cronológico): PLACA-0001, PLACA-0002…
- * Estável enquanto o conjunto histórico se mantém — impede troca trivial de blocos.
+ * ID do atendimento: placa + id da oficina + sequência no veículo.
+ * Ex.: BRA2E19-ws-01-0008
  */
-export function buildVehicleAttendanceId(plate: string, seq: number): string {
-  return `${plate.toUpperCase()}-${String(seq).padStart(4, '0')}`;
+export function buildVehicleAttendanceId(
+  plate: string,
+  workshopId: string,
+  seq: number,
+): string {
+  const platePart = plate.toUpperCase().replace(/\s+/g, '');
+  const officePart = (workshopId || 'oficina').trim().toLowerCase();
+  return `${platePart}-${officePart}-${String(seq).padStart(4, '0')}`;
 }
 
 /** Projeta registro completo para a Certidão (sem PII de cliente / comentários privados). */
@@ -76,7 +82,11 @@ export function toCertificateHistoryEntry(
   const plate = record.vehiclePlate.toUpperCase();
   return {
     id: record.id,
-    vehicleAttendanceId: buildVehicleAttendanceId(plate, vehicleAttendanceSeq),
+    vehicleAttendanceId: buildVehicleAttendanceId(
+      plate,
+      record.workshopId,
+      vehicleAttendanceSeq,
+    ),
     vehicleAttendanceSeq,
     serviceDate: record.serviceDate,
     recordedAt: record.recordedAt || `${record.serviceDate}T12:00:00`,
@@ -85,6 +95,7 @@ export function toCertificateHistoryEntry(
     description: record.description,
     laborDetails: record.laborDetails,
     observations: record.observations,
+    workshopId: record.workshopId,
     workshopName: record.workshopName,
     workshopCity: record.workshopCity,
     workshopState: record.workshopState,

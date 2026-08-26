@@ -145,13 +145,11 @@ function PageFooter({ identity }: { identity: CertificatePageIdentity }) {
 }
 
 function AttendanceBlock({ entry }: { entry: CertificateHistoryEntry }) {
-  const idLabel = String(entry.vehicleAttendanceSeq).padStart(2, '0');
-
   return (
     <article className="cert-attendance flex-1 break-inside-avoid page-break-inside-avoid rounded-md border-2 border-vebook-mustard-deep bg-white p-3 sm:p-3.5 space-y-2.5 text-[10px] sm:text-[11px] text-slate-700">
       <header className="flex flex-wrap items-baseline justify-between gap-2 border-b border-vebook-mustard/40 pb-1.5">
-        <p className="font-extrabold text-[#0B1E36] uppercase tracking-wide text-[11px] sm:text-[12px]">
-          Atendimento {idLabel}
+        <p className="font-extrabold text-[#0B1E36] tracking-wide text-[11px] sm:text-[12px] font-mono">
+          {entry.vehicleAttendanceId}
         </p>
         <p className="font-bold text-sky-900">{entry.serviceType}</p>
       </header>
