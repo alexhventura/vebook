@@ -9,6 +9,7 @@ import { CertidaoView } from './components/views/CertidaoView';
 import { ParaOficinasView } from './components/views/ParaOficinasView';
 import { CadastroOficinaView } from './components/views/CadastroOficinaView';
 import { ValidacaoSimuladorView } from './components/views/ValidacaoSimuladorView';
+import { ValidarCertidaoView } from './components/views/ValidarCertidaoView';
 import { WorkshopSiteView } from './components/workshop/WorkshopSiteView';
 import { TransparenciaView } from './components/views/TransparenciaView';
 import { OfficePanelView } from './components/panel/OfficePanelView';
@@ -33,6 +34,7 @@ export default function App() {
     initial.transparenciaSection || 'como-tratamos',
   );
   const [selectedPlateForCertidao, setSelectedPlateForCertidao] = useState<string>('BRA2E19');
+  const [certificateCode, setCertificateCode] = useState<string | undefined>(initial.certificateCode);
   const [legalModalType, setLegalModalType] = useState<'termos' | 'privacidade' | 'contato' | 'comercial' | null>(null);
   const [workshopSlug, setWorkshopSlug] = useState<string | undefined>(initial.workshopSlug);
   const [panelSection, setPanelSection] = useState<PanelSection>(initial.panelSection || 'inicio');
@@ -60,6 +62,8 @@ export default function App() {
       if (next.panelSection) setPanelSection(next.panelSection);
       setPanelTab(next.panelTab);
       if (next.transparenciaSection) setTransparenciaSection(next.transparenciaSection);
+      if (next.certificateCode) setCertificateCode(next.certificateCode);
+      else if (next.view !== 'validar-certidao') setCertificateCode(undefined);
     };
     window.addEventListener('hashchange', sync);
     if (!window.location.hash) {
@@ -68,7 +72,7 @@ export default function App() {
     return () => window.removeEventListener('hashchange', sync);
   }, []);
 
-  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string }) => {
+  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string; certificateCode?: string }) => {
     if (extra && 'workshopSlug' in extra) {
       setWorkshopSlug(extra.workshopSlug);
     }
@@ -78,14 +82,19 @@ export default function App() {
     } else if (extra?.panelSection) {
       setPanelTab(undefined);
     }
+    if (extra && 'certificateCode' in extra) {
+      setCertificateCode(extra.certificateCode);
+    }
     setCurrentView(view);
     const slug = extra && 'workshopSlug' in extra ? extra.workshopSlug : workshopSlug;
     const nextTab = extra && 'panelTab' in extra ? extra.panelTab : extra?.panelSection ? undefined : panelTab;
+    const code = extra && 'certificateCode' in extra ? extra.certificateCode : certificateCode;
     applyHash({
       view,
       workshopSlug: view === 'site-oficina' ? slug || 'prisma' : view === 'painel-oficina' ? slug : undefined,
       panelSection: extra?.panelSection ?? (view === 'painel-oficina' ? panelSection : undefined),
       panelTab: view === 'painel-oficina' ? nextTab : undefined,
+      certificateCode: view === 'validar-certidao' ? code : undefined,
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -151,8 +160,6 @@ export default function App() {
             initialPlate={selectedPlateForCertidao}
             onNavigate={handleNavigate}
             onEmitirCertidaoForPlate={handleEmitirCertidaoForPlate}
-            onOpenContestacaoModalForRecord={handleOpenContestacaoForRecord}
-            onNavigateTransparencia={handleNavigateTransparencia}
             searchInputRef={consultaInputRef}
           />
         )}
@@ -166,6 +173,16 @@ export default function App() {
         {currentView === 'certidao' && (
           <CertidaoView
             initialPlate={selectedPlateForCertidao}
+            onNavigate={handleNavigate}
+            onValidateCertificate={(code) =>
+              handleNavigate('validar-certidao', { certificateCode: code })
+            }
+          />
+        )}
+
+        {currentView === 'validar-certidao' && (
+          <ValidarCertidaoView
+            initialCode={certificateCode}
             onNavigate={handleNavigate}
           />
         )}

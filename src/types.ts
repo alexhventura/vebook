@@ -13,6 +13,7 @@ export type AppView =
   | 'painel-oficina'
   | 'site-oficina'
   | 'validacao'
+  | 'validar-certidao'
   | 'transparencia';
 
 export type ValidationStatus = 'validado' | 'aguardando' | 'contestado' | 'sem_validacao';
@@ -46,12 +47,32 @@ export interface ContestationDetail {
   reasonLabel: string;
   comment: string;
   maskedClientIdentifier: string; // Ex: J* S*** (CPF: 35*******)
+  /** Status operacional da contestação (rastreabilidade pública na Certidão). */
+  status?: 'aberta' | 'em_analise' | 'respondida' | 'encerrada';
+  respondedAt?: string;
+}
+
+/** Retificação auditável — nunca sobrescreve o valor anterior em silêncio. */
+export interface ServiceRectification {
+  id: string;
+  rectifiedAt: string;
+  field: string;
+  fieldLabel: string;
+  previousValue: string;
+  newValue: string;
+  note?: string;
 }
 
 export interface ServiceRecord {
   id: string;
   vehiclePlate: string;
+  /** Data do serviço realizado (fato no veículo). */
   serviceDate: string;
+  /**
+   * Data/hora em que o registro entrou no VEBOOK.
+   * Distinto de serviceDate — rastreabilidade da Certidão.
+   */
+  recordedAt: string;
   mileageKm: number;
   serviceType: ServiceCategory;
   description: string;
@@ -62,11 +83,72 @@ export interface ServiceRecord {
   workshopCity: string;
   workshopState: string;
   internalOsNumber?: string;
+  /** Responsável pelo atendimento na oficina (quando informado). */
+  responsibleName?: string;
   products: ProductItem[];
   validationStatus: ValidationStatus;
   validatedAt?: string;
-  maskedValidatorName?: string; // Ex: J* S*** (CPF: 35*******)
+  maskedValidatorName?: string;
   contestation?: ContestationDetail;
+  rectifications?: ServiceRectification[];
+}
+
+/**
+ * Camada CONSULTA GRATUITA — somente o que foi feito (sem produtos, PII ou auditoria).
+ * Gerada por projeção; nunca “esconder via CSS” campos da Certidão.
+ */
+export interface PublicHistoryItem {
+  id: string;
+  serviceDate: string;
+  serviceType: string;
+  mileageKm: number;
+  workshopName: string;
+  workshopCity: string;
+  workshopState: string;
+}
+
+/** Resumo público de contestação na Certidão (sem conteúdo privado). */
+export interface CertificateContestationSummary {
+  exists: boolean;
+  statusLabel: string;
+  contestedAt?: string;
+  respondedAt?: string;
+}
+
+/**
+ * Camada CERTIDÃO — histórico completo + rastreabilidade permitida.
+ */
+export interface CertificateHistoryEntry {
+  id: string;
+  serviceDate: string;
+  recordedAt: string;
+  mileageKm: number;
+  serviceType: string;
+  description: string;
+  laborDetails?: string;
+  observations?: string;
+  workshopName: string;
+  workshopCity: string;
+  workshopState: string;
+  responsibleName?: string;
+  products: ProductItem[];
+  validationStatus: ValidationStatus;
+  validatedAt?: string;
+  rectifications: ServiceRectification[];
+  contestation: CertificateContestationSummary;
+}
+
+export interface PublicVehicleIdentity {
+  plate: string;
+  brand: string;
+  model: string;
+  version: string;
+  yearFabrication: number;
+  yearModel: number;
+  color: string;
+  fuel: string;
+  chassisMasked?: string;
+  currentMileageKm: number;
 }
 
 export interface Vehicle {

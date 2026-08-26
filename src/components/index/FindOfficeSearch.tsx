@@ -49,8 +49,7 @@ export const FindOfficeSearch: React.FC<FindOfficeSearchProps> = ({
           Oficinas credenciadas VEBOOK
         </h3>
         <p className="text-sm text-vebook-muted leading-relaxed">
-          Encontre oficinas credenciadas VEBOOK e consulte informações públicas sobre sua atuação
-          na plataforma.
+          Encontre oficinas credenciadas VEBOOK.
         </p>
       </div>
 

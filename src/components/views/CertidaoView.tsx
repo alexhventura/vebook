@@ -1,501 +1,445 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  FileCheck2, 
-  ShieldCheck, 
-  QrCode, 
-  Download, 
-  Printer, 
-  CheckCircle2, 
-  AlertCircle, 
-  Info, 
-  User, 
-  Calendar, 
-  Building2, 
-  Search,
-  ExternalLink,
-  ChevronRight,
-  Shield,
-  Clock,
-  Layers,
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  FileCheck2,
+  QrCode,
+  Download,
+  Printer,
+  CheckCircle2,
   Lock,
+  Shield,
 } from 'lucide-react';
 import { Logo } from '../layout/Logo';
-import { VEHICLES_MOCK, SERVICES_MOCK } from '../../data/mockData';
+import { VEHICLES_MOCK } from '../../data/mockData';
 import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
 import { formatBRL } from '../../lib/currency';
-import { AppView } from '../../types';
+import { AppView, CertificateHistoryEntry } from '../../types';
 import { CertidaoPagamentoModal } from '../modals/CertidaoPagamentoModal';
 import { Button } from '../ui/Button';
+import { getCertificateHistory, validationLabel } from '../../lib/historyLayers';
+import { issueCertificate, type IssuedCertificate } from '../../data/certificateStore';
 
 interface CertidaoViewProps {
   initialPlate?: string;
   onNavigate: (view: AppView) => void;
+  onValidateCertificate?: (code: string) => void;
 }
 
-export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2E19', onNavigate }) => {
-  const [plate, setPlate] = useState<string>(initialPlate);
-  const [requesterName, setRequesterName] = useState<string>('João Carlos da Silva');
-  const [requesterCpf, setRequesterCpf] = useState<string>('352.981.450-80');
-  const [isGenerated, setIsGenerated] = useState<boolean>(true);
+function formatDate(iso: string): string {
+  const d = iso.includes('T') ? new Date(iso) : new Date(`${iso}T12:00:00`);
+  return d.toLocaleDateString('pt-BR');
+}
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function maskCpf(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length < 5) return 'CPF ***.***.***-**';
+  return `CPF ${digits.slice(0, 3)}.***.***-${digits.slice(-2)}`;
+}
+
+function HistoryEntryBlock({ entry }: { entry: CertificateHistoryEntry }) {
+  return (
+    <article className="border border-slate-200 rounded-xl p-5 space-y-4 bg-white break-inside-avoid">
+      <header className="space-y-1 border-b border-slate-100 pb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-sky-800">{entry.serviceType}</p>
+        <p className="text-sm font-extrabold text-[#0B1E36]">
+          {entry.workshopName}{' '}
+          <span className="font-normal text-slate-500">
+            · {entry.workshopCity}/{entry.workshopState}
+          </span>
+        </p>
+      </header>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div className="rounded-lg bg-slate-50 border border-slate-100 p-3 space-y-1">
+          <p className="font-bold text-slate-500 uppercase tracking-wide text-[10px]">Data do serviço</p>
+          <p className="font-semibold text-[#0B1E36]">{formatDate(entry.serviceDate)}</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 border border-slate-100 p-3 space-y-1">
+          <p className="font-bold text-slate-500 uppercase tracking-wide text-[10px]">
+            Registro realizado no VEBOOK
+          </p>
+          <p className="font-semibold text-[#0B1E36]">{formatDateTime(entry.recordedAt)}</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 border border-slate-100 p-3 space-y-1">
+          <p className="font-bold text-slate-500 uppercase tracking-wide text-[10px]">Quilometragem</p>
+          <p className="font-semibold text-[#0B1E36]">{entry.mileageKm.toLocaleString('pt-BR')} km</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 border border-slate-100 p-3 space-y-1">
+          <p className="font-bold text-slate-500 uppercase tracking-wide text-[10px]">
+            Validação do atendimento
+          </p>
+          <p className="font-semibold text-[#0B1E36]">{validationLabel(entry.validationStatus)}</p>
+          {entry.validatedAt ? (
+            <p className="text-slate-500">em {formatDateTime(entry.validatedAt)}</p>
+          ) : null}
+          {entry.validationStatus === 'sem_validacao' || entry.validationStatus === 'aguardando' ? (
+            <p className="text-[10px] text-slate-500 pt-1">
+              Não validado não significa serviço irregular.
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="space-y-2 text-xs text-slate-700">
+        <p className="font-bold text-[#0B1E36] text-[11px] uppercase tracking-wide">Dados do serviço</p>
+        <p className="leading-relaxed">{entry.description}</p>
+        {entry.laborDetails ? (
+          <p className="leading-relaxed text-slate-600">
+            <strong className="text-slate-800">Mão de obra / procedimentos:</strong> {entry.laborDetails}
+          </p>
+        ) : null}
+        {entry.observations ? (
+          <p className="leading-relaxed text-slate-600">
+            <strong className="text-slate-800">Observações:</strong> {entry.observations}
+          </p>
+        ) : null}
+        {entry.responsibleName ? (
+          <p className="text-slate-600">
+            <strong className="text-slate-800">Responsável:</strong> {entry.responsibleName}
+          </p>
+        ) : null}
+      </div>
+
+      {entry.products.length > 0 ? (
+        <div className="space-y-2">
+          <p className="font-bold text-[#0B1E36] text-[11px] uppercase tracking-wide">
+            Produtos e peças
+          </p>
+          <ul className="space-y-2">
+            {entry.products.map((p) => (
+              <li
+                key={p.id}
+                className="text-xs text-slate-700 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2"
+              >
+                <span className="font-semibold text-[#0B1E36]">{p.commercialName}</span>
+                <span className="text-slate-500"> · {p.brand}</span>
+                {p.specification ? (
+                  <span className="block text-slate-500 mt-0.5">{p.specification}</span>
+                ) : null}
+                <span className="block text-slate-600 mt-0.5">
+                  {p.quantity} {p.unit}
+                  {p.category ? ` · ${p.category}` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <div className="space-y-2 text-xs border-t border-slate-100 pt-3">
+        <p className="font-bold text-[#0B1E36] text-[11px] uppercase tracking-wide">
+          Histórico de alterações
+        </p>
+        {entry.rectifications.length === 0 ? (
+          <div className="text-slate-600 space-y-1">
+            <p>
+              <strong className="text-slate-800">Registro original</strong> — criado em{' '}
+              {formatDateTime(entry.recordedAt)}.
+            </p>
+            <p>
+              <strong className="text-slate-800">Retificações:</strong> nenhuma.
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            <li className="text-slate-600">
+              <strong className="text-slate-800">Registro original</strong> — criado em{' '}
+              {formatDateTime(entry.recordedAt)}.
+            </li>
+            {entry.rectifications.map((r) => (
+              <li key={r.id} className="rounded-lg border border-amber-100 bg-amber-50/50 px-3 py-2 space-y-0.5">
+                <p className="font-semibold text-[#0B1E36]">
+                  Retificação registrada — {formatDateTime(r.rectifiedAt)}
+                </p>
+                <p>Campo alterado: {r.fieldLabel}</p>
+                <p>Valor anterior: {r.previousValue}</p>
+                <p>Novo valor: {r.newValue}</p>
+                {r.note ? <p className="text-slate-500">{r.note}</p> : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="space-y-1 text-xs border-t border-slate-100 pt-3">
+        <p className="font-bold text-[#0B1E36] text-[11px] uppercase tracking-wide">Contestação</p>
+        {entry.contestation.exists ? (
+          <div className="text-slate-700 space-y-0.5">
+            <p>Existe contestação registrada.</p>
+            <p>
+              Status: <strong>{entry.contestation.statusLabel}</strong>.
+            </p>
+            {entry.contestation.contestedAt ? (
+              <p>Data: {formatDateTime(entry.contestation.contestedAt)}.</p>
+            ) : null}
+            <p className="text-[10px] text-slate-500 pt-1">
+              O conteúdo da comunicação entre cliente e oficina não é exibido neste documento.
+            </p>
+          </div>
+        ) : (
+          <p className="text-slate-600">Contestações: nenhuma registrada.</p>
+        )}
+      </div>
+    </article>
+  );
+}
+
+/**
+ * CERTIDÃO VEBOOK — documento pago, formal, com rastreabilidade.
+ * Consome CertificateHistoryEntry (não a projeção pública).
+ */
+export const CertidaoView: React.FC<CertidaoViewProps> = ({
+  initialPlate = 'BRA2E19',
+  onNavigate,
+  onValidateCertificate,
+}) => {
+  const [plate, setPlate] = useState(initialPlate);
+  const [requesterName, setRequesterName] = useState('João Carlos da Silva');
+  const [requesterCpf, setRequesterCpf] = useState('352.981.450-80');
   const [isPaid, setIsPaid] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(true);
-  const [validationCodeInput, setValidationCodeInput] = useState<string>('');
-  const [validationResult, setValidationResult] = useState<'success' | null>(null);
+  const [issued, setIssued] = useState<IssuedCertificate | null>(null);
 
   useEffect(() => {
     setPlate(initialPlate);
     setIsPaid(false);
     setPaymentOpen(true);
+    setIssued(null);
   }, [initialPlate]);
 
   const vehicle = VEHICLES_MOCK[plate] || VEHICLES_MOCK['BRA2E19'];
-  const services = SERVICES_MOCK[plate] || SERVICES_MOCK['BRA2E19'];
-
-  const emissionDate = new Date().toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-  const emissionTime = '14:30:00';
-  const certificateCode = `VBK-2026-${plate}-98412`;
-
-  const handleGenerate = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsGenerated(true);
-    if (!isPaid) setPaymentOpen(true);
-  };
-
-  const handleValidateCode = (e: React.FormEvent) => {
-    e.preventDefault();
-    setValidationResult('success');
-  };
+  const previewHistory = useMemo(() => getCertificateHistory(vehicle.plate), [vehicle.plate]);
+  const history = issued?.historyEntries || previewHistory;
+  const certificateCode = issued?.validationCode || `VBK-2026-${vehicle.plate}-PREVIEW`;
 
   const handlePaid = () => {
+    const cert = issueCertificate({
+      plate: vehicle.plate,
+      requesterName,
+      requesterDocumentMasked: maskCpf(requesterCpf),
+    });
+    setIssued(cert);
     setIsPaid(true);
     setPaymentOpen(false);
-    setIsGenerated(true);
   };
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto space-y-10">
-        
-        {/* Cabeçalho da Seção */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-50 text-sky-800 rounded-full border border-sky-200 text-xs font-bold uppercase tracking-wider">
-            <FileCheck2 className="w-3.5 h-3.5" />
-            <span>Documento Nominal e Autenticável</span>
+      <div className="max-w-5xl mx-auto space-y-8">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-50 text-sky-900 rounded-md border border-sky-200 text-xs font-bold uppercase tracking-wider">
+            <Shield className="w-3.5 h-3.5" />
+            <span>Documento de histórico e rastreabilidade</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0B1E36] tracking-tight">
-            Certidão VEBOOK de Histórico Veicular
+            Certidão VEBOOK
           </h1>
-          <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-            A Certidão é a consolidação documental oficial de todos os registros existentes no Diário Veicular até o momento exato de sua emissão.
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            Camada documental do histórico completo disponível e da rastreabilidade de cada registro.
+            Distinta da consulta gratuita.
           </p>
         </div>
 
-        {/* 3 Pilares da Certidão */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-2">
-            <div className="w-10 h-10 rounded-lg bg-sky-50 text-[#0B1E36] flex items-center justify-center font-bold">
-              <User className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-[#0B1E36] text-base">Nominal ao Solicitante</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Qualquer pessoa pode solicitar. A certidão registra o solicitante nominalmente, sem que seja necessário comprovar propriedade.
-            </p>
-          </div>
-
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-2">
-            <div className="w-10 h-10 rounded-lg bg-sky-50 text-[#0B1E36] flex items-center justify-center font-bold">
-              <Clock className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-[#0B1E36] text-base">Fotografia do Histórico</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Snapshot congelado e imutável. Registra todos os eventos, manutenções, peças, marcas, validações e contestações até a data e hora de emissão.
-            </p>
-          </div>
-
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-2">
-            <div className="w-10 h-10 rounded-lg bg-sky-50 text-[#0B1E36] flex items-center justify-center font-bold">
-              <QrCode className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-[#0B1E36] text-base">Código e QR Code Público</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Qualquer terceiro (comprador, seguradora, revenda) pode escanear o QR Code para atestar a autenticidade original emitida pela VEBOOK.
-            </p>
-          </div>
-        </div>
-
-        {/* Formulário de Emissão / Configuração da Demonstração */}
-        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-200">
-            <h2 className="text-lg font-bold text-[#0B1E36] flex items-center gap-2">
-              <FileCheck2 className="w-5 h-5 text-sky-700" />
-              <span>Simulador de Emissão de Certidão</span>
-            </h2>
-            <span className="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md font-medium">
-              Demonstração Institucional
-            </span>
-          </div>
-
-          <form onSubmit={handleGenerate} className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <h2 className="text-lg font-bold text-[#0B1E36] flex items-center gap-2">
+            <FileCheck2 className="w-5 h-5 text-sky-700" />
+            Emissão da Certidão
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-700 block">Placa do Veículo:</label>
+              <label className="font-bold text-slate-700 block">Placa</label>
               <select
                 value={plate}
                 onChange={(e) => {
                   setPlate(e.target.value);
                   setIsPaid(false);
+                  setIssued(null);
                   setPaymentOpen(true);
                 }}
-                className="w-full p-2.5 rounded-lg border border-slate-300 font-bold text-[#0B1E36] bg-slate-50 focus:bg-white text-sm"
+                className="w-full p-2.5 rounded-lg border border-slate-300 font-bold text-[#0B1E36] bg-slate-50 text-sm"
               >
-                <option value="BRA2E19">BRA2E19 - Toyota Corolla (2022/2023)</option>
-                <option value="ABC1D23">ABC1D23 - Jeep Compass (2021/2022)</option>
-                <option value="XYZ9K88">XYZ9K88 - VW T-Cross (2023/2024)</option>
+                <option value="BRA2E19">BRA2E19 — Toyota Corolla</option>
+                <option value="ABC1D23">ABC1D23 — Jeep Compass</option>
+                <option value="XYZ9K88">XYZ9K88 — VW T-Cross</option>
               </select>
             </div>
-
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-700 block">Nome do Solicitante (Nominal):</label>
+              <label className="font-bold text-slate-700 block">Solicitante</label>
               <input
                 type="text"
-                required
                 value={requesterName}
                 onChange={(e) => setRequesterName(e.target.value)}
-                placeholder="Nome completo do solicitante"
-                className="w-full p-2.5 rounded-lg border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-[#0B1E36]"
+                className="w-full p-2.5 rounded-lg border border-slate-300 text-sm"
               />
             </div>
-
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-700 block">Documento do Solicitante (CPF):</label>
+              <label className="font-bold text-slate-700 block">CPF do solicitante</label>
               <input
                 type="text"
-                required
                 value={requesterCpf}
                 onChange={(e) => setRequesterCpf(e.target.value)}
-                placeholder="000.000.000-00"
-                className="w-full p-2.5 rounded-lg border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-[#0B1E36]"
+                className="w-full p-2.5 rounded-lg border border-slate-300 text-sm"
               />
             </div>
+          </div>
+          <p className="text-xs text-slate-600">
+            Valor: <strong className="text-[#0B1E36]">{formatBRL(CERTIDAO_PRICE)}</strong>. O documento
+            completo libera após o pagamento.
+          </p>
+          {!isPaid ? (
+            <Button type="button" variant="accent" onClick={() => setPaymentOpen(true)}>
+              Pagar e emitir Certidão
+            </Button>
+          ) : null}
+        </div>
 
-            <div className="sm:col-span-3 pt-2 flex flex-col sm:flex-row justify-between gap-3 items-stretch sm:items-center">
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Visualização completa:{' '}
-                <strong className="text-[#0B1E36]">{formatBRL(CERTIDAO_PRICE)}</strong> por certidão.
-                {!isPaid && ' O documento ao fundo permanece bloqueado até o pagamento.'}
-              </p>
+        <div className="space-y-4 relative">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {isPaid ? (
+              <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-vebook-mustard" />
+                Documento oficial emitido
+              </span>
+            ) : (
+              <span className="text-xs font-bold text-vebook-navy flex items-center gap-1.5">
+                <Lock className="w-4 h-4 text-vebook-mustard" />
+                Pré-visualização bloqueada
+              </span>
+            )}
+            <div className="flex items-center gap-2">
               <button
-                type="submit"
-                className="px-6 py-2.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs shrink-0"
+                type="button"
+                onClick={() => isPaid && window.print()}
+                disabled={!isPaid}
+                className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-bold text-xs disabled:opacity-40 cursor-pointer"
               >
-                <FileCheck2 className="w-4 h-4 text-sky-300" />
-                <span>Atualizar Pré-visualização da Certidão</span>
+                <Printer className="w-3.5 h-3.5 inline mr-1" />
+                Imprimir
+              </button>
+              <button
+                type="button"
+                disabled={!isPaid}
+                onClick={() => isPaid && alert('Download do PDF oficial da Certidão VEBOOK (simulação).')}
+                className="px-3.5 py-1.5 rounded-lg bg-[#0B1E36] text-white font-bold text-xs disabled:opacity-40 cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5 inline mr-1" />
+                Baixar PDF
               </button>
             </div>
-          </form>
-        </div>
+          </div>
 
-        {/* DOCUMENTO OFICIAL DA CERTIDÃO VEBOOK */}
-        {isGenerated && (
-          <div className="space-y-4 relative">
-            <div className="flex flex-wrap items-center justify-between gap-3 px-2">
-              {isPaid ? (
-                <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-vebook-mustard" />
-                  <span>Documento oficial liberado após pagamento</span>
-                </span>
-              ) : (
-                <span className="text-xs font-bold text-vebook-navy flex items-center gap-1.5">
-                  <Lock className="w-4 h-4 text-vebook-mustard" />
-                  <span>Pré-visualização bloqueada — pague {formatBRL(CERTIDAO_PRICE)} para liberar</span>
-                </span>
-              )}
-
-              <div className="flex items-center gap-2">
-                {!isPaid && (
-                  <Button type="button" variant="accent" size="sm" onClick={() => setPaymentOpen(true)}>
-                    Pagar {formatBRL(CERTIDAO_PRICE)}
+          <div className="relative rounded-2xl overflow-hidden">
+            {!isPaid ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-vebook-navy/20 backdrop-blur-[1.5px]">
+                <div className="mx-4 max-w-sm rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white/95 px-5 py-4 text-center shadow-lg">
+                  <Lock className="mx-auto h-6 w-6 text-vebook-mustard" aria-hidden />
+                  <p className="mt-2 text-sm font-bold text-vebook-navy">Certidão bloqueada</p>
+                  <p className="mt-1 text-xs text-vebook-muted">
+                    Pague {formatBRL(CERTIDAO_PRICE)} para liberar o documento completo.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="accent"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => setPaymentOpen(true)}
+                  >
+                    Liberar documento
                   </Button>
-                )}
-                <button
-                  onClick={() => isPaid && window.print()}
-                  disabled={!isPaid}
-                  className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Imprimir</span>
-                </button>
-                <button
-                  onClick={() =>
-                    isPaid && alert('Download do PDF oficial em alta resolução da Certidão VEBOOK.')
-                  }
-                  disabled={!isPaid}
-                  className="px-3.5 py-1.5 rounded-lg bg-[#0B1E36] text-white font-bold text-xs hover:bg-[#132c4d] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Download className="w-3.5 h-3.5 text-sky-300" />
-                  <span>Baixar PDF Oficial</span>
-                </button>
+                </div>
               </div>
-            </div>
+            ) : null}
 
-            {/* FOLHA DA CERTIDÃO — borrada até o pagamento */}
-            <div className="relative rounded-2xl overflow-hidden">
-              {!isPaid && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-vebook-navy/25 backdrop-blur-[2px] pointer-events-none">
-                  <div className="mx-4 max-w-sm rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white/95 px-5 py-4 text-center shadow-lg pointer-events-none">
-                    <Lock className="mx-auto h-6 w-6 text-vebook-mustard" aria-hidden />
-                    <p className="mt-2 text-sm font-bold text-vebook-navy">Certidão bloqueada</p>
-                    <p className="mt-1 text-xs text-vebook-muted leading-relaxed">
-                      O histórico completo do veículo aparece ao fundo. Confirme o pagamento de{' '}
-                      {formatBRL(CERTIDAO_PRICE)} para liberar a visualização.
+            <div
+              className={`bg-white border border-slate-300 shadow-lg ${!isPaid ? 'select-none blur-[2px]' : ''}`}
+              aria-hidden={!isPaid}
+            >
+              <div className="bg-[#0B1E36] text-white p-6 sm:p-8 flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+                <div className="space-y-3">
+                  <Logo size="md" variant="light" />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sky-300">
+                      Documento de histórico e rastreabilidade
+                    </p>
+                    <h2 className="text-2xl font-black tracking-tight">Certidão VEBOOK</h2>
+                  </div>
+                  <p className="text-xs text-slate-300 max-w-md leading-relaxed">
+                    Snapshot documental dos registros disponíveis na plataforma até a emissão. O VEBOOK
+                    registra o que aconteceu — não determina o que deverá acontecer.
+                  </p>
+                </div>
+                <div className="shrink-0 space-y-2 text-right">
+                  <div className="inline-flex flex-col items-center gap-1 rounded-xl border border-sky-700 bg-sky-950/40 p-3">
+                    <QrCode className="w-14 h-14 text-sky-300" aria-hidden />
+                    <span className="text-[10px] font-mono text-sky-200">{certificateCode}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-[11px] text-sky-300 underline cursor-pointer"
+                    onClick={() => {
+                      if (onValidateCertificate) onValidateCertificate(certificateCode);
+                      else onNavigate('validar-certidao');
+                    }}
+                  >
+                    Verificar autenticidade
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-8 space-y-6 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs border border-slate-200 rounded-xl p-4">
+                  <div>
+                    <p className="text-slate-500 font-bold uppercase text-[10px]">Veículo</p>
+                    <p className="font-bold text-[#0B1E36] font-mono text-base">{vehicle.plate}</p>
+                    <p className="text-slate-700">
+                      {vehicle.brand} {vehicle.model} {vehicle.version}
                     </p>
                   </div>
-                </div>
-              )}
-
-              <div
-                className={[
-                  'bg-white p-6 sm:p-12 rounded-2xl border-2 border-slate-300 shadow-xl space-y-8 font-sans print:border-none print:shadow-none',
-                  !isPaid ? 'select-none blur-[3px] opacity-70' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                aria-hidden={!isPaid}
-              >
-              
-              {/* Cabeçalho Oficial do Documento */}
-              <div className="border-b-2 border-[#0B1E36] pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div className="space-y-1">
-                  <Logo size="md" variant="dark" />
-                  <p className="text-xs text-slate-500 font-medium">
-                    Plataforma Nacional de Histórico Veicular · Sistema Central de Preservação
-                  </p>
+                  <div>
+                    <p className="text-slate-500 font-bold uppercase text-[10px]">Emissão</p>
+                    <p className="text-slate-800">
+                      {issued ? formatDateTime(issued.issuedAt) : '— após pagamento'}
+                    </p>
+                    <p className="text-slate-600 mt-1">
+                      Solicitante: {requesterName} · {maskCpf(requesterCpf)}
+                    </p>
+                    <p className="text-slate-600">Código: {certificateCode}</p>
+                  </div>
                 </div>
 
-                <div className="text-right space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                  <span className="text-[10px] font-bold uppercase text-slate-500 block tracking-wider">
-                    Certidão de Histórico Veicular
-                  </span>
-                  <span className="font-mono font-bold text-[#0B1E36] text-sm sm:text-base block">
-                    {certificateCode}
-                  </span>
-                  <span className="text-[11px] text-slate-500 block">
-                    Emitida em: <strong>{emissionDate} às {emissionTime}</strong>
-                  </span>
+                <div className="space-y-4">
+                  <h3 className="text-base font-extrabold text-[#0B1E36]">
+                    Histórico completo e rastreabilidade
+                  </h3>
+                  {history.map((entry) => (
+                    <HistoryEntryBlock key={entry.id} entry={entry} />
+                  ))}
                 </div>
               </div>
-
-              {/* Bloco 1: Identificação do Solicitante e do Veículo */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 rounded-xl bg-slate-50 border border-slate-200 text-xs leading-relaxed">
-                
-                {/* Solicitante Nominal */}
-                <div className="space-y-1.5 border-b md:border-b-0 md:border-r border-slate-200 pb-4 md:pb-0 md:pr-4">
-                  <span className="font-bold text-[#0B1E36] uppercase text-[11px] block tracking-wider">
-                    1. Dados do Solicitante Nominal
-                  </span>
-                  <p className="text-slate-700">
-                    Nome: <strong className="text-slate-900 font-bold">{requesterName}</strong>
-                  </p>
-                  <p className="text-slate-700">
-                    Documento de Identificação: <strong className="text-slate-900 font-bold">{requesterCpf}</strong>
-                  </p>
-                  <p className="text-[11px] text-slate-500 pt-1 italic">
-                    * A emissão não comprova nem atesta propriedade do veículo por parte do solicitante.
-                  </p>
-                </div>
-
-                {/* Veículo Objeto da Certidão */}
-                <div className="space-y-1.5">
-                  <span className="font-bold text-[#0B1E36] uppercase text-[11px] block tracking-wider">
-                    2. Identificação do Veículo
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-extrabold text-sm text-[#0B1E36] bg-white px-2 py-0.5 rounded border border-slate-300">
-                      {vehicle.plate}
-                    </span>
-                    <span className="font-bold text-slate-800">
-                      {vehicle.brand} {vehicle.model}
-                    </span>
-                  </div>
-                  <p className="text-slate-700">
-                    Versão: <strong>{vehicle.version}</strong>
-                  </p>
-                  <p className="text-slate-700">
-                    Ano Fab./Modelo: <strong>{vehicle.yearFabrication}/{vehicle.yearModel}</strong> · Chassi: <strong className="font-mono">{vehicle.chassisMasked}</strong>
-                  </p>
-                </div>
-
-              </div>
-
-              {/* Bloco 2: Resumo Consolidado do Histórico Registrado */}
-              <div className="space-y-3">
-                <span className="font-bold text-[#0B1E36] uppercase text-[11px] block tracking-wider">
-                  3. Sumário Estatístico de Fatos (Período: {vehicle.firstRegisteredDate} a {emissionDate})
-                </span>
-
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className="text-[10px] text-slate-500 font-semibold block">Total de Serviços</span>
-                    <span className="text-xl font-bold text-[#0B1E36]">{vehicle.totalServicesCount}</span>
-                  </div>
-                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <span className="text-[10px] text-emerald-700 font-semibold block">Validados pelo Cliente</span>
-                    <span className="text-xl font-bold text-emerald-800">{vehicle.validatedServicesCount}</span>
-                  </div>
-                  <div className="p-3 bg-rose-50 rounded-lg border border-rose-200">
-                    <span className="text-[10px] text-rose-700 font-semibold block">Contestados</span>
-                    <span className="text-xl font-bold text-rose-800">{vehicle.contestedServicesCount}</span>
-                  </div>
-                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <span className="text-[10px] text-amber-700 font-semibold block">Aguardando Validação</span>
-                    <span className="text-xl font-bold text-amber-800">{vehicle.pendingServicesCount}</span>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className="text-[10px] text-slate-500 font-semibold block">Oficinas Participantes</span>
-                    <span className="text-xl font-bold text-[#0B1E36]">{vehicle.participatingWorkshopsCount}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bloco 3: Relação Cronológica dos Serviços no Snapshot */}
-              <div className="space-y-3">
-                <span className="font-bold text-[#0B1E36] uppercase text-[11px] block tracking-wider">
-                  4. Relação Cronológica de Serviços, Peças e Produtos Registrados
-                </span>
-
-                <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-100 text-slate-700 border-b border-slate-200 font-bold text-[11px]">
-                        <th className="p-3">Data / KM</th>
-                        <th className="p-3">Serviço Realizado</th>
-                        <th className="p-3">Oficina Credenciada</th>
-                        <th className="p-3">Produtos / Peças Aplicados</th>
-                        <th className="p-3">Situação</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 text-slate-700">
-                      {services.map((s) => (
-                        <tr key={s.id} className="hover:bg-slate-50/60">
-                          <td className="p-3 align-top font-mono">
-                            <strong className="text-[#0B1E36] block">{new Date(s.serviceDate).toLocaleDateString('pt-BR')}</strong>
-                            <span className="text-slate-500">{s.mileageKm.toLocaleString('pt-BR')} KM</span>
-                          </td>
-                          <td className="p-3 align-top">
-                            <strong className="text-slate-900 block">{s.description}</strong>
-                            <span className="text-slate-500 text-[11px]">{s.serviceType}</span>
-                          </td>
-                          <td className="p-3 align-top">
-                            <span className="font-semibold text-[#0B1E36] block">{s.workshopName}</span>
-                            <span className="text-slate-400 text-[10px]">{s.workshopCity} - {s.workshopState}</span>
-                          </td>
-                          <td className="p-3 align-top text-[11px] space-y-1">
-                            {s.products.map((p) => (
-                              <div key={p.id}>
-                                <strong className="text-slate-800">{p.brand}</strong> {p.commercialName} ({p.quantity} {p.unit})
-                              </div>
-                            ))}
-                          </td>
-                          <td className="p-3 align-top">
-                            {s.validationStatus === 'validado' ? (
-                              <span className="text-emerald-700 font-bold text-[11px] block">✓ Validado</span>
-                            ) : s.validationStatus === 'contestado' ? (
-                              <div>
-                                <span className="text-rose-700 font-bold text-[11px] block">⚠ Contestado</span>
-                                <span className="text-[10px] text-rose-600 italic block">{s.contestation?.reasonLabel}</span>
-                              </div>
-                            ) : (
-                              <span className="text-amber-700 font-bold text-[11px] block">◷ Aguardando</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Bloco 4: Validação Notarial, QR Code e Ressalva Legal */}
-              <div className="pt-6 border-t-2 border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-6 items-center">
-                
-                {/* QR Code de Autenticidade */}
-                <div className="sm:col-span-1 flex flex-col items-center justify-center p-4 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-2">
-                  <div className="w-24 h-24 bg-white border border-slate-300 p-2 rounded-lg flex items-center justify-center shadow-2xs">
-                    <QrCode className="w-20 h-20 text-[#0B1E36]" />
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-500 block">
-                    Escanear para Autenticar
-                  </span>
-                  <span className="font-mono text-[9px] text-slate-400 block break-all">
-                    vebook.com.br/validar/{certificateCode}
-                  </span>
-                </div>
-
-                {/* Ressalva Jurídica Estrita */}
-                <div className="sm:col-span-3 text-[11px] text-slate-500 space-y-2 leading-relaxed bg-slate-50/50 p-4 rounded-xl border border-slate-200/80">
-                  <div className="flex items-center gap-1.5 text-slate-700 font-bold text-xs">
-                    <Shield className="w-4 h-4 text-sky-700" />
-                    <span>Declaração e Termos Institucionais de Validade</span>
-                  </div>
-                  <p>
-                    Esta <strong>Certidão VEBOOK de Histórico Veicular</strong> retrata fielmente os registros de serviços e manutenções inseridos pelas oficinas credenciadas e preservados na plataforma até a data e hora exatas de sua emissão.
-                  </p>
-                  <p className="font-medium text-slate-600">
-                    <strong>IMPORTANTE:</strong> Esta certidão não é documento de propriedade, não substitui o Certificado de Registro e Licenciamento de Veículo (CRLV), não substitui laudo cautelar veicular, não constitui perícia mecânica e não afere o estado mecânico atual do veículo.
-                  </p>
-                </div>
-
-              </div>
-
-            </div>
             </div>
           </div>
-        )}
-
-        {/* Validador Público de Certidão por Código */}
-        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-          <div className="space-y-1">
-            <h2 className="text-lg font-bold text-[#0B1E36] flex items-center gap-2">
-              <Search className="w-5 h-5 text-sky-700" />
-              <span>Verificador de Autenticidade de Certidão</span>
-            </h2>
-            <p className="text-xs text-slate-600">
-              Recebeu uma Certidão impressa ou em PDF? Digite o código alfanumérico para checar se ela é autêntica e emitida originalmente pela VEBOOK.
-            </p>
-          </div>
-
-          <form onSubmit={handleValidateCode} className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="text"
-              value={validationCodeInput}
-              onChange={(e) => setValidationCodeInput(e.target.value)}
-              placeholder="Digite o código da certidão (ex: VBK-2026-BRA2E19-98412)"
-              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono uppercase font-bold focus:ring-2 focus:ring-[#0B1E36]"
-            />
-            <button
-              type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-bold text-xs transition-colors cursor-pointer"
-            >
-              Verificar Autenticidade
-            </button>
-          </form>
-
-          {validationResult === 'success' && (
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 space-y-1 animate-in fade-in">
-              <div className="flex items-center gap-2 font-bold text-sm text-emerald-800">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Certidão Autêntica Registrada na VEBOOK</span>
-              </div>
-              <p>
-                Documento emitido validamente para o veículo <strong>{vehicle.brand} {vehicle.model} ({vehicle.plate})</strong> com <strong>{vehicle.totalServicesCount} registros</strong> históricos consolidados.
-              </p>
-            </div>
-          )}
         </div>
 
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => onNavigate('diario')}
+            className="text-sm font-semibold text-slate-600 hover:text-[#0B1E36] underline cursor-pointer"
+          >
+            Voltar à consulta gratuita
+          </button>
+        </div>
       </div>
 
       <CertidaoPagamentoModal

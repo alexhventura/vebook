@@ -1,24 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { FileCheck2, Gauge, Search } from 'lucide-react';
-import { VEHICLES_MOCK } from '../../data/mockData';
-import { AppView, TransparenciaSection, ServiceRecord } from '../../types';
+import { FileCheck2, Search } from 'lucide-react';
+import { AppView } from '../../types';
 import { formatPlate, isValidPlateFormat } from '../../lib/utils';
+import { getPublicHistory, getPublicVehicle } from '../../lib/historyLayers';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 
 interface DiarioVeicularViewProps {
   initialPlate?: string;
   onNavigate: (view: AppView) => void;
-  onOpenWorkshopModal?: (workshopId: string) => void;
   onEmitirCertidaoForPlate?: (plate: string) => void;
-  onOpenContestacaoModalForRecord?: (record: ServiceRecord) => void;
-  onNavigateTransparencia?: (section: TransparenciaSection) => void;
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
+function formatServiceDate(isoDate: string): string {
+  return new Date(`${isoDate}T12:00:00`).toLocaleDateString('pt-BR');
+}
+
 /**
- * Consulta pública: apenas identificação do veículo + resumo numérico objetivo.
- * O detalhamento completo fica na Certidão (após pagamento).
+ * CONSULTA VEBOOK — gratuita.
+ * Linha do tempo apenas com: data, serviço, km e oficina.
+ * Sem produtos, auditoria, recomendações ou dados da Certidão.
  */
 export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
   initialPlate = 'BRA2E19',
@@ -32,10 +34,11 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
 
   useEffect(() => {
     const clean = formatPlate(initialPlate);
-    if (clean) setSelectedPlate(VEHICLES_MOCK[clean] ? clean : 'BRA2E19');
+    if (clean) setSelectedPlate(getPublicVehicle(clean) ? clean : 'BRA2E19');
   }, [initialPlate]);
 
-  const currentVehicle = VEHICLES_MOCK[selectedPlate] || VEHICLES_MOCK['BRA2E19'];
+  const vehicle = getPublicVehicle(selectedPlate) || getPublicVehicle('BRA2E19')!;
+  const history = getPublicHistory(vehicle.plate);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,53 +48,32 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
       return;
     }
     setPlateError(null);
-    setSelectedPlate(VEHICLES_MOCK[clean] ? clean : 'BRA2E19');
+    setSelectedPlate(getPublicVehicle(clean) ? clean : 'BRA2E19');
   };
 
   const emitCertidao = () => {
-    if (onEmitirCertidaoForPlate) onEmitirCertidaoForPlate(currentVehicle.plate);
+    if (onEmitirCertidaoForPlate) onEmitirCertidaoForPlate(vehicle.plate);
     onNavigate('certidao');
   };
 
-  const summaryCards = [
-    {
-      label: 'Total Registrado',
-      value: currentVehicle.totalServicesCount,
-      hint: 'serviços no histórico',
-    },
-    {
-      label: 'Validados',
-      value: currentVehicle.validatedServicesCount,
-      hint: 'confirmados por cliente',
-    },
-    {
-      label: 'Contestados',
-      value: currentVehicle.contestedServicesCount,
-      hint: 'divergência apontada',
-    },
-    {
-      label: 'Aguardando',
-      value: currentVehicle.pendingServicesCount,
-      hint: 'em prazo de validação',
-    },
-    {
-      label: 'Produtos Cat.',
-      value: currentVehicle.identifiedProductsCount,
-      hint: `${currentVehicle.identifiedBrandsCount} marcas catalogadas`,
-    },
-    {
-      label: 'Oficinas',
-      value: currentVehicle.participatingWorkshopsCount,
-      hint: 'estabelecimentos credenciados',
-    },
-  ] as const;
-
   return (
     <div className="bg-vebook-surface min-h-screen py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-8">
+        <div className="space-y-3 text-center sm:text-left">
+          <span className="inline-flex text-[11px] font-bold uppercase tracking-[0.16em] text-vebook-mustard-deep border border-vebook-mustard/50 rounded-vebook-sm px-2.5 py-1 bg-vebook-mustard-soft/60">
+            Consulta gratuita
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-vebook-navy">
+            Histórico VEBOOK
+          </h1>
+          <p className="text-sm sm:text-base text-vebook-muted leading-relaxed max-w-2xl">
+            Registros de serviços realizados neste veículo.
+          </p>
+        </div>
+
         <form
           onSubmit={handleSearchSubmit}
-          className="rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white p-4 sm:p-5 shadow-vebook flex flex-col sm:flex-row gap-3"
+          className="rounded-vebook-lg border border-vebook-mustard/50 bg-vebook-white p-4 flex flex-col sm:flex-row gap-3"
         >
           <div className="flex-1 space-y-1.5">
             <label htmlFor="diario-plate-input" className="sr-only">
@@ -111,98 +93,87 @@ export const DiarioVeicularView: React.FC<DiarioVeicularViewProps> = ({
               invalid={Boolean(plateError)}
               className="h-12 text-center font-semibold uppercase tracking-widest"
             />
-            {plateError && (
+            {plateError ? (
               <p className="text-xs text-vebook-error" role="alert">
                 {plateError}
               </p>
-            )}
+            ) : null}
           </div>
           <Button type="submit" variant="primary" size="lg" className="sm:self-start">
             <Search className="w-4 h-4" aria-hidden />
-            Consultar veículo
+            Consultar
           </Button>
         </form>
 
-        <div className="rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white shadow-vebook overflow-hidden">
-          <div className="bg-vebook-navy text-vebook-white p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="px-3 py-1 bg-vebook-white text-vebook-navy font-mono font-black text-sm tracking-wider rounded-vebook-sm border border-vebook-mustard/50">
-                  {currentVehicle.plate}
-                </span>
-                <span className="text-xs font-semibold text-vebook-blue-muted bg-vebook-navy-mid px-2.5 py-1 rounded-vebook-sm border border-vebook-mustard/30">
-                  Ano {currentVehicle.yearFabrication}/{currentVehicle.yearModel}
-                </span>
-                <span className="text-xs font-semibold text-vebook-blue-muted bg-vebook-navy-mid px-2.5 py-1 rounded-vebook-sm border border-vebook-mustard/30">
-                  {currentVehicle.fuel}
-                </span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-vebook-white">
-                {currentVehicle.brand} {currentVehicle.model}{' '}
-                <span className="text-vebook-blue-muted text-lg sm:text-xl font-normal block sm:inline">
-                  {currentVehicle.version}
-                </span>
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-vebook-blue-muted">
-                <span>
-                  Cor: <strong className="text-vebook-white">{currentVehicle.color}</strong>
-                </span>
-                <span aria-hidden>•</span>
-                <span>
-                  Chassi:{' '}
-                  <strong className="text-vebook-white font-mono">{currentVehicle.chassisMasked}</strong>
-                </span>
-                <span aria-hidden>•</span>
-                <span>
-                  Histórico ativo desde:{' '}
-                  <strong className="text-vebook-white">
-                    {new Date(currentVehicle.firstRegisteredDate).toLocaleDateString('pt-BR')}
-                  </strong>
-                </span>
-              </div>
-            </div>
-
-            <div className="shrink-0 flex flex-col items-start md:items-end gap-2">
-              <Button type="button" variant="accent" size="lg" onClick={emitCertidao}>
-                <FileCheck2 className="w-4 h-4" aria-hidden />
-                Emitir Certidão deste Veículo
-              </Button>
-              <span className="text-[11px] text-vebook-blue-muted">
-                Documento nominal com QR Code e autenticidade
-              </span>
-            </div>
-          </div>
-
-          <div className="p-6 sm:p-8 bg-vebook-surface/80">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 mb-5 border-b border-vebook-mustard/30">
-              <div className="flex items-center gap-2 text-xs font-bold text-vebook-navy uppercase tracking-wider">
-                <Gauge className="w-4 h-4 text-vebook-mustard-deep" aria-hidden />
-                <span>Resumo Objetivo do Diário Veicular</span>
-              </div>
-              <p className="text-xs text-vebook-muted">
-                Última quilometragem registrada:{' '}
-                <strong className="text-vebook-navy">
-                  {currentVehicle.currentMileageKm.toLocaleString('pt-BR')} KM
-                </strong>
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-              {summaryCards.map((card) => (
-                <div
-                  key={card.label}
-                  className="rounded-vebook border border-vebook-mustard/65 bg-vebook-white p-3.5 shadow-vebook transition-all duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.14)]"
-                >
-                  <span className="text-[11px] text-vebook-muted font-medium block">{card.label}</span>
-                  <span className="text-2xl font-extrabold text-vebook-navy">{card.value}</span>
-                  <span className="text-[10px] text-vebook-subtle block mt-0.5">{card.hint}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="rounded-vebook-lg border border-vebook-border bg-vebook-white p-5 sm:p-6 space-y-1">
+          <p className="font-mono text-sm font-bold text-vebook-navy tracking-wider">{vehicle.plate}</p>
+          <p className="text-base font-semibold text-vebook-navy">
+            {vehicle.brand} {vehicle.model}{' '}
+            <span className="text-vebook-muted font-normal text-sm">{vehicle.version}</span>
+          </p>
+          <p className="text-xs text-vebook-muted">
+            {vehicle.yearFabrication}/{vehicle.yearModel} · {vehicle.fuel} · {vehicle.color}
+          </p>
         </div>
+
+        <section className="space-y-4" aria-label="Linha do tempo de serviços">
+          <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-vebook-mustard-deep">
+            O que foi feito
+          </h2>
+
+          {history.length === 0 ? (
+            <p className="text-sm text-vebook-muted rounded-vebook border border-vebook-border bg-vebook-white p-5">
+              Nenhum serviço registrado neste veículo na rede VEBOOK.
+            </p>
+          ) : (
+            <ol className="space-y-3">
+              {history.map((item) => (
+                <li
+                  key={item.id}
+                  className="rounded-vebook border border-vebook-border bg-vebook-white px-5 py-4 space-y-1.5"
+                >
+                  <p className="text-xs font-semibold text-vebook-mustard-deep">
+                    {formatServiceDate(item.serviceDate)}
+                  </p>
+                  <p className="text-base font-bold text-vebook-navy tracking-tight">
+                    {item.serviceType}
+                  </p>
+                  <p className="text-sm text-vebook-muted">
+                    {item.mileageKm.toLocaleString('pt-BR')} km
+                  </p>
+                  <p className="text-sm text-vebook-navy">
+                    {item.workshopName}
+                    <span className="text-vebook-muted">
+                      {' '}
+                      · {item.workshopCity}/{item.workshopState}
+                    </span>
+                  </p>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+
+        <aside className="rounded-vebook-lg border border-vebook-mustard/55 bg-vebook-mustard-soft/40 p-5 sm:p-6 space-y-3">
+          <h2 className="text-lg font-bold text-vebook-navy tracking-tight">
+            Precisa dos detalhes completos deste histórico?
+          </h2>
+          <p className="text-sm font-semibold text-vebook-navy">Emita a Certidão VEBOOK</p>
+          <p className="text-sm text-vebook-muted leading-relaxed">
+            A Certidão apresenta informações adicionais dos registros e sua rastreabilidade, incluindo
+            dados registrados pela oficina, produtos utilizados, validações, contestações e eventuais
+            retificações.
+          </p>
+          <Button type="button" variant="accent" onClick={emitCertidao}>
+            <FileCheck2 className="w-4 h-4" aria-hidden />
+            Emitir Certidão
+          </Button>
+        </aside>
+
+        <p className="text-[11px] text-vebook-subtle leading-relaxed">
+          O VEBOOK registra o que aconteceu. Não determina o que deverá acontecer. A consulta gratuita
+          não emite recomendações de manutenção nem previsões mecânicas.
+        </p>
       </div>
     </div>
   );

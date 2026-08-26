@@ -6,6 +6,7 @@ export interface RouteState {
   panelSection?: PanelSection;
   panelTab?: string;
   transparenciaSection?: TransparenciaSection;
+  certificateCode?: string;
 }
 
 export type PanelSection =
@@ -35,6 +36,10 @@ export function parseHash(hash = window.location.hash): RouteState {
   if (parts[0] === 'como-funciona') return { view: 'como-funciona' };
   if (parts[0] === 'certidao') return { view: 'certidao' };
   if (parts[0] === 'validacao') return { view: 'validacao' };
+  if (parts[0] === 'validar' && parts[1]) {
+    return { view: 'validar-certidao', certificateCode: decodeURIComponent(parts[1]) };
+  }
+  if (parts[0] === 'validar') return { view: 'validar-certidao' };
   if (parts[0] === 'transparencia') {
     const section = parts[1] as TransparenciaSection | undefined;
     return { view: 'transparencia', transparenciaSection: section };
@@ -89,6 +94,10 @@ export function toHash(state: RouteState): string {
       return '#/oficinas/cadastro';
     case 'validacao':
       return '#/validacao';
+    case 'validar-certidao':
+      return state.certificateCode
+        ? `#/validar/${encodeURIComponent(state.certificateCode)}`
+        : '#/validar';
     case 'transparencia':
       return state.transparenciaSection
         ? `#/transparencia/${state.transparenciaSection}`
