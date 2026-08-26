@@ -33,7 +33,10 @@ export default function App() {
   const [transparenciaSection, setTransparenciaSection] = useState<TransparenciaSection>(
     initial.transparenciaSection || 'como-tratamos',
   );
-  const [selectedPlateForCertidao, setSelectedPlateForCertidao] = useState<string>('BRA2E19');
+  const [selectedPlateForCertidao, setSelectedPlateForCertidao] = useState<string>(
+    initial.consultaPlate || 'BRA2E19',
+  );
+  const [consultaPlate, setConsultaPlate] = useState<string | undefined>(initial.consultaPlate);
   const [certificateCode, setCertificateCode] = useState<string | undefined>(initial.certificateCode);
   const [certificatePage, setCertificatePage] = useState<number | undefined>(initial.certificatePage);
   const [legalModalType, setLegalModalType] = useState<'termos' | 'privacidade' | 'contato' | 'comercial' | null>(null);
@@ -67,6 +70,12 @@ export default function App() {
       else if (next.view !== 'validar-certidao') setCertificateCode(undefined);
       if (next.certificatePage) setCertificatePage(next.certificatePage);
       else if (next.view !== 'validar-certidao') setCertificatePage(undefined);
+      if (next.consultaPlate) {
+        setConsultaPlate(next.consultaPlate);
+        setSelectedPlateForCertidao(next.consultaPlate);
+      } else if (next.view !== 'diario') {
+        setConsultaPlate(undefined);
+      }
     };
     window.addEventListener('hashchange', sync);
     if (!window.location.hash) {
@@ -75,7 +84,7 @@ export default function App() {
     return () => window.removeEventListener('hashchange', sync);
   }, []);
 
-  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string; certificateCode?: string; certificatePage?: number }) => {
+  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string; certificateCode?: string; certificatePage?: number; consultaPlate?: string }) => {
     if (extra && 'workshopSlug' in extra) {
       setWorkshopSlug(extra.workshopSlug);
     }
@@ -91,11 +100,21 @@ export default function App() {
     if (extra && 'certificatePage' in extra) {
       setCertificatePage(extra.certificatePage);
     }
+    if (extra && 'consultaPlate' in extra) {
+      setConsultaPlate(extra.consultaPlate);
+      if (extra.consultaPlate) setSelectedPlateForCertidao(extra.consultaPlate);
+    }
     setCurrentView(view);
     const slug = extra && 'workshopSlug' in extra ? extra.workshopSlug : workshopSlug;
     const nextTab = extra && 'panelTab' in extra ? extra.panelTab : extra?.panelSection ? undefined : panelTab;
     const code = extra && 'certificateCode' in extra ? extra.certificateCode : certificateCode;
     const page = extra && 'certificatePage' in extra ? extra.certificatePage : certificatePage;
+    const plateForDiario =
+      view === 'diario'
+        ? extra && 'consultaPlate' in extra
+          ? extra.consultaPlate
+          : consultaPlate
+        : undefined;
     applyHash({
       view,
       workshopSlug: view === 'site-oficina' ? slug || 'prisma' : view === 'painel-oficina' ? slug : undefined,
@@ -103,6 +122,7 @@ export default function App() {
       panelTab: view === 'painel-oficina' ? nextTab : undefined,
       certificateCode: view === 'validar-certidao' ? code : undefined,
       certificatePage: view === 'validar-certidao' ? page : undefined,
+      consultaPlate: plateForDiario,
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -116,7 +136,8 @@ export default function App() {
 
   const handleSearchPlateFromHome = (plate: string) => {
     setSelectedPlateForCertidao(plate);
-    handleNavigate('diario');
+    setConsultaPlate(plate);
+    handleNavigate('diario', { consultaPlate: plate });
   };
 
   const handleEmitirCertidaoForPlate = (plate: string) => {
@@ -168,8 +189,14 @@ export default function App() {
         {currentView === 'diario' && (
           <DiarioVeicularView
             initialPlate={selectedPlateForCertidao}
+            fromQrLink={Boolean(consultaPlate)}
             onNavigate={handleNavigate}
             onEmitirCertidaoForPlate={handleEmitirCertidaoForPlate}
+            onConsultaPlate={(plate) => {
+              setConsultaPlate(plate);
+              setSelectedPlateForCertidao(plate);
+              applyHash({ view: 'diario', consultaPlate: plate });
+            }}
             searchInputRef={consultaInputRef}
           />
         )}

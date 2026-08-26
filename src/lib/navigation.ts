@@ -1,4 +1,5 @@
 import { AppView, TransparenciaSection } from '../types';
+import { formatPlate, isValidPlateFormat } from './utils';
 
 export interface RouteState {
   view: AppView;
@@ -9,6 +10,8 @@ export interface RouteState {
   certificateCode?: string;
   /** Página da Certidão quando o QR aponta para ?p=N */
   certificatePage?: number;
+  /** Placa na consulta gratuita (#/diario/PLACA ou ?placa=) — ex.: QR no vidro */
+  consultaPlate?: string;
 }
 
 export type PanelSection =
@@ -34,7 +37,12 @@ export function parseHash(hash = window.location.hash): RouteState {
   const params = new URLSearchParams(queryPart || '');
   const parts = path.split('/').filter(Boolean);
 
-  if (parts[0] === 'diario') return { view: 'diario' };
+  if (parts[0] === 'diario') {
+    const fromPath = parts[1] ? formatPlate(decodeURIComponent(parts[1])) : '';
+    const fromQuery = params.get('placa') ? formatPlate(params.get('placa')!) : '';
+    const plate = [fromPath, fromQuery].find((p) => p && isValidPlateFormat(p));
+    return { view: 'diario', consultaPlate: plate || undefined };
+  }
   if (parts[0] === 'como-funciona') return { view: 'como-funciona' };
   if (parts[0] === 'certidao') return { view: 'certidao' };
   if (parts[0] === 'validacao') return { view: 'validacao' };
@@ -92,7 +100,9 @@ export function toHash(state: RouteState): string {
     case 'home':
       return '#/';
     case 'diario':
-      return '#/diario';
+      return state.consultaPlate
+        ? `#/diario/${encodeURIComponent(state.consultaPlate)}`
+        : '#/diario';
     case 'como-funciona':
       return '#/como-funciona';
     case 'certidao':
@@ -127,6 +137,12 @@ export function toHash(state: RouteState): string {
     default:
       return '#/';
   }
+}
+
+export function buildConsultaVeicularUrl(plate: string): string {
+  const clean = formatPlate(plate);
+  if (!clean || !isValidPlateFormat(clean)) return '#/diario';
+  return `#/diario/${encodeURIComponent(clean)}`;
 }
 
 export function applyHash(state: RouteState): void {
