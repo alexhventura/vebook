@@ -1,6 +1,5 @@
 import React from 'react';
 import { AppView, TransparenciaSection } from '../../types';
-import { Logo } from './Logo';
 
 interface FooterProps {
   onNavigate: (view: AppView) => void;
@@ -15,7 +14,7 @@ interface FooterProps {
 }
 
 /**
- * Rodapé baixo: links em faixa horizontal, sem colunas altas.
+ * Rodapé baixo: links institucionais e legais, sem menu de navegação principal.
  */
 export const Footer: React.FC<FooterProps> = ({
   onNavigate,
@@ -40,17 +39,6 @@ export const Footer: React.FC<FooterProps> = ({
   const linkClass =
     'hover:text-vebook-white transition-colors cursor-pointer text-left text-[11px] sm:text-xs text-vebook-subtle whitespace-nowrap';
 
-  const navLinks: { label: string; onClick: () => void }[] = [
-    { label: 'Início', onClick: () => handleNav('home') },
-    { label: 'Diário Veicular', onClick: () => handleNav('diario') },
-    { label: 'Como Funciona', onClick: () => handleNav('como-funciona') },
-    { label: 'Certidão VEBOOK', onClick: () => handleNav('certidao') },
-    { label: 'Para Oficinas', onClick: () => handleNav('oficinas') },
-    { label: 'Site da Oficina', onClick: () => handleNav('site-oficina') },
-    { label: 'Validar Serviço', onClick: () => handleNav('validacao') },
-    { label: 'Transparência', onClick: () => handleNav('transparencia') },
-  ];
-
   const institutionalLinks: { label: string; onClick: () => void }[] = [
     { label: 'Termos', onClick: () => handleTransparencia('termos') },
     { label: 'Privacidade', onClick: () => handleTransparencia('privacidade') },
@@ -65,27 +53,7 @@ export const Footer: React.FC<FooterProps> = ({
       className="bg-vebook-navy-deep text-vebook-subtle py-4 sm:py-5 px-4 sm:px-6 lg:px-8 border-t border-vebook-navy-mid"
     >
       <div className="max-w-6xl mx-auto space-y-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <div className="flex items-center gap-3 min-w-0 shrink-0">
-            <Logo size="sm" variant="light" />
-            <p className="hidden md:block text-[11px] text-vebook-blue-muted leading-snug max-w-[14rem]">
-              A oficina registra. O cliente valida. A VEBOOK preserva.
-            </p>
-          </div>
-
-          <nav
-            aria-label="Navegação do rodapé"
-            className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:justify-end"
-          >
-            {navLinks.map((item) => (
-              <button key={item.label} type="button" onClick={item.onClick} className={linkClass}>
-                {item.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-vebook-navy-mid pt-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             {institutionalLinks.map((item) => (
               <button
