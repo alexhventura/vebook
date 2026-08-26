@@ -130,7 +130,7 @@ describe('Paginação da Certidão', () => {
     assert.ok(pages.length >= 8, `esperado muitas páginas, obteve ${pages.length}`);
   });
 
-  it('não parte um atendimento entre páginas (bloco íntegro)', () => {
+  it('não parte um atendimento entre páginas (bloco íntegro) e agrupa de 2 em 2', () => {
     const small = makeEntry('s1');
     const large = makeEntry('s2', {
       description: 'y'.repeat(320),
@@ -164,17 +164,12 @@ describe('Paginação da Certidão', () => {
       ],
       contestation: { exists: true, statusLabel: 'Aberta', contestedAt: '2026-08-17T09:00:00' },
     });
-    assert.ok(estimateEntryUnits(large) >= 2);
+    assert.equal(estimateEntryUnits(large), 1);
     const pages = paginateCertificateEntries([small, large]);
-    for (const page of pages) {
-      const ids = page.blocks.map((b) => b.entry.id);
-      assert.equal(new Set(ids).size, ids.length);
-    }
+    assert.equal(pages.length, 1);
+    assert.equal(pages[0].blocks.length, 2);
     const allIds = pages.flatMap((p) => p.blocks.map((b) => b.entry.id));
-    assert.deepEqual(allIds.sort(), ['s1', 's2'].sort());
-    const pageWithLarge = pages.find((p) => p.blocks.some((b) => b.entry.id === 's2'));
-    assert.ok(pageWithLarge);
-    assert.equal(pageWithLarge!.blocks.length, 1);
+    assert.deepEqual(allIds, ['s1', 's2']);
   });
 
   it('sem capa nem resumo — só blocos de atendimento', () => {
@@ -185,19 +180,25 @@ describe('Paginação da Certidão', () => {
     }
   });
 
-  it('meta de até 2 blocos de atendimento por folha', () => {
+  it('sempre 2 blocos por folha, exceto a última se ímpar', () => {
     assert.equal(TARGET_ATTENDANCES_PER_PAGE, 2);
     assert.equal(FIRST_PAGE_ATTENDANCES, 2);
     assert.equal(PAGE_CAPACITY, 2);
     assert.equal(FIRST_PAGE_CAPACITY, 2);
 
-    const entries = Array.from({ length: 6 }, (_, i) => makeEntry(`t${i}`));
-    const pages = paginateCertificateEntries(entries);
-    assert.equal(pages.length, 3);
-    for (const page of pages) {
-      assert.ok(page.blocks.length <= TARGET_ATTENDANCES_PER_PAGE);
+    const even = Array.from({ length: 6 }, (_, i) => makeEntry(`t${i}`));
+    const evenPages = paginateCertificateEntries(even);
+    assert.equal(evenPages.length, 3);
+    for (const page of evenPages) {
       assert.equal(page.blocks.length, 2);
     }
+
+    const odd = Array.from({ length: 5 }, (_, i) => makeEntry(`o${i}`));
+    const oddPages = paginateCertificateEntries(odd);
+    assert.equal(oddPages.length, 3);
+    assert.equal(oddPages[0].blocks.length, 2);
+    assert.equal(oddPages[1].blocks.length, 2);
+    assert.equal(oddPages[2].blocks.length, 1);
   });
 });
 

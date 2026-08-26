@@ -214,6 +214,11 @@ body {
   page-break-inside: avoid;
 }
 
+.cert-page-watermark {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
 @media screen and (max-width: 900px) {
   .cert-document {
     overflow-x: auto;

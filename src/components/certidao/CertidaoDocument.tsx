@@ -32,6 +32,39 @@ function buildVerifyAbsoluteUrl(verifyPath: string): string {
   return `${base}${verifyPath.startsWith('#') ? verifyPath : `#${verifyPath}`}`;
 }
 
+function VebookSymbolMark({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 44 44"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden
+    >
+      <circle cx="22" cy="22" r="16.5" stroke="#0B1E36" strokeWidth="3.2" strokeLinecap="round" />
+      <path
+        d="M 13.5 21.5 L 20 28.5 L 31.5 13"
+        stroke="#0B1E36"
+        strokeWidth="3.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="31.5" cy="13" r="1.8" fill="#6B9EC4" />
+    </svg>
+  );
+}
+
+function PageWatermark() {
+  return (
+    <div
+      className="cert-page-watermark pointer-events-none absolute inset-0 flex items-center justify-center z-0"
+      aria-hidden
+    >
+      <VebookSymbolMark className="w-[42%] max-w-[160mm] h-auto opacity-[0.07] print:opacity-[0.08]" />
+    </div>
+  );
+}
+
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return <strong className="font-bold text-slate-800">{children}</strong>;
 }
@@ -226,21 +259,24 @@ export function CertidaoDocumentPages({
         return (
           <section
             key={`${identity.authenticityCode}-p${identity.pageNumber}`}
-            className="cert-a4-page bg-white text-slate-800 shadow-lg border border-slate-300 mx-auto flex flex-col"
+            className="cert-a4-page relative bg-white text-slate-800 shadow-lg border border-slate-300 mx-auto flex flex-col overflow-hidden"
             data-cert-page={identity.pageNumber}
             data-cert-code={identity.authenticityCode}
           >
-            <PageHeader identity={identity} />
-            <div className="cert-page-body flex-1 flex flex-col gap-3 sm:gap-4 min-h-0 justify-stretch">
-              {page.blocks.length === 0 ? (
-                <p className="text-[10px] text-slate-500 italic">
-                  Nenhum atendimento registrado neste snapshot.
-                </p>
-              ) : (
-                page.blocks.map((block) => renderBlock(block))
-              )}
+            <PageWatermark />
+            <div className="relative z-10 flex flex-col flex-1 min-h-0">
+              <PageHeader identity={identity} />
+              <div className="cert-page-body flex-1 flex flex-col gap-3 sm:gap-4 min-h-0 justify-stretch">
+                {page.blocks.length === 0 ? (
+                  <p className="text-[10px] text-slate-500 italic">
+                    Nenhum atendimento registrado neste snapshot.
+                  </p>
+                ) : (
+                  page.blocks.map((block) => renderBlock(block))
+                )}
+              </div>
+              <PageFooter identity={identity} />
             </div>
-            <PageFooter identity={identity} />
           </section>
         );
       })}
