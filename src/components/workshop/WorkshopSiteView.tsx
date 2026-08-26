@@ -429,7 +429,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 </div>
               </div>
 
-              {/* Botões Rápidos de Ação / Contato */}
+              {/* Ação rápida */}
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => handleOpenSchedule()}
@@ -438,16 +438,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                   <Calendar className="w-3.5 h-3.5" />
                   <span>Agendar Serviço</span>
                 </button>
-
-                <a
-                  href={`https://wa.me/55${workshop.whatsapp.replace(/\D/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3.5 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="hidden sm:inline">WhatsApp</span>
-                </a>
               </div>
 
             </div>
