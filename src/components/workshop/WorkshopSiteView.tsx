@@ -241,11 +241,9 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
           {/* Dados da oficina — abaixo da foto */}
           <section className="p-6 sm:p-8 space-y-5 border-b border-slate-100">
             <div className="space-y-3">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
-                Oficina credenciada VEBOOK
-              </p>
               <OfficeIndexBadge
                 snapshot={getOfficeReputation(workshop.id)}
+                variant="compact"
                 onOpenHowItWorks={() => setIndexExplainerOpen(true)}
               />
             </div>
