@@ -22,7 +22,7 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenCookiesConfig,
   onOpenPrivacidadeModal: _onOpenPrivacidadeModal,
   onOpenContestacaoModal: _onOpenContestacaoModal,
-  onOpenContato,
+  onOpenContato: _onOpenContato,
   onOpenDemoWorkshopSite,
   onOpenDemoPanel,
 }) => {
@@ -39,14 +39,6 @@ export const Footer: React.FC<FooterProps> = ({
   const linkClass =
     'hover:text-vebook-white transition-colors cursor-pointer text-left text-[11px] sm:text-xs text-vebook-subtle whitespace-nowrap';
 
-  const institutionalLinks: { label: string; onClick: () => void }[] = [
-    { label: 'Termos', onClick: () => handleTransparencia('termos') },
-    { label: 'Privacidade', onClick: () => handleTransparencia('privacidade') },
-    { label: 'Segurança', onClick: () => handleTransparencia('seguranca') },
-    { label: 'Contato', onClick: onOpenContato },
-    { label: 'Acesso administrativo', onClick: () => handleNav('painel-oficina') },
-  ];
-
   return (
     <footer
       id="footer-institucional-vebook"
@@ -55,20 +47,20 @@ export const Footer: React.FC<FooterProps> = ({
       <div className="max-w-6xl mx-auto space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            {institutionalLinks.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={item.onClick}
-                className={
-                  item.label === 'Acesso administrativo'
-                    ? 'text-vebook-subtle/60 hover:text-vebook-subtle transition-colors cursor-pointer text-left text-[10px] sm:text-[11px] whitespace-nowrap'
-                    : linkClass
-                }
-              >
-                {item.label}
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={() => handleTransparencia('como-tratamos')}
+              className={linkClass}
+            >
+              Portal de governança
+            </button>
+            <button
+              type="button"
+              onClick={() => handleNav('painel-oficina')}
+              className="text-vebook-subtle/60 hover:text-vebook-subtle transition-colors cursor-pointer text-left text-[10px] sm:text-[11px] whitespace-nowrap"
+            >
+              Acesso administrativo
+            </button>
           </div>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] sm:text-[11px] text-vebook-subtle/75">
