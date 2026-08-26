@@ -39,7 +39,9 @@ import {
 } from '../../lib/slug';
 import { Logo } from '../layout/Logo';
 import { Field, inputClass } from '../ui/Field';
+import { ThemeColorPicker } from '../ui/ThemeColorPicker';
 import { PlanModality, SignupDraft } from '../../types';
+import { normalizeThemeColor } from '../../lib/themeColor';
 
 const UF_OPTIONS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG',
@@ -284,15 +286,15 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
             return (
               <li
                 key={item.id}
-                className={`rounded-xl border px-2 py-2 text-center text-[11px] font-bold ${
+                className={`flex min-h-11 items-center justify-center rounded-vebook border px-2 py-2 text-center text-[11px] font-semibold leading-tight tracking-wide ${
                   active
-                    ? 'border-[#0B1E36] bg-[#0B1E36] text-white'
+                    ? 'border-vebook-mustard bg-vebook-navy text-vebook-mustard'
                     : done
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                      : 'border-slate-200 bg-white text-slate-500'
+                      ? 'border-vebook-mustard/65 bg-vebook-mustard-soft text-vebook-navy'
+                      : 'border-vebook-mustard/40 bg-vebook-white text-vebook-muted'
                 }`}
               >
-                {item.id}. {item.label}
+                <span className="block w-full text-center">{item.label}</span>
               </li>
             );
           })}
@@ -573,6 +575,11 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
                     onChange={(e) => setDraft({ ...draft, extras: { ...draft.extras, shortDescription: e.target.value } })}
                   />
                 </Field>
+                <ThemeColorPicker
+                  id="signup-theme-color"
+                  value={draft.extras.themeColor}
+                  onChange={(themeColor) => setDraft({ ...draft, extras: { ...draft.extras, themeColor } })}
+                />
               </div>
             </section>
           )}
@@ -599,6 +606,17 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
               <div className="rounded-2xl border border-slate-200 p-4 space-y-1 text-sm">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Endereço VEBOOK</p>
                 <p className="font-mono font-bold text-[#0B1E36]">{workshopHost(draft.slug)}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center gap-3 text-sm">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 w-full">Cor da página pública</p>
+                <span
+                  className="inline-block h-8 w-8 rounded-lg border border-slate-200"
+                  style={{ backgroundColor: normalizeThemeColor(draft.extras.themeColor) }}
+                  aria-hidden
+                />
+                <span className="font-mono font-bold text-[#0B1E36]">
+                  {normalizeThemeColor(draft.extras.themeColor)}
+                </span>
               </div>
               <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4 space-y-2 text-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">

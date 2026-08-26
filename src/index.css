@@ -1,6 +1,182 @@
 @import "tailwindcss";
 
+/*
+  VEBOOK Design System — tokens canônicos
+  Hierarquia: azul-marinho → branco/cinza-claro → azul-claro → mostarda
+*/
+
+@theme {
+  /* —— Cores de marca —— */
+  --color-vebook-navy: #0b1e36;
+  --color-vebook-navy-deep: #071527;
+  --color-vebook-navy-mid: #132c4d;
+  --color-vebook-navy-soft: #e8eef4;
+
+  --color-vebook-gray: #f1f5f9;
+  --color-vebook-surface: #f8fafc;
+
+  --color-vebook-blue: #6b9ec4;
+  --color-vebook-blue-soft: #e8f2f8;
+  --color-vebook-blue-muted: #8bb0cc;
+
+  --color-vebook-mustard: #c4a35a;
+  --color-vebook-mustard-soft: #f6f0e4;
+  --color-vebook-mustard-deep: #a8863f;
+
+  /* —— Neutros —— */
+  --color-vebook-white: #ffffff;
+  --color-vebook-ink: #0f172a;
+  --color-vebook-text: #1e293b;
+  --color-vebook-muted: #64748b;
+  --color-vebook-subtle: #94a3b8;
+  --color-vebook-border: #e2e8f0;
+  --color-vebook-border-strong: #cbd5e1;
+
+  /* —— Funcionais (não fazem parte da identidade) —— */
+  --color-vebook-error: #b42318;
+  --color-vebook-error-soft: #fef3f2;
+
+  /* —— Tipografia —— */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* —— Radius (sólido, sem cápsula) —— */
+  --radius-vebook-sm: 0.375rem;
+  --radius-vebook: 0.625rem;
+  --radius-vebook-md: 0.75rem;
+  --radius-vebook-lg: 1rem;
+
+  /* —— Sombras —— */
+  --shadow-vebook: 0 1px 2px rgb(15 23 42 / 0.04);
+  --shadow-vebook-md: 0 1px 3px rgb(15 23 42 / 0.06);
+
+  /* —— Espaçamento de seção —— */
+  --spacing-section: 5rem;
+  --spacing-section-lg: 7rem;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
+body {
+  font-family: var(--font-sans);
+  color: var(--color-vebook-text);
+  background-color: var(--color-vebook-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--color-vebook-navy);
+  color: var(--color-vebook-white);
+}
+
+/* Utilitários semânticos reutilizáveis */
+@layer components {
+  .vebook-container {
+    @apply mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .vebook-section {
+    @apply pt-16 sm:pt-24 lg:pt-28;
+  }
+
+  .vebook-section-title {
+    @apply text-2xl sm:text-3xl font-bold tracking-tight text-vebook-navy;
+  }
+
+  .vebook-section-lead {
+    @apply text-sm sm:text-base text-vebook-muted leading-relaxed;
+  }
+
+  .vebook-card {
+    @apply bg-vebook-white border border-vebook-mustard/70 rounded-vebook-md shadow-vebook;
+    @apply transition-[transform,box-shadow,border-color] duration-200 ease-out;
+  }
+
+  .vebook-card:hover {
+    @apply border-vebook-mustard;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgb(196 163 90 / 0.18);
+  }
+
+  .vebook-card-pad {
+    @apply p-6 sm:p-8;
+  }
+
+  .vebook-label {
+    @apply block text-sm font-medium text-vebook-text;
+  }
+
+  .vebook-hint {
+    @apply text-xs text-vebook-muted leading-relaxed;
+  }
+
+  .vebook-error-text {
+    @apply text-xs text-vebook-error leading-relaxed;
+  }
+
+  .vebook-card-lift {
+    @apply border border-vebook-mustard/70 transition-[transform,box-shadow,border-color] duration-200 ease-out;
+  }
+
+  .vebook-card-lift:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-vebook-mustard);
+    box-shadow: 0 8px 24px rgb(196 163 90 / 0.18);
+  }
+
+  .vebook-reveal {
+    animation: vebook-fade-up 0.65s ease-out both;
+  }
+
+  .vebook-reveal-delay-1 {
+    animation-delay: 0.08s;
+  }
+
+  .vebook-reveal-delay-2 {
+    animation-delay: 0.16s;
+  }
+
+  .vebook-reveal-delay-3 {
+    animation-delay: 0.24s;
+  }
+
+  .vebook-star-pulse {
+    animation: vebook-star-pulse 4.5s ease-in-out infinite;
+  }
+}
+
+@keyframes vebook-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes vebook-star-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vebook-reveal,
+  .vebook-star-pulse,
+  .vebook-card-lift {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .vebook-card-lift:hover {
+    transform: none;
+  }
+}

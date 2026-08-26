@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   FileCheck2, 
   ShieldCheck, 
@@ -16,11 +16,16 @@ import {
   ChevronRight,
   Shield,
   Clock,
-  Layers
+  Layers,
+  Lock,
 } from 'lucide-react';
 import { Logo } from '../layout/Logo';
 import { VEHICLES_MOCK, SERVICES_MOCK } from '../../data/mockData';
+import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
+import { formatBRL } from '../../lib/currency';
 import { AppView } from '../../types';
+import { CertidaoPagamentoModal } from '../modals/CertidaoPagamentoModal';
+import { Button } from '../ui/Button';
 
 interface CertidaoViewProps {
   initialPlate?: string;
@@ -32,8 +37,16 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
   const [requesterName, setRequesterName] = useState<string>('João Carlos da Silva');
   const [requesterCpf, setRequesterCpf] = useState<string>('352.981.450-80');
   const [isGenerated, setIsGenerated] = useState<boolean>(true);
+  const [isPaid, setIsPaid] = useState(false);
+  const [paymentOpen, setPaymentOpen] = useState(true);
   const [validationCodeInput, setValidationCodeInput] = useState<string>('');
   const [validationResult, setValidationResult] = useState<'success' | null>(null);
+
+  useEffect(() => {
+    setPlate(initialPlate);
+    setIsPaid(false);
+    setPaymentOpen(true);
+  }, [initialPlate]);
 
   const vehicle = VEHICLES_MOCK[plate] || VEHICLES_MOCK['BRA2E19'];
   const services = SERVICES_MOCK[plate] || SERVICES_MOCK['BRA2E19'];
@@ -49,11 +62,18 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
   const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
     setIsGenerated(true);
+    if (!isPaid) setPaymentOpen(true);
   };
 
   const handleValidateCode = (e: React.FormEvent) => {
     e.preventDefault();
     setValidationResult('success');
+  };
+
+  const handlePaid = () => {
+    setIsPaid(true);
+    setPaymentOpen(false);
+    setIsGenerated(true);
   };
 
   return (
@@ -124,7 +144,11 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
               <label className="font-bold text-slate-700 block">Placa do Veículo:</label>
               <select
                 value={plate}
-                onChange={(e) => setPlate(e.target.value)}
+                onChange={(e) => {
+                  setPlate(e.target.value);
+                  setIsPaid(false);
+                  setPaymentOpen(true);
+                }}
                 className="w-full p-2.5 rounded-lg border border-slate-300 font-bold text-[#0B1E36] bg-slate-50 focus:bg-white text-sm"
               >
                 <option value="BRA2E19">BRA2E19 - Toyota Corolla (2022/2023)</option>
@@ -157,10 +181,15 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
               />
             </div>
 
-            <div className="sm:col-span-3 pt-2 flex flex-col sm:flex-row justify-end gap-3">
+            <div className="sm:col-span-3 pt-2 flex flex-col sm:flex-row justify-between gap-3 items-stretch sm:items-center">
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Visualização completa:{' '}
+                <strong className="text-[#0B1E36]">{formatBRL(CERTIDAO_PRICE)}</strong> por certidão.
+                {!isPaid && ' O documento ao fundo permanece bloqueado até o pagamento.'}
+              </p>
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="px-6 py-2.5 rounded-xl bg-[#0B1E36] hover:bg-[#132c4d] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs shrink-0"
               >
                 <FileCheck2 className="w-4 h-4 text-sky-300" />
                 <span>Atualizar Pré-visualização da Certidão</span>
@@ -171,24 +200,40 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
 
         {/* DOCUMENTO OFICIAL DA CERTIDÃO VEBOOK */}
         {isGenerated && (
-          <div className="space-y-4">
+          <div className="space-y-4 relative">
             <div className="flex flex-wrap items-center justify-between gap-3 px-2">
-              <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Documento Oficial Gerado com Snapshot Histórico Congelado</span>
-              </span>
+              {isPaid ? (
+                <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-vebook-mustard" />
+                  <span>Documento oficial liberado após pagamento</span>
+                </span>
+              ) : (
+                <span className="text-xs font-bold text-vebook-navy flex items-center gap-1.5">
+                  <Lock className="w-4 h-4 text-vebook-mustard" />
+                  <span>Pré-visualização bloqueada — pague {formatBRL(CERTIDAO_PRICE)} para liberar</span>
+                </span>
+              )}
 
               <div className="flex items-center gap-2">
+                {!isPaid && (
+                  <Button type="button" variant="accent" size="sm" onClick={() => setPaymentOpen(true)}>
+                    Pagar {formatBRL(CERTIDAO_PRICE)}
+                  </Button>
+                )}
                 <button
-                  onClick={() => window.print()}
-                  className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  onClick={() => isPaid && window.print()}
+                  disabled={!isPaid}
+                  className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Imprimir</span>
                 </button>
                 <button
-                  onClick={() => alert('Download do PDF oficial em alta resolução da Certidão VEBOOK.')}
-                  className="px-3.5 py-1.5 rounded-lg bg-[#0B1E36] text-white font-bold text-xs hover:bg-[#132c4d] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  onClick={() =>
+                    isPaid && alert('Download do PDF oficial em alta resolução da Certidão VEBOOK.')
+                  }
+                  disabled={!isPaid}
+                  className="px-3.5 py-1.5 rounded-lg bg-[#0B1E36] text-white font-bold text-xs hover:bg-[#132c4d] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Download className="w-3.5 h-3.5 text-sky-300" />
                   <span>Baixar PDF Oficial</span>
@@ -196,8 +241,30 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
               </div>
             </div>
 
-            {/* FOLHA DA CERTIDÃO (ESTÉTICA INSTITUCIONAL E NOTARIAL) */}
-            <div className="bg-white p-6 sm:p-12 rounded-2xl border-2 border-slate-300 shadow-xl space-y-8 font-sans print:border-none print:shadow-none">
+            {/* FOLHA DA CERTIDÃO — borrada até o pagamento */}
+            <div className="relative rounded-2xl overflow-hidden">
+              {!isPaid && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-vebook-navy/25 backdrop-blur-[2px] pointer-events-none">
+                  <div className="mx-4 max-w-sm rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-white/95 px-5 py-4 text-center shadow-lg pointer-events-none">
+                    <Lock className="mx-auto h-6 w-6 text-vebook-mustard" aria-hidden />
+                    <p className="mt-2 text-sm font-bold text-vebook-navy">Certidão bloqueada</p>
+                    <p className="mt-1 text-xs text-vebook-muted leading-relaxed">
+                      O histórico completo do veículo aparece ao fundo. Confirme o pagamento de{' '}
+                      {formatBRL(CERTIDAO_PRICE)} para liberar a visualização.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div
+                className={[
+                  'bg-white p-6 sm:p-12 rounded-2xl border-2 border-slate-300 shadow-xl space-y-8 font-sans print:border-none print:shadow-none',
+                  !isPaid ? 'select-none blur-[3px] opacity-70' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                aria-hidden={!isPaid}
+              >
               
               {/* Cabeçalho Oficial do Documento */}
               <div className="border-b-2 border-[#0B1E36] pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
@@ -384,6 +451,7 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
               </div>
 
             </div>
+            </div>
           </div>
         )}
 
@@ -429,6 +497,13 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({ initialPlate = 'BRA2
         </div>
 
       </div>
+
+      <CertidaoPagamentoModal
+        open={paymentOpen && !isPaid}
+        plate={vehicle.plate}
+        onClose={() => setPaymentOpen(false)}
+        onPaid={handlePaid}
+      />
     </div>
   );
 };

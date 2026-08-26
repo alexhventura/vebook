@@ -19,7 +19,7 @@ import { MinhaPrivacidadeModal } from './components/privacy/MinhaPrivacidadeModa
 import { ContestacaoModal } from './components/contestation/ContestacaoModal';
 import { AppView, PlanModality, ServiceRecord, TransparenciaSection } from './types';
 import { applyHash, parseHash, PanelSection } from './lib/navigation';
-import { initOfficeStore } from './data/officeStore';
+import { initOfficeStore, loginDemoOffice } from './data/officeStore';
 
 export default function App() {
   const initial = parseHash();
@@ -96,19 +96,6 @@ export default function App() {
     handleNavigate('diario');
   };
 
-  const handleFocusConsulta = () => {
-    if (currentView !== 'diario') {
-      handleNavigate('diario');
-    }
-    setTimeout(() => {
-      const input = consultaInputRef.current;
-      if (input) {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        input.focus();
-      }
-    }, 100);
-  };
-
   const handleEmitirCertidaoForPlate = (plate: string) => {
     setSelectedPlateForCertidao(plate);
     handleNavigate('certidao');
@@ -127,13 +114,9 @@ export default function App() {
   const immersive = currentView === 'site-oficina' || currentView === 'painel-oficina' || currentView === 'cadastro-oficina';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#071A33] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#0B1E36] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-vebook-surface text-vebook-text font-sans">
       {!immersive && (
-        <Header
-          currentView={currentView}
-          onNavigate={handleNavigate}
-          onFocusConsulta={handleFocusConsulta}
-        />
+        <Header onNavigate={handleNavigate} />
       )}
 
       <main className="flex-1">
@@ -146,11 +129,18 @@ export default function App() {
               handleNavigate('cadastro-oficina');
             }}
             onOpenJaCredenciado={() => handleNavigate('painel-oficina', { workshopSlug: undefined })}
+            onStartCadastro={(modality) => {
+              setSignupModality(modality);
+              setSignupPlanPreselected(true);
+              handleNavigate('cadastro-oficina');
+            }}
+            onOpenContato={() => setLegalModalType('contato')}
           />
         )}
 
         {currentView === 'diario' && (
           <DiarioVeicularView
+            initialPlate={selectedPlateForCertidao}
             onNavigate={handleNavigate}
             onEmitirCertidaoForPlate={handleEmitirCertidaoForPlate}
             onOpenContestacaoModalForRecord={handleOpenContestacaoForRecord}
@@ -242,6 +232,13 @@ export default function App() {
           onOpenPrivacidadeModal={() => setIsPrivacidadeModalOpen(true)}
           onOpenContestacaoModal={handleOpenContestacaoGeneric}
           onOpenContato={() => setLegalModalType('contato')}
+          onOpenDemoWorkshopSite={() => {
+            handleNavigate('site-oficina', { workshopSlug: 'prisma' });
+          }}
+          onOpenDemoPanel={async () => {
+            await loginDemoOffice('prisma');
+            handleNavigate('painel-oficina', { workshopSlug: 'prisma' });
+          }}
         />
       )}
 

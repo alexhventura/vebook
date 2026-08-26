@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { listServiceCatalog, updateOfficeProfile, upsertServiceCatalog } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
+import { normalizeThemeColor } from '../../lib/themeColor';
 import { workshopHost } from '../../lib/slug';
 import { Office } from '../../types';
 import { Field, inputClass } from '../ui/Field';
+import { ThemeColorPicker } from '../ui/ThemeColorPicker';
 import { SectionTitle } from './shared';
 
 export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (slug: string) => void }> = ({
@@ -34,6 +36,7 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
     sunday: office.businessHoursDetail?.sunday ?? 'Fechado',
     logoUrl: office.logoUrl ?? '',
     coverImageUrl: office.coverImageUrl ?? '',
+    themeColor: normalizeThemeColor(office.themeColor),
   });
   const [saved, setSaved] = useState(false);
 
@@ -82,6 +85,7 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
             zipCode: form.zipCode,
             logoUrl: form.logoUrl || undefined,
             coverImageUrl: form.coverImageUrl || undefined,
+            themeColor: normalizeThemeColor(form.themeColor),
             socialLinks: {
               ...office.socialLinks,
               instagram: form.instagram || undefined,
@@ -101,6 +105,14 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
       >
         <Field label="Nome"><input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
         <Field label="Nome fantasia"><input className={inputClass} value={form.tradeName} onChange={(e) => setForm({ ...form, tradeName: e.target.value })} /></Field>
+        <div className="sm:col-span-2">
+          <ThemeColorPicker
+            id="office-theme-color"
+            value={form.themeColor}
+            onChange={(themeColor) => setForm({ ...form, themeColor })}
+            hint="Cor usada na tarja do nome, botões e bordas dos cards do site público. Escolhida no espectro e editável a qualquer momento."
+          />
+        </div>
         <Field label="Logo (URL)" optional><input className={inputClass} value={form.logoUrl} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} /></Field>
         <Field label="Capa (URL)" optional><input className={inputClass} value={form.coverImageUrl} onChange={(e) => setForm({ ...form, coverImageUrl: e.target.value })} /></Field>
         <Field label="Descrição">

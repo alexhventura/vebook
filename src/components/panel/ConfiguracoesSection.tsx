@@ -6,16 +6,19 @@ import {
   listPayments,
   listTeamMembers,
   removeTeamMemberAccess,
+  updateOfficeProfile,
   upsertTeamMember,
 } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { formatBRL } from '../../lib/currency';
 import { formatCpf } from '../../lib/cpf';
 import { formatPhone } from '../../lib/phone';
+import { normalizeThemeColor } from '../../lib/themeColor';
 import { workshopHost } from '../../lib/slug';
 import { planLabel, planPricingFootnote, planSummaryLines } from '../../data/officePlans';
 import { Office, OfficeUser, PanelModule, TeamJobRole } from '../../types';
 import { Field, inputClass } from '../ui/Field';
+import { ThemeColorPicker } from '../ui/ThemeColorPicker';
 import { SectionTitle, formatIsoDate } from './shared';
 
 type ConfigTab = 'conta' | 'equipe' | 'assinatura' | 'privacidade' | 'pagina-publica';
@@ -72,10 +75,17 @@ export const ConfiguracoesSection: React.FC<{
   const [jobRole, setJobRole] = useState<TeamJobRole>('attendant');
   const [jobTitle, setJobTitle] = useState('');
   const [memberStatus, setMemberStatus] = useState<'active' | 'inactive'>('active');
+  const [themeColor, setThemeColor] = useState(() => normalizeThemeColor(office.themeColor));
+  const [themeSaved, setThemeSaved] = useState(false);
 
   useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    setThemeColor(normalizeThemeColor(office.themeColor));
+    setThemeSaved(false);
+  }, [office.officeId, office.themeColor]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -291,12 +301,34 @@ export const ConfiguracoesSection: React.FC<{
       ) : null}
 
       {tab === 'pagina-publica' ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 text-sm space-y-2">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 text-sm space-y-4">
           <h3 className="font-extrabold text-[#0B1E36]">Página pública</h3>
           <p className="font-mono">{workshopHost(office.slug)}</p>
           <p>Visibilidade: {office.status === 'active' && office.publicVisible ? 'ativa' : 'indisponível'}</p>
           <p>Slug: {office.slug}</p>
-          <p className="text-xs text-slate-500">Configurações de identidade e serviços públicos ficam em Minha oficina. Aqui: visibilidade, slug e publicação.</p>
+          <ThemeColorPicker
+            id="config-theme-color"
+            value={themeColor}
+            onChange={(next) => {
+              setThemeColor(next);
+              setThemeSaved(false);
+            }}
+            hint="Cor da tarja, botões e bordas do site público. Escolha no espectro; a alteração vale após salvar."
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              className="rounded-xl bg-[#0B1E36] text-white font-bold text-sm px-4 py-2.5 cursor-pointer"
+              onClick={() => {
+                updateOfficeProfile(office.officeId, { themeColor: normalizeThemeColor(themeColor) });
+                setThemeSaved(true);
+              }}
+            >
+              Salvar cor da página
+            </button>
+            {themeSaved ? <p className="text-sm text-emerald-700 font-bold">Cor atualizada.</p> : null}
+          </div>
+          <p className="text-xs text-slate-500">Demais dados de identidade e serviços públicos ficam em Minha oficina.</p>
         </div>
       ) : null}
     </section>
