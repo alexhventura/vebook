@@ -32,6 +32,7 @@ export const ContestacaoModal: React.FC<ContestacaoModalProps> = ({
     const protocolNumber = `CONT-2026-${Math.floor(100000 + Math.random() * 900000)}`;
     setGeneratedProtocol(protocolNumber);
 
+    const createdAt = new Date().toISOString();
     const submission: ContestationSubmission = {
       id: `sub-${Date.now()}`,
       protocol: protocolNumber,
@@ -43,7 +44,13 @@ export const ContestacaoModal: React.FC<ContestacaoModalProps> = ({
       detailedDescription,
       evidenceNotes,
       status: 'aberta',
-      createdAt: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      createdAt,
+      officeId: targetRecord?.workshopId,
+      responseDueAt: (() => {
+        const d = new Date(createdAt);
+        d.setUTCDate(d.getUTCDate() + 15);
+        return d.toISOString();
+      })(),
     };
 
     if (onSuccessContestation) {

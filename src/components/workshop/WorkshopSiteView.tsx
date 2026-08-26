@@ -14,7 +14,10 @@ import { Logo } from '../layout/Logo';
 import { getOfficeBySlug, listWorkshopsForPublicSite, toPublicWorkshop } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { contrastTextOn, normalizeThemeColor } from '../../lib/themeColor';
-import { AppView } from '../../types';
+import { AppView, TransparenciaSection } from '../../types';
+import { getOfficeReputation } from '../../data/officeReputationStore';
+import { OfficeIndexBadge } from '../index/OfficeIndexBadge';
+import { OfficeIndexExplainerModal } from '../index/OfficeIndexExplainerModal';
 
 interface WorkshopSiteViewProps {
   onNavigate: (view: AppView) => void;
@@ -22,6 +25,7 @@ interface WorkshopSiteViewProps {
   initialWorkshopId?: string;
   workshopSlug?: string;
   onOpenPanel?: (slug: string) => void;
+  onNavigateTransparencia?: (section: TransparenciaSection) => void;
 }
 
 export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
@@ -30,6 +34,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
   initialWorkshopId = 'ws-prisma',
   workshopSlug,
   onOpenPanel,
+  onNavigateTransparencia,
 }) => {
   useOfficeStore();
   const publicWorkshops = listWorkshopsForPublicSite();
@@ -40,6 +45,7 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
   const [activeTabNav, setActiveTabNav] = useState<'inicio' | 'servicos' | 'localizacao' | 'contato'>('inicio');
 
   const [mapModalOpen, setMapModalOpen] = useState(false);
+  const [indexExplainerOpen, setIndexExplainerOpen] = useState(false);
 
   const workshop =
     (officeFromSlug ? toPublicWorkshop(officeFromSlug) : undefined) ||
@@ -234,6 +240,16 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
 
           {/* Dados da oficina — abaixo da foto */}
           <section className="p-6 sm:p-8 space-y-5 border-b border-slate-100">
+            <div className="space-y-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                Oficina credenciada VEBOOK
+              </p>
+              <OfficeIndexBadge
+                snapshot={getOfficeReputation(workshop.id)}
+                variant="detailed"
+                onOpenHowItWorks={() => setIndexExplainerOpen(true)}
+              />
+            </div>
             <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed">
               {workshop.description}
             </p>
@@ -615,6 +631,16 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
           </div>
         </div>
       )}
+
+      <OfficeIndexExplainerModal
+        open={indexExplainerOpen}
+        onClose={() => setIndexExplainerOpen(false)}
+        onNavigateTransparency={
+          onNavigateTransparencia
+            ? () => onNavigateTransparencia('indice-vebook')
+            : undefined
+        }
+      />
 
     </div>
   );

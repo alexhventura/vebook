@@ -541,8 +541,11 @@ export interface ContestationSubmission {
   evidenceNotes?: string;
   status: 'aberta' | 'em_analise' | 'acolhida_corrigida' | 'mantida_justificada';
   createdAt: string;
+  /** Prazo de resposta da oficina (SLA institucional). */
+  responseDueAt?: string;
   workshopResponse?: string;
   resolvedAt?: string;
+  officeId?: string;
 }
 
 export interface CookiePreferences {
@@ -565,6 +568,84 @@ export type TransparenciaSection =
   | 'certidoes'
   | 'regras-oficinas'
   | 'contestações'
+  | 'indice-vebook'
   | 'faq'
   | 'minha-privacidade';
+
+/**
+ * Índice VEBOOK de Regularidade das Oficinas (0–100).
+ * Não é avaliação técnica, satisfação nem ranking comercial.
+ */
+export type OfficeIndexClassification =
+  | 'excelente'
+  | 'muito_bom'
+  | 'regular'
+  | 'atencao'
+  | 'baixa_regularidade'
+  | 'em_formacao';
+
+export type OfficeIndexRegularityStatus = 'regular' | 'pending';
+
+export interface OfficeIndexCompletenessFlags {
+  hasVehicle: boolean;
+  hasService: boolean;
+  hasDate: boolean;
+  hasMileage: boolean;
+  hasProductsOrNotes: boolean;
+  hasResponsible: boolean;
+}
+
+/** Fato agregado de atendimento usado no cálculo oficial do índice. */
+export interface OfficeIndexAttendanceFact {
+  id: string;
+  officeId: string;
+  date: string;
+  regularityStatus: OfficeIndexRegularityStatus;
+  validationStatus: ValidationStatus;
+  completeness: OfficeIndexCompletenessFlags;
+}
+
+/** Fato de contestação para o pilar de responsabilidade (sem dados de cliente). */
+export interface OfficeIndexContestationFact {
+  id: string;
+  officeId: string;
+  attendanceId: string;
+  contestedAt: string;
+  responseDueAt: string;
+  respondedAt?: string;
+}
+
+export interface OfficeIndexInput {
+  officeId: string;
+  attendances: OfficeIndexAttendanceFact[];
+  contestations: OfficeIndexContestationFact[];
+}
+
+export interface OfficeIndexComponents {
+  regularity: number;
+  validation: number;
+  contestationResponsibility: number;
+  completeness: number;
+}
+
+/** Snapshot oficial persistido/cacheado (equivalente a office_reputation). */
+export interface OfficeReputationSnapshot {
+  officeId: string;
+  score: number;
+  classification: OfficeIndexClassification;
+  classificationLabel: string;
+  inFormation: boolean;
+  totalAttendances: number;
+  validatedAttendances: number;
+  unvalidatedAttendances: number;
+  contestedAttendances: number;
+  answeredContestations: number;
+  unansweredContestations: number;
+  averageResponseHours: number | null;
+  recordCompleteness: number;
+  components: OfficeIndexComponents;
+  calculatedAt: string;
+}
+
+export type OfficeSearchSort = 'relevance' | 'name' | 'location';
 

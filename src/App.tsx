@@ -20,6 +20,11 @@ import { ContestacaoModal } from './components/contestation/ContestacaoModal';
 import { AppView, PlanModality, ServiceRecord, TransparenciaSection } from './types';
 import { applyHash, parseHash, PanelSection } from './lib/navigation';
 import { initOfficeStore, loginDemoOffice } from './data/officeStore';
+import {
+  initOfficeReputationStore,
+  ingestContestationFact,
+} from './data/officeReputationStore';
+import { dueDateFromContestedAt } from './lib/officeRegularityIndex';
 
 export default function App() {
   const initial = parseHash();
@@ -44,6 +49,7 @@ export default function App() {
 
   useEffect(() => {
     void initOfficeStore();
+    initOfficeReputationStore();
   }, []);
 
   useEffect(() => {
@@ -135,6 +141,8 @@ export default function App() {
               handleNavigate('cadastro-oficina');
             }}
             onOpenContato={() => setLegalModalType('contato')}
+            onOpenWorkshop={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}
+            onNavigateTransparencia={handleNavigateTransparencia}
           />
         )}
 
@@ -192,6 +200,7 @@ export default function App() {
             onSearchPlate={handleSearchPlateFromHome}
             workshopSlug={workshopSlug || 'prisma'}
             onOpenPanel={(slug) => handleNavigate('painel-oficina', { workshopSlug: slug })}
+            onNavigateTransparencia={handleNavigateTransparencia}
           />
         )}
 
@@ -263,6 +272,19 @@ export default function App() {
           setTargetContestationRecord(null);
         }}
         targetRecord={targetContestationRecord}
+        onSuccessContestation={(submission) => {
+          const officeId = submission.officeId || targetContestationRecord?.workshopId;
+          if (!officeId) return;
+          const contestedAt = submission.createdAt;
+          ingestContestationFact({
+            id: submission.id,
+            officeId,
+            attendanceId: submission.serviceRecordId,
+            contestedAt,
+            responseDueAt: submission.responseDueAt || dueDateFromContestedAt(contestedAt),
+            respondedAt: submission.resolvedAt,
+          });
+        }}
       />
 
       {legalModalType && (

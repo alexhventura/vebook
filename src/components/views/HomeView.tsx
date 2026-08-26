@@ -15,13 +15,15 @@ import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
 import { OFFICE_PILLARS, type OfficePillarId } from '../../data/officePillars';
 import { GOVERNANCE_PILLARS, type GovernancePillarId } from '../../data/governancePillars';
 import { CONSULTATION_PILLARS, type ConsultationPillarId } from '../../data/consultationPillars';
-import { AppView, PlanModality } from '../../types';
+import { AppView, PlanModality, TransparenciaSection } from '../../types';
 import { Button, Input } from '../ui';
 import { HomeAtmosphere } from '../home/HomeAtmosphere';
 import { HomeFaqAccordion } from '../home/HomeFaqAccordion';
 import { OfficePillarModal } from '../modals/OfficePillarModal';
 import { GovernancePillarModal } from '../modals/GovernancePillarModal';
 import { ConsultationPillarModal } from '../modals/ConsultationPillarModal';
+import { FindOfficeSearch } from '../index/FindOfficeSearch';
+import { OfficeIndexExplainerModal } from '../index/OfficeIndexExplainerModal';
 import type { OfficePillar } from '../../data/officePillars';
 
 interface HomeViewProps {
@@ -31,6 +33,8 @@ interface HomeViewProps {
   onOpenJaCredenciado: () => void;
   onStartCadastro?: (modality: PlanModality) => void;
   onOpenContato?: () => void;
+  onOpenWorkshop?: (slug: string) => void;
+  onNavigateTransparencia?: (section: TransparenciaSection) => void;
 }
 
 /** Spine vertical — metáfora do “fio” que une o histórico do veículo */
@@ -82,6 +86,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenJaCredenciado: _onOpenJaCredenciado,
   onStartCadastro,
   onOpenContato,
+  onOpenWorkshop,
+  onNavigateTransparencia,
 }) => {
   const [inputPlate, setInputPlate] = useState('');
   const [plateError, setPlateError] = useState<string | null>(null);
@@ -89,6 +95,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [openGovId, setOpenGovId] = useState<GovernancePillarId | null>(null);
   const [openConsultaId, setOpenConsultaId] = useState<ConsultationPillarId | null>(null);
   const [faqOpen, setFaqOpen] = useState(false);
+  const [indexExplainerOpen, setIndexExplainerOpen] = useState(false);
 
   const openPillar = OFFICE_PILLARS.find((item) => item.id === openPillarId) ?? null;
   const openGovPillar = GOVERNANCE_PILLARS.find((item) => item.id === openGovId) ?? null;
@@ -338,6 +345,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </button>
             ))}
           </div>
+
+          <div id="home-encontrar-oficina" className="mt-10 sm:mt-12">
+            <FindOfficeSearch
+              onOpenWorkshop={(slug) => {
+                if (onOpenWorkshop) onOpenWorkshop(slug);
+                else onNavigate('site-oficina');
+              }}
+              onOpenIndexExplainer={() => setIndexExplainerOpen(true)}
+            />
+          </div>
         </div>
       </section>
 
@@ -536,6 +553,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
         pillar={openConsultaPillar}
         onClose={() => setOpenConsultaId(null)}
         onNavigateCertidao={() => onNavigate('certidao')}
+      />
+      <OfficeIndexExplainerModal
+        open={indexExplainerOpen}
+        onClose={() => setIndexExplainerOpen(false)}
+        onNavigateTransparency={
+          onNavigateTransparencia
+            ? () => onNavigateTransparencia('indice-vebook')
+            : undefined
+        }
       />
     </div>
   );

@@ -65,6 +65,7 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
     { id: 'certidoes', label: 'Certidões VEBOOK', icon: FileCheck2 },
     { id: 'regras-oficinas', label: 'Regras para Oficinas', icon: Building2 },
     { id: 'contestações', label: 'Política de Contestações', icon: AlertTriangle },
+    { id: 'indice-vebook', label: 'Índice VEBOOK', icon: Layers },
     { id: 'faq', label: 'FAQ Institucional', icon: HelpCircle },
     { id: 'minha-privacidade', label: 'Minha Privacidade (Painel)', icon: ShieldCheck },
   ];
@@ -798,6 +799,65 @@ export const TransparenciaView: React.FC<TransparenciaViewProps> = ({
                       <AlertTriangle className="w-3.5 h-3.5" />
                       <span>Abrir Formulário de Contestação</span>
                     </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 11b. ÍNDICE VEBOOK */}
+            {activeSection === 'indice-vebook' && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6 text-slate-700 text-xs sm:text-sm leading-relaxed">
+                <div className="space-y-2 border-b border-slate-200 pb-5">
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-md border border-sky-200">
+                    <Layers className="w-3.5 h-3.5" />
+                    <span>Regularidade na plataforma — não avaliação técnica</span>
+                  </div>
+                  <h2 className="text-2xl font-black text-[#0B1E36]">
+                    Como funciona o Índice VEBOOK
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Índice de regularidade da oficina dentro da plataforma VEBOOK (0 a 100).
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <p>
+                    O Índice VEBOOK representa a regularidade da oficina no uso da plataforma, considerando aspectos como registros realizados, validações, contestações e cumprimento das responsabilidades de atendimento.
+                  </p>
+                  <p className="text-slate-600">
+                    Ele <strong className="text-[#0B1E36]">não</strong> representa uma avaliação técnica dos serviços mecânicos, opinião de clientes, nota de satisfação nem ranking comercial.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <span className="font-bold text-[#0B1E36] block">Regularidade (30%)</span>
+                      <p className="text-xs text-slate-600">Como a oficina mantém seus registros e responsabilidades em dia.</p>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <span className="font-bold text-[#0B1E36] block">Validação (25%)</span>
+                      <p className="text-xs text-slate-600">Como os registros são confirmados pelos clientes. Sem validação não é tratado automaticamente como erro.</p>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <span className="font-bold text-[#0B1E36] block">Contestações (25%)</span>
+                      <p className="text-xs text-slate-600">Como a oficina responde às solicitações. Uma contestação, por si só, não reduz o índice.</p>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <span className="font-bold text-[#0B1E36] block">Completude (20%)</span>
+                      <p className="text-xs text-slate-600">Qualidade documental dos registros (veículo, serviço, data, km, peças, responsável).</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-sky-50 border border-sky-200 space-y-2 text-xs">
+                    <p className="font-bold text-[#0B1E36]">Princípios</p>
+                    <ul className="space-y-1.5 text-slate-700 list-disc pl-4">
+                      <li>Uma contestação, por si só, não reduz o índice.</li>
+                      <li>Uma contestação respondida dentro do prazo não gera penalização.</li>
+                      <li>Um atendimento sem validação não significa necessariamente um atendimento irregular.</li>
+                      <li>Pequenas ocorrências não eliminam a reputação construída ao longo do tempo.</li>
+                      <li>Problemas antigos pesam menos; a reputação pode ser recuperada.</li>
+                      <li>Oficinas com pouco histórico aparecem como “Índice VEBOOK em formação”.</li>
+                      <li>O índice é informativo — não bloqueia automaticamente a oficina.</li>
+                    </ul>
                   </div>
                 </div>
               </div>
