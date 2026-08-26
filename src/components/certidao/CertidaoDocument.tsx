@@ -69,6 +69,35 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return <strong className="font-bold text-slate-800">{children}</strong>;
 }
 
+/**
+ * Linha de campo com barra horizontal sutil preenchendo o espaço restante.
+ * A barra não compete com o texto e não sugere preenchimento manual.
+ */
+function FieldRow({
+  label,
+  children,
+  className = '',
+}: {
+  label?: React.ReactNode;
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`cert-field-row ${className}`.trim()}>
+      <span className="cert-field-content">
+        {label != null ? (
+          <>
+            <FieldLabel>{label}</FieldLabel>
+            {children != null ? ' ' : null}
+          </>
+        ) : null}
+        {children}
+      </span>
+      <span className="cert-field-leader" aria-hidden />
+    </div>
+  );
+}
+
 function QrBlock({ identity }: { identity: CertificatePageIdentity }) {
   const data = encodeURIComponent(buildVerifyAbsoluteUrl(identity.verifyPath));
   return (
@@ -155,81 +184,61 @@ function AttendanceBlock({ entry }: { entry: CertificateHistoryEntry }) {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1.5">
-        <p>
-          <FieldLabel>Data do serviço:</FieldLabel> {formatDate(entry.serviceDate)}
-        </p>
-        <p>
-          <FieldLabel>Quilometragem:</FieldLabel> {entry.mileageKm.toLocaleString('pt-BR')} km
-        </p>
-        <p className="sm:col-span-2">
-          <FieldLabel>Oficina:</FieldLabel> {entry.workshopName} ({entry.workshopCity}/
-          {entry.workshopState})
-        </p>
-        <p className="sm:col-span-2">
-          <FieldLabel>Registro:</FieldLabel> {formatDateTime(entry.recordedAt)}
-        </p>
-        <p>
-          <FieldLabel>Validação:</FieldLabel> {validationLabel(entry.validationStatus)}
+        <FieldRow label="Data do serviço:">{formatDate(entry.serviceDate)}</FieldRow>
+        <FieldRow label="Quilometragem:">
+          {entry.mileageKm.toLocaleString('pt-BR')} km
+        </FieldRow>
+        <FieldRow label="Oficina:" className="sm:col-span-2">
+          {entry.workshopName} ({entry.workshopCity}/{entry.workshopState})
+        </FieldRow>
+        <FieldRow label="Registro:" className="sm:col-span-2">
+          {formatDateTime(entry.recordedAt)}
+        </FieldRow>
+        <FieldRow label="Validação:">
+          {validationLabel(entry.validationStatus)}
           {entry.validatedAt ? ` (${formatDateTime(entry.validatedAt)})` : ''}
-        </p>
-        <p>
-          <FieldLabel>Contestações:</FieldLabel>{' '}
+        </FieldRow>
+        <FieldRow label="Contestações:">
           {entry.contestation.exists
             ? `${entry.contestation.statusLabel}${entry.contestation.contestedAt ? ` · ${formatDateTime(entry.contestation.contestedAt)}` : ''}`
             : 'Nenhuma registrada'}
-        </p>
+        </FieldRow>
       </div>
 
-      <div>
-        <p>
-          <FieldLabel>Detalhes:</FieldLabel>
-        </p>
-        <p className="leading-snug mt-0.5">{entry.description}</p>
-        {entry.laborDetails ? (
-          <p className="leading-snug mt-1 text-slate-600">{entry.laborDetails}</p>
-        ) : null}
+      <div className="space-y-1">
+        <FieldRow label="Detalhes:" />
+        <FieldRow>{entry.description}</FieldRow>
+        {entry.laborDetails ? <FieldRow>{entry.laborDetails}</FieldRow> : null}
         {entry.observations ? (
-          <p className="leading-snug mt-1 text-slate-600">
-            <FieldLabel>Observações:</FieldLabel> {entry.observations}
-          </p>
+          <FieldRow label="Observações:">{entry.observations}</FieldRow>
         ) : null}
         {entry.responsibleName ? (
-          <p className="mt-1">
-            <FieldLabel>Responsável:</FieldLabel> {entry.responsibleName}
-          </p>
+          <FieldRow label="Responsável:">{entry.responsibleName}</FieldRow>
         ) : null}
       </div>
 
       {entry.products.length > 0 ? (
-        <div>
-          <p>
-            <FieldLabel>Produtos e peças:</FieldLabel>
-          </p>
-          <ul className="mt-0.5 space-y-0.5">
-            {entry.products.map((p) => (
-              <li key={p.id}>
-                {p.commercialName} · {p.brand}
-                {p.specification ? ` · ${p.specification}` : ''} — {p.quantity} {p.unit}
-              </li>
-            ))}
-          </ul>
+        <div className="space-y-1">
+          <FieldRow label="Produtos e peças:" />
+          {entry.products.map((p) => (
+            <FieldRow key={p.id}>
+              {p.commercialName} · {p.brand}
+              {p.specification ? ` · ${p.specification}` : ''} — {p.quantity} {p.unit}
+            </FieldRow>
+          ))}
         </div>
       ) : null}
 
-      <div>
-        <p>
-          <FieldLabel>Retificações:</FieldLabel>
-        </p>
+      <div className="space-y-1">
+        <FieldRow label="Retificações:" />
         {entry.rectifications.length === 0 ? (
-          <p className="mt-0.5">Nenhuma registrada.</p>
+          <FieldRow>Nenhuma registrada.</FieldRow>
         ) : (
-          <ul className="mt-0.5 space-y-1">
-            {entry.rectifications.map((r) => (
-              <li key={r.id} className="rounded border border-amber-100 bg-amber-50/70 px-1.5 py-1">
-                {formatDateTime(r.rectifiedAt)} — {r.fieldLabel}: {r.previousValue} → {r.newValue}
-              </li>
-            ))}
-          </ul>
+          entry.rectifications.map((r) => (
+            <FieldRow key={r.id}>
+              {formatDateTime(r.rectifiedAt)} — {r.fieldLabel}: {r.previousValue} → {r.newValue}
+            </FieldRow>
+          ))
         )}
       </div>
     </article>

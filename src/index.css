@@ -251,6 +251,36 @@ body {
   page-break-inside: avoid;
 }
 
+/* Barra sutil após o conteúdo de cada campo — preenche o espaço restante */
+.cert-field-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.cert-field-content {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  line-height: 1.35;
+}
+
+.cert-field-leader {
+  flex: 1 1 0;
+  min-width: 6mm;
+  height: 1px;
+  align-self: center;
+  margin-top: 0.35em;
+  background: rgba(11, 30, 54, 0.1);
+  border: 0;
+  pointer-events: none;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
 .cert-page-watermark {
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
@@ -342,6 +372,12 @@ body {
   }
 
   body.vebook-print-certidao .cert-page-watermark {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.vebook-print-certidao .cert-field-leader {
+    background: rgba(11, 30, 54, 0.12) !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
