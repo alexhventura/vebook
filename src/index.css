@@ -186,8 +186,16 @@ body {
   width: 210mm;
   max-width: 100%;
   min-height: 297mm;
-  padding: 12mm 14mm;
+  padding: 0;
   box-sizing: border-box;
+  overflow: hidden;
+}
+
+.cert-a4-page .cert-page-body {
+  padding-left: 14mm;
+  padding-right: 14mm;
+  padding-top: 3mm;
+  padding-bottom: 3mm;
 }
 
 .cert-page-body {
@@ -233,7 +241,7 @@ body {
     min-height: 297mm;
     height: 297mm;
     margin: 0 !important;
-    padding: 12mm 14mm;
+    padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
     page-break-after: always;
@@ -249,5 +257,7 @@ body {
   .cert-page-header,
   .cert-page-footer {
     break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 }
