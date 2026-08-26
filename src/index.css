@@ -201,25 +201,30 @@ body {
   padding: 0;
   margin-left: auto;
   margin-right: auto;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  overflow: visible;
+  display: block;
+  position: relative;
 }
 
 .cert-a4-page > .cert-page-shell {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
   height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .cert-page-header,
 .cert-page-footer {
-  flex: 0 0 auto;
   box-sizing: border-box;
   padding-left: var(--cert-margin-x);
   padding-right: var(--cert-margin-x);
+  flex-shrink: 0;
+  min-height: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 30;
 }
 
 .cert-page-header {
@@ -234,8 +239,8 @@ body {
 
 .cert-page-body {
   box-sizing: border-box;
-  flex: 1 1 auto;
   min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: stretch;
@@ -319,6 +324,20 @@ body {
     display: none !important;
   }
 
+  /* Janela dedicada de impressão — só o documento */
+  body.cert-print-window {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  body.cert-print-window .cert-document {
+    display: block !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   /* Remove chrome da SPA — só o documento entra na folha */
   body.vebook-print-certidao #root,
   body.vebook-print-certidao #root > div,
@@ -358,27 +377,25 @@ body {
   }
 
   /*
-   * Cada .cert-a4-page = exatamente 1 folha A4.
-   * 100% / 100vh preenchem a caixa @page (210×297 mm, margin 0),
-   * evitando margens brancas e corte de cabeçalho/rodapé por escala.
+   * Folha A4 fixa; grid garante que só o corpo encolhe — cabeçalho/rodapé íntegros.
+   * Margem interna extra protege título e QR da zona não imprimível do navegador.
    */
   body.vebook-print-certidao .cert-a4-page {
     position: relative !important;
-    display: flex !important;
-    flex-direction: column !important;
+    display: block !important;
     box-sizing: border-box !important;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    height: 100vh !important;
-    min-height: 100vh !important;
-    max-height: 100vh !important;
+    width: 210mm !important;
+    min-width: 210mm !important;
+    max-width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     page-break-after: always;
     break-after: page;
     page-break-inside: avoid;
@@ -391,23 +408,35 @@ body {
   }
 
   body.vebook-print-certidao .cert-a4-page > .cert-page-shell {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
     width: 100% !important;
     height: 100% !important;
     min-height: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  body.vebook-print-certidao .cert-page-header {
+    padding-top: 8mm !important;
+    padding-bottom: 5mm !important;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.vebook-print-certidao .cert-page-footer {
+    padding-top: 5mm !important;
+    padding-bottom: 8mm !important;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
   }
 
   body.vebook-print-certidao .cert-page-body {
-    flex: 1 1 auto !important;
     min-height: 0 !important;
     overflow: hidden !important;
   }
 
   body.vebook-print-certidao .cert-page-header,
   body.vebook-print-certidao .cert-page-footer {
-    flex: 0 0 auto !important;
     break-inside: avoid;
     page-break-inside: avoid;
     print-color-adjust: exact;

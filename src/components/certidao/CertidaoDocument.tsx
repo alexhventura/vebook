@@ -106,7 +106,7 @@ function QrBlock({ identity }: { identity: CertificatePageIdentity }) {
       alt="QR Code de verificação da Certidão VEBOOK"
       width={72}
       height={72}
-      className="w-14 h-14 sm:w-16 sm:h-16 border border-white/40 bg-white print:w-[18mm] print:h-[18mm]"
+      className="w-14 h-14 sm:w-16 sm:h-16 border border-white/40 bg-white print:w-[16mm] print:h-[16mm]"
     />
   );
 }

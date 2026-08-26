@@ -14,6 +14,7 @@ import {
 } from '../../data/certificateStore';
 import { CertidaoDocumentPages } from '../certidao/CertidaoDocument';
 import { paginateCertificateEntries } from '../../lib/certificatePagination';
+import { printCertidaoDocument } from '../../lib/printCertidao';
 
 interface CertidaoViewProps {
   initialPlate?: string;
@@ -58,6 +59,11 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
 
   const handlePrint = () => {
     if (!isPaid || !issued) return;
+    const area = document.querySelector('.cert-print-area');
+    if (area) {
+      printCertidaoDocument(area);
+      return;
+    }
     window.print();
   };
   const vehicle = VEHICLES_MOCK[plate] || VEHICLES_MOCK['BRA2E19'];
