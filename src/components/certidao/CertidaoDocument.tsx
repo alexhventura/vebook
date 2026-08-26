@@ -84,8 +84,8 @@ function QrBlock({ identity }: { identity: CertificatePageIdentity }) {
 
 function PageHeader({ identity }: { identity: CertificatePageIdentity }) {
   return (
-    <header className="cert-page-header px-[12mm] sm:px-[14mm] py-3.5 mb-0 bg-vebook-navy text-vebook-white border-b border-vebook-mustard/40 print:bg-[#0B1E36] print:text-white">
-      <div className="flex items-center justify-between gap-4">
+    <header className="cert-page-header bg-vebook-navy text-vebook-white border-b border-vebook-mustard/40 print:bg-[#0B1E36] print:text-white">
+      <div className="flex items-center justify-between gap-4 h-full">
         <div className="min-w-0 flex-1 space-y-1.5 text-[10px] sm:text-[11px]">
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-vebook-mustard">
             Certidão de Histórico do Veículo
@@ -119,7 +119,7 @@ function PageHeader({ identity }: { identity: CertificatePageIdentity }) {
 
 function PageFooter({ identity }: { identity: CertificatePageIdentity }) {
   return (
-    <footer className="cert-page-footer mt-auto px-[12mm] sm:px-[14mm] py-3 grid grid-cols-3 items-center gap-3 bg-vebook-navy-deep text-vebook-subtle border-t border-vebook-navy-mid print:bg-[#071527] print:text-[#94a3b8]">
+    <footer className="cert-page-footer grid grid-cols-3 items-center gap-3 bg-vebook-navy-deep text-vebook-subtle border-t border-vebook-navy-mid print:bg-[#071527] print:text-[#94a3b8]">
       <div className="min-w-0 text-left text-[8px] sm:text-[9px] space-y-1 leading-snug">
         <p>
           <strong className="font-bold text-vebook-mustard">Código de autenticidade</strong>
@@ -146,7 +146,7 @@ function PageFooter({ identity }: { identity: CertificatePageIdentity }) {
 
 function AttendanceBlock({ entry }: { entry: CertificateHistoryEntry }) {
   return (
-    <article className="cert-attendance flex-1 break-inside-avoid page-break-inside-avoid rounded-md border-2 border-vebook-mustard-deep bg-white p-3 sm:p-3.5 space-y-2.5 text-[10px] sm:text-[11px] text-slate-700">
+    <article className="cert-attendance rounded-md border-2 border-vebook-mustard-deep bg-white p-3 sm:p-3.5 space-y-2.5 text-[10px] sm:text-[11px] text-slate-700">
       <header className="flex flex-wrap items-baseline justify-between gap-2 border-b border-vebook-mustard/40 pb-1.5">
         <p className="font-extrabold text-[#0B1E36] tracking-wide text-[11px] sm:text-[12px] font-mono">
           {entry.vehicleAttendanceId}
@@ -257,14 +257,14 @@ export function CertidaoDocumentPages({
         return (
           <section
             key={`${identity.authenticityCode}-p${identity.pageNumber}`}
-            className="cert-a4-page relative bg-white text-slate-800 shadow-lg border border-slate-300 mx-auto flex flex-col overflow-hidden"
+            className="cert-a4-page relative bg-white text-slate-800 shadow-lg border border-slate-300"
             data-cert-page={identity.pageNumber}
             data-cert-code={identity.authenticityCode}
           >
             <PageWatermark />
-            <div className="relative z-10 flex flex-col flex-1 min-h-0">
+            <div className="cert-page-shell relative z-10">
               <PageHeader identity={identity} />
-              <div className="cert-page-body flex-1 flex flex-col gap-3 sm:gap-4 min-h-0 justify-stretch">
+              <div className="cert-page-body">
                 {page.blocks.length === 0 ? (
                   <p className="text-[10px] text-slate-500 italic">
                     Nenhum atendimento registrado neste snapshot.

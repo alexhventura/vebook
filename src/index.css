@@ -181,35 +181,72 @@ body {
   }
 }
 
-/* —— Certidão VEBOOK: documento A4 paginado —— */
-.cert-a4-page {
-  width: 210mm;
-  max-width: 100%;
-  min-height: 297mm;
-  padding: 0;
-  box-sizing: border-box;
-  overflow: hidden;
+/* —— Certidão VEBOOK: folha A4 (210 × 297 mm) —— */
+.cert-document {
+  --cert-page-w: 210mm;
+  --cert-page-h: 297mm;
+  --cert-margin-x: 12mm;
+  --cert-margin-y: 6mm;
+  --cert-block-gap: 4mm;
 }
 
-.cert-a4-page .cert-page-body {
-  padding-left: 12mm;
-  padding-right: 12mm;
+.cert-a4-page {
+  box-sizing: border-box;
+  width: var(--cert-page-w);
+  height: var(--cert-page-h);
+  min-width: var(--cert-page-w);
+  min-height: var(--cert-page-h);
+  max-width: var(--cert-page-w);
+  max-height: var(--cert-page-h);
+  padding: 0;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cert-a4-page > .cert-page-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.cert-page-header,
+.cert-page-footer {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  padding-left: var(--cert-margin-x);
+  padding-right: var(--cert-margin-x);
+}
+
+.cert-page-header {
+  padding-top: 5mm;
+  padding-bottom: 5mm;
+}
+
+.cert-page-footer {
   padding-top: 4mm;
   padding-bottom: 4mm;
 }
 
-@media (min-width: 640px) {
-  .cert-a4-page .cert-page-body {
-    padding-left: 14mm;
-    padding-right: 14mm;
-  }
-}
-
 .cert-page-body {
+  box-sizing: border-box;
   flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  gap: var(--cert-block-gap);
+  padding: var(--cert-margin-y) var(--cert-margin-x);
 }
 
 .cert-attendance {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -222,12 +259,6 @@ body {
 @media screen and (max-width: 900px) {
   .cert-document {
     overflow-x: auto;
-  }
-
-  .cert-a4-page {
-    width: 210mm;
-    min-height: auto;
-    transform-origin: top center;
   }
 }
 
@@ -246,7 +277,6 @@ body {
     -webkit-print-color-adjust: exact;
   }
 
-  /* Isola a Certidão: só as folhas A4 entram no PDF */
   body.vebook-print-certidao .vebook-no-print {
     display: none !important;
   }
@@ -316,7 +346,6 @@ body {
     -webkit-print-color-adjust: exact;
   }
 
-  /* Evita que o navegador injete cabeçalho/rodapé padrão (quando suportado via CSS) */
   body.vebook-print-certidao {
     -webkit-print-color-adjust: exact;
   }
