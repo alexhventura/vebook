@@ -246,7 +246,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               </p>
               <OfficeIndexBadge
                 snapshot={getOfficeReputation(workshop.id)}
-                variant="detailed"
                 onOpenHowItWorks={() => setIndexExplainerOpen(true)}
               />
             </div>
