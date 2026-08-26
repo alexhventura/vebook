@@ -12,8 +12,6 @@ import {
   PAGE_CAPACITY,
   TARGET_ATTENDANCES_PER_PAGE,
   estimateEntryUnits,
-  pageIdFromDocument,
-  pageTrackingCode,
   paginateCertificateEntries,
 } from './certificatePagination';
 import {
@@ -31,6 +29,8 @@ function makeEntry(
 ): CertificateHistoryEntry {
   return {
     id,
+    vehicleAttendanceId: `TST-${id}`,
+    vehicleAttendanceSeq: 1,
     serviceDate: '2026-08-15',
     serviceType: 'Troca de óleo',
     mileageKm: 80000,
@@ -52,24 +52,24 @@ function makeEntry(
 }
 
 describe('Paginação da Certidão', () => {
-  it('gera 1 página para histórico vazio (capa + resumo)', () => {
+  it('gera 1 página vazia quando não há atendimentos', () => {
     const pages = paginateCertificateEntries([]);
     assert.equal(pages.length, 1);
-    assert.ok(pages[0].blocks.some((b) => b.kind === 'cover'));
-    assert.ok(pages[0].blocks.some((b) => b.kind === 'summary'));
+    assert.equal(pages[0].blocks.length, 0);
   });
 
-  it('gera 2 páginas quando há poucos atendimentos', () => {
+  it('gera páginas com poucos atendimentos', () => {
     const entries = [makeEntry('e1'), makeEntry('e2')];
     const pages = paginateCertificateEntries(entries);
-    assert.ok(pages.length >= 1 && pages.length <= 2);
-    const entryBlocks = pages.flatMap((p) => p.blocks.filter((b) => b.kind === 'entry'));
-    assert.equal(entryBlocks.length, 2);
+    assert.equal(pages.length, 1);
+    assert.equal(pages[0].blocks.length, 2);
   });
 
   it('gera 3+ páginas com múltiplos atendimentos', () => {
     const entries = Array.from({ length: 8 }, (_, i) =>
       makeEntry(`e${i}`, {
+        vehicleAttendanceId: `BRA2E19-${String(i + 1).padStart(4, '0')}`,
+        vehicleAttendanceSeq: i + 1,
         description: 'x'.repeat(200),
         products: [
           {
@@ -128,8 +128,6 @@ describe('Paginação da Certidão', () => {
     );
     const pages = paginateCertificateEntries(entries);
     assert.ok(pages.length >= 8, `esperado muitas páginas, obteve ${pages.length}`);
-    const last = pages[pages.length - 1];
-    assert.ok(last.blocks.some((b) => b.kind === 'summary'));
   });
 
   it('não parte um atendimento entre páginas (bloco íntegro)', () => {
@@ -169,78 +167,53 @@ describe('Paginação da Certidão', () => {
     assert.ok(estimateEntryUnits(large) >= 2);
     const pages = paginateCertificateEntries([small, large]);
     for (const page of pages) {
-      const entriesOnPage = page.blocks.filter((b) => b.kind === 'entry');
-      const ids = entriesOnPage.map((b) => (b.kind === 'entry' ? b.entry.id : ''));
+      const ids = page.blocks.map((b) => b.entry.id);
       assert.equal(new Set(ids).size, ids.length);
     }
-    const allIds = pages
-      .flatMap((p) => p.blocks)
-      .filter((b) => b.kind === 'entry')
-      .map((b) => (b.kind === 'entry' ? b.entry.id : ''));
+    const allIds = pages.flatMap((p) => p.blocks.map((b) => b.entry.id));
     assert.deepEqual(allIds.sort(), ['s1', 's2'].sort());
-    // bloco pesado não compartilha folha com outro atendimento
-    const pageWithLarge = pages.find((p) =>
-      p.blocks.some((b) => b.kind === 'entry' && b.entry.id === 's2'),
-    );
+    const pageWithLarge = pages.find((p) => p.blocks.some((b) => b.entry.id === 's2'));
     assert.ok(pageWithLarge);
-    assert.equal(
-      pageWithLarge!.blocks.filter((b) => b.kind === 'entry').length,
-      1,
-    );
+    assert.equal(pageWithLarge!.blocks.length, 1);
   });
 
-  it('capa só na primeira página; resumo na última', () => {
-    const entries = Array.from({ length: 12 }, (_, i) => makeEntry(`c${i}`));
+  it('sem capa nem resumo — só blocos de atendimento', () => {
+    const entries = Array.from({ length: 6 }, (_, i) => makeEntry(`c${i}`));
     const pages = paginateCertificateEntries(entries);
-    assert.ok(pages.length >= 2);
-    assert.ok(pages[0].blocks.some((b) => b.kind === 'cover'));
-    for (let i = 1; i < pages.length; i += 1) {
-      assert.equal(
-        pages[i].blocks.some((b) => b.kind === 'cover'),
-        false,
-      );
+    for (const page of pages) {
+      assert.ok(page.blocks.every((b) => b.kind === 'entry'));
     }
-    const last = pages[pages.length - 1];
-    assert.ok(last.blocks.some((b) => b.kind === 'summary'));
   });
 
   it('meta de até 3 blocos de atendimento por folha', () => {
     assert.equal(TARGET_ATTENDANCES_PER_PAGE, 3);
-    assert.equal(FIRST_PAGE_ATTENDANCES, 2);
+    assert.equal(FIRST_PAGE_ATTENDANCES, 3);
     assert.equal(PAGE_CAPACITY, 3);
-    assert.equal(FIRST_PAGE_CAPACITY, 2);
+    assert.equal(FIRST_PAGE_CAPACITY, 3);
 
     const entries = Array.from({ length: 9 }, (_, i) => makeEntry(`t${i}`));
     const pages = paginateCertificateEntries(entries);
+    assert.equal(pages.length, 3);
     for (const page of pages) {
-      const n = page.blocks.filter((b) => b.kind === 'entry').length;
-      assert.ok(n <= TARGET_ATTENDANCES_PER_PAGE, `página ${page.pageNumber} tem ${n} blocos`);
-    }
-    const firstEntries = pages[0].blocks.filter((b) => b.kind === 'entry').length;
-    assert.ok(firstEntries <= FIRST_PAGE_ATTENDANCES);
-    // folhas intermediárias de conteúdo tendem a 3
-    const middle = pages.filter(
-      (p) =>
-        !p.blocks.some((b) => b.kind === 'cover') &&
-        !p.blocks.some((b) => b.kind === 'summary') &&
-        p.blocks.some((b) => b.kind === 'entry'),
-    );
-    assert.ok(middle.length >= 1);
-    for (const p of middle) {
-      assert.equal(p.blocks.filter((b) => b.kind === 'entry').length, 3);
+      assert.ok(page.blocks.length <= TARGET_ATTENDANCES_PER_PAGE);
+      assert.equal(page.blocks.length, 3);
     }
   });
 });
 
 describe('Identificação e autenticidade por página', () => {
-  it('pageId e rastreabilidade derivam do número documental', () => {
-    assert.equal(pageIdFromDocument('00001284', 1), '00001284-01');
-    assert.equal(pageIdFromDocument('00001284', 3), '00001284-03');
-    const track = pageTrackingCode('00001284', '8F72', 2);
-    assert.match(track, /^VB-\d{4}-00001284-P02-8F72$/);
+  it('código único de autenticidade/rastreabilidade', () => {
+    const cert = issueCertificate({
+      plate: 'BRA2E19',
+      requesterName: 'Teste',
+      requesterDocumentMasked: 'CPF 000.***.***-00',
+    });
+    assert.match(cert.authenticityCode, /^VBK-\d{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}$/i);
+    assert.equal(cert.trackingCode, cert.authenticityCode);
+    assert.equal(cert.validationCode, cert.authenticityCode);
   });
 
-  it('cada página tem identidade auto-contida', () => {
+  it('cada página tem identidade auto-contida com o mesmo código', () => {
     const cert = issueCertificate({
       plate: 'BRA2E19',
       requesterName: 'Teste',
@@ -250,36 +223,15 @@ describe('Identificação e autenticidade por página', () => {
     const total = pages.length;
     for (let i = 1; i <= total; i += 1) {
       const id = buildPageIdentity(cert, i, total);
-      assert.equal(id.documentNumber, cert.documentNumber);
-      assert.equal(id.vehiclePlate, cert.vehiclePlate);
       assert.equal(id.authenticityCode, cert.authenticityCode);
+      assert.equal(id.vehiclePlate, cert.vehiclePlate);
+      assert.equal(id.vehicleBrand, cert.vehicleBrand);
       assert.equal(id.pageNumber, i);
       assert.equal(id.totalPages, total);
-      assert.equal(id.pageId, `${cert.documentNumber}-${String(i).padStart(2, '0')}`);
-      assert.ok(id.pageTrackingCode.includes(cert.documentNumber));
       assert.ok(id.verifyPath.includes(cert.authenticityCode));
       assert.ok(id.verifyPath.includes(`p=${i}`));
       assert.ok(id.integrityHash.startsWith('H'));
-      assert.ok(id.trackingCode.length > 0);
     }
-  });
-
-  it('número sequencial é documental; autenticidade é código seguro separado', () => {
-    const a = issueCertificate({
-      plate: 'BRA2E19',
-      requesterName: 'A',
-      requesterDocumentMasked: 'CPF 111.***.***-11',
-    });
-    const b = issueCertificate({
-      plate: 'BRA2E19',
-      requesterName: 'B',
-      requesterDocumentMasked: 'CPF 222.***.***-22',
-    });
-    assert.notEqual(a.documentNumber, b.documentNumber);
-    assert.notEqual(a.authenticityCode, b.authenticityCode);
-    assert.match(a.documentNumber, /^\d{8}$/);
-    assert.match(a.authenticityCode, /^VBK-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}$/i);
-    assert.notEqual(a.historyAsOf, undefined);
   });
 
   it('emissão é snapshot independente (versionamento)', () => {
@@ -294,24 +246,23 @@ describe('Identificação e autenticidade por página', () => {
       requesterDocumentMasked: 'CPF 444.***.***-44',
     });
     assert.notEqual(first.id, second.id);
-    assert.equal(findCertificateByCode(first.authenticityCode)?.documentNumber, first.documentNumber);
-    assert.equal(findCertificateByCode(second.authenticityCode)?.documentNumber, second.documentNumber);
+    assert.notEqual(first.authenticityCode, second.authenticityCode);
+    assert.equal(findCertificateByCode(first.authenticityCode)?.id, first.id);
+    assert.equal(findCertificateByCode(second.authenticityCode)?.id, second.id);
   });
 
-  it('lookup por código de página e pageId', () => {
-    const cert = findCertificateByCode('00001284');
+  it('lookup pelo código único e legado de página', () => {
+    const cert = findCertificateByCode('VBK-2026-8F72-A3C1-9D2E');
     assert.ok(cert);
-    const id = buildPageIdentity(cert!, 2, 3);
-    const byPageTrack = findCertificateByCode(id.pageTrackingCode);
-    assert.ok(byPageTrack);
-    assert.equal(byPageTrack!.documentNumber, cert!.documentNumber);
-    const byPageId = findCertificateByCode(id.pageId);
-    assert.ok(byPageId);
-    assert.equal(parseCertificateLookup(id.pageId).pageNumber, 2);
+    assert.equal(cert!.vehiclePlate, 'BRA2E19');
+    const legacy = findCertificateByCode('VB-2026-00001284-P01-8F72');
+    assert.ok(legacy);
+    assert.equal(legacy!.documentNumber, '00001284');
+    assert.equal(parseCertificateLookup(cert!.authenticityCode).authenticityCode, cert!.authenticityCode);
   });
 
   it('código inexistente não localiza certidão', () => {
-    assert.equal(findCertificateByCode('VBK-DEAD-BEEF-0000'), undefined);
+    assert.equal(findCertificateByCode('VBK-2099-DEAD-BEEF-0000'), undefined);
     assert.equal(findCertificateByCode('99999999'), undefined);
   });
 
@@ -321,15 +272,18 @@ describe('Identificação e autenticidade por página', () => {
     assert.notEqual(h1, h2);
   });
 
-  it('histórico real do mock pagina e cobre casos de dados', () => {
+  it('histórico real do mock pagina e IDs sequenciais por veículo', () => {
     const entries = getCertificateHistory('BRA2E19');
+    assert.ok(entries.length > 0);
+    assert.ok(entries.every((e) => /^BRA2E19-\d{4}$/.test(e.vehicleAttendanceId)));
+    const seqs = entries.map((e) => e.vehicleAttendanceSeq).sort((a, b) => a - b);
+    assert.deepEqual(seqs, Array.from({ length: entries.length }, (_, i) => i + 1));
     assert.ok(entries.some((e) => e.products.length > 0));
     assert.ok(entries.some((e) => e.contestation.exists));
     assert.ok(entries.some((e) => e.rectifications.length > 0));
-    assert.ok(entries.some((e) => e.validationStatus === 'validado'));
     const pages = paginateCertificateEntries(entries);
     assert.ok(pages.length >= 1);
-    const flat = pages.flatMap((p) => p.blocks.filter((b) => b.kind === 'entry'));
+    const flat = pages.flatMap((p) => p.blocks);
     assert.equal(flat.length, entries.length);
   });
 });

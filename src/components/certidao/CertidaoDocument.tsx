@@ -35,50 +35,49 @@ function buildVerifyAbsoluteUrl(verifyPath: string): string {
 function QrBlock({ identity }: { identity: CertificatePageIdentity }) {
   const data = encodeURIComponent(buildVerifyAbsoluteUrl(identity.verifyPath));
   return (
-    <div className="flex flex-col items-center gap-0.5 shrink-0">
-      <img
-        src={`https://api.qrserver.com/v1/create-qr-code/?size=72x72&margin=1&data=${data}`}
-        alt={`QR Code de verificação — página ${identity.pageNumber}`}
-        width={72}
-        height={72}
-        className="w-16 h-16 border border-white/40 bg-white print:w-[18mm] print:h-[18mm]"
-      />
-      <span className="text-[7px] font-mono text-vebook-blue-muted leading-none max-w-[4.5rem] text-center break-all">
-        {identity.pageId}
-      </span>
-    </div>
+    <img
+      src={`https://api.qrserver.com/v1/create-qr-code/?size=72x72&margin=1&data=${data}`}
+      alt="QR Code de verificação da Certidão VEBOOK"
+      width={72}
+      height={72}
+      className="w-16 h-16 border border-white/40 bg-white print:w-[18mm] print:h-[18mm]"
+    />
   );
 }
 
 function PageHeader({ identity }: { identity: CertificatePageIdentity }) {
   return (
-    <header className="cert-page-header px-[14mm] py-2.5 mb-0 flex items-start justify-between gap-3 bg-vebook-navy text-vebook-white border-b border-vebook-mustard/40 print:bg-[#0B1E36] print:text-white">
-      <div className="min-w-0 space-y-1">
-        <Logo size="sm" variant="light" />
-        <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-vebook-mustard">
-          Certidão de Histórico do Veículo
-        </p>
-        <div className="text-[10px] text-vebook-blue-muted space-y-0.5">
-          <p>
-            <span className="font-semibold text-vebook-subtle">Placa:</span>{' '}
-            <span className="font-mono font-bold text-vebook-white">{identity.vehiclePlate}</span>
-          </p>
-          <p>
-            <span className="font-semibold text-vebook-subtle">Certidão nº:</span>{' '}
-            <span className="font-mono font-bold text-vebook-white">{identity.documentNumber}</span>
-          </p>
-          <p className="truncate">
-            <span className="font-semibold text-vebook-subtle">Autenticidade:</span>{' '}
-            <span className="font-mono text-[9px] text-vebook-blue-muted">{identity.authenticityCode}</span>
+    <header className="cert-page-header px-[14mm] py-3.5 mb-0 bg-vebook-navy text-vebook-white border-b border-vebook-mustard/40 print:bg-[#0B1E36] print:text-white">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1.5">
+          <Logo size="sm" variant="light" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-vebook-mustard">
+            Certidão de Histórico do Veículo
           </p>
         </div>
+        <p className="text-[10px] font-bold tracking-wide text-vebook-white shrink-0">VEBOOK</p>
       </div>
-      <div className="text-right text-[9px] text-vebook-blue-muted space-y-1 shrink-0">
-        <p className="font-bold text-vebook-white tracking-wide">VEBOOK</p>
-        <p className="text-vebook-mustard">
-          Página {identity.pageNumber}/{identity.totalPages}
+
+      <div className="mt-3 grid grid-cols-1 gap-1 text-[10px] text-vebook-blue-muted">
+        <p>
+          <span className="font-semibold text-vebook-subtle">Placa:</span>{' '}
+          <span className="font-mono font-bold text-vebook-white text-[11px]">
+            {identity.vehiclePlate}
+          </span>
         </p>
-        <p className="font-mono text-[8px] text-vebook-subtle">{identity.pageId}</p>
+        <p>
+          <span className="font-semibold text-vebook-subtle">Veículo:</span>{' '}
+          <span className="text-vebook-white">
+            {identity.vehicleBrand} {identity.vehicleModelName} · {identity.vehicleColor} ·{' '}
+            {identity.vehicleYearLabel}
+          </span>
+        </p>
+        <p className="pt-0.5">
+          <span className="font-semibold text-vebook-mustard">Código de autenticidade:</span>{' '}
+          <span className="font-mono font-bold text-vebook-white tracking-wide text-[11px]">
+            {identity.authenticityCode}
+          </span>
+        </p>
       </div>
     </header>
   );
@@ -86,38 +85,42 @@ function PageHeader({ identity }: { identity: CertificatePageIdentity }) {
 
 function PageFooter({ identity }: { identity: CertificatePageIdentity }) {
   return (
-    <footer className="cert-page-footer mt-auto px-[14mm] py-2.5 flex items-end justify-between gap-3 bg-vebook-navy-deep text-vebook-subtle border-t border-vebook-navy-mid print:bg-[#071527] print:text-[#94a3b8]">
+    <footer className="cert-page-footer mt-auto px-[14mm] py-2.5 grid grid-cols-3 items-end gap-2 bg-vebook-navy-deep text-vebook-subtle border-t border-vebook-navy-mid print:bg-[#071527] print:text-[#94a3b8]">
       <div className="min-w-0 text-[8px] space-y-0.5">
-        <p className="font-bold text-vebook-mustard">Código de rastreabilidade</p>
-        <p className="font-mono break-all text-vebook-blue-muted">{identity.pageTrackingCode}</p>
+        <p className="font-bold text-vebook-mustard">Código de autenticidade</p>
+        <p className="font-mono break-all text-vebook-blue-muted text-[9px]">
+          {identity.authenticityCode}
+        </p>
         <p>
-          Emissão: {formatDateTime(identity.issuedAt)} · Integridade: {identity.integrityHash}
+          Emissão: <span className="text-vebook-blue-muted">{formatDateTime(identity.issuedAt)}</span>
         </p>
-        <p className="text-vebook-subtle/80">VEBOOK — documento formal de histórico e rastreabilidade</p>
       </div>
-      <div className="flex items-end gap-2 shrink-0">
-        <p className="text-[10px] font-bold text-vebook-mustard">
-          {identity.pageNumber}/{identity.totalPages}
+
+      <div className="flex items-center justify-center self-center">
+        <p className="text-[12px] font-bold text-vebook-mustard tabular-nums">
+          Página {identity.pageNumber}/{identity.totalPages}
         </p>
+      </div>
+
+      <div className="flex justify-end">
         <QrBlock identity={identity} />
       </div>
     </footer>
   );
 }
 
-function AttendanceBlock({
-  entry,
-  attendanceNumber,
-}: {
-  entry: CertificateHistoryEntry;
-  attendanceNumber: number;
-}) {
+function AttendanceBlock({ entry }: { entry: CertificateHistoryEntry }) {
   return (
     <article className="cert-attendance break-inside-avoid page-break-inside-avoid rounded-md border border-vebook-navy/25 bg-slate-50/60 p-2.5 space-y-2 text-[10px] text-slate-700 shadow-[inset_3px_0_0_0_#0B1E36]">
       <header className="flex flex-wrap items-baseline justify-between gap-1 border-b border-slate-100 pb-1">
-        <p className="font-extrabold text-[#0B1E36] uppercase tracking-wide text-[11px]">
-          Atendimento nº {String(attendanceNumber).padStart(2, '0')}
-        </p>
+        <div className="space-y-0.5">
+          <p className="font-extrabold text-[#0B1E36] uppercase tracking-wide text-[11px]">
+            Atendimento {entry.vehicleAttendanceId}
+          </p>
+          <p className="text-[9px] font-mono text-slate-500">
+            ID sequencial do veículo · nº {String(entry.vehicleAttendanceSeq).padStart(4, '0')}
+          </p>
+        </div>
         <p className="font-semibold text-sky-900">{entry.serviceType}</p>
       </header>
 
@@ -201,84 +204,8 @@ function AttendanceBlock({
   );
 }
 
-function CoverBlock({ cert }: { cert: IssuedCertificate }) {
-  return (
-    <section className="rounded-md border border-slate-200 bg-slate-50/80 p-3 space-y-2 text-[10px] mb-3">
-      <p className="text-[11px] font-black tracking-tight text-[#0B1E36]">
-        CERTIDÃO DE HISTÓRICO DO VEÍCULO
-      </p>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-        <p>
-          <span className="font-semibold text-slate-500">Placa:</span>{' '}
-          <span className="font-mono font-bold">{cert.vehiclePlate}</span>
-        </p>
-        <p>
-          <span className="font-semibold text-slate-500">Número da Certidão:</span>{' '}
-          <span className="font-mono font-bold">{cert.documentNumber}</span>
-        </p>
-        <p className="col-span-2">
-          <span className="font-semibold text-slate-500">Veículo:</span> {cert.vehicleModel}
-        </p>
-        <p className="col-span-2">
-          <span className="font-semibold text-slate-500">Código de autenticidade:</span>{' '}
-          <span className="font-mono">{cert.authenticityCode}</span>
-        </p>
-        <p>
-          <span className="font-semibold text-slate-500">Data de emissão:</span>{' '}
-          {formatDateTime(cert.issuedAt)}
-        </p>
-        <p>
-          <span className="font-semibold text-slate-500">Histórico até:</span>{' '}
-          {formatDateTime(cert.historyAsOf)}
-        </p>
-        <p className="col-span-2 text-slate-600 leading-snug">
-          Fotografia documental dos registros disponíveis na plataforma até o momento da emissão. O
-          VEBOOK registra o que aconteceu; não determina o que deverá acontecer.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-function SummaryBlock({ cert }: { cert: IssuedCertificate }) {
-  return (
-    <section className="rounded-md border border-[#0B1E36]/30 bg-[#0B1E36]/[0.03] p-3 space-y-2 text-[10px]">
-      <p className="font-extrabold text-[#0B1E36] uppercase tracking-wide text-[11px]">
-        Resumo da rastreabilidade
-      </p>
-      <div className="grid grid-cols-2 gap-1.5">
-        <p>Registros: <strong>{cert.totalServices}</strong></p>
-        <p>Validações: <strong>{cert.validatedCount}</strong></p>
-        <p>Contestações: <strong>{cert.contestedCount}</strong></p>
-        <p>Retificações: <strong>{cert.rectificationCount}</strong></p>
-        <p className="col-span-2">
-          Data de emissão: <strong>{formatDateTime(cert.issuedAt)}</strong>
-        </p>
-        <p className="col-span-2">
-          Código de autenticidade: <strong className="font-mono">{cert.authenticityCode}</strong>
-        </p>
-        <p className="col-span-2">
-          Rastreabilidade: <strong className="font-mono">{cert.trackingCode}</strong>
-        </p>
-        <p className="col-span-2 text-slate-600">
-          Emissão independente — novas atualizações do histórico geram nova Certidão, sem alterar
-          este documento.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-function renderBlock(block: CertificatePageContent, cert: IssuedCertificate) {
-  if (block.kind === 'cover') return <CoverBlock key="cover" cert={cert} />;
-  if (block.kind === 'summary') return <SummaryBlock key="summary" cert={cert} />;
-  return (
-    <AttendanceBlock
-      key={block.entry.id}
-      entry={block.entry}
-      attendanceNumber={block.attendanceNumber}
-    />
-  );
+function renderBlock(block: CertificatePageContent) {
+  return <AttendanceBlock key={block.entry.id} entry={block.entry} />;
 }
 
 export function CertidaoDocumentPages({
@@ -297,15 +224,20 @@ export function CertidaoDocumentPages({
         const identity = buildPageIdentity(cert, page.pageNumber, totalPages);
         return (
           <section
-            key={identity.pageId}
+            key={`${identity.authenticityCode}-p${identity.pageNumber}`}
             className="cert-a4-page bg-white text-slate-800 shadow-lg border border-slate-300 mx-auto flex flex-col"
             data-cert-page={identity.pageNumber}
-            data-cert-id={identity.documentNumber}
-            data-page-id={identity.pageId}
+            data-cert-code={identity.authenticityCode}
           >
             <PageHeader identity={identity} />
             <div className="cert-page-body flex-1 space-y-2.5 min-h-0">
-              {page.blocks.map((block) => renderBlock(block, cert))}
+              {page.blocks.length === 0 ? (
+                <p className="text-[10px] text-slate-500 italic">
+                  Nenhum atendimento registrado neste snapshot.
+                </p>
+              ) : (
+                page.blocks.map((block) => renderBlock(block))
+              )}
             </div>
             <PageFooter identity={identity} />
           </section>

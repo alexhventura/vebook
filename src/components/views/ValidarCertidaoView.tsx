@@ -77,8 +77,7 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
             Verificar Certidão VEBOOK
           </h1>
           <p className="text-sm text-vebook-muted leading-relaxed">
-            Informe o código de autenticidade, o número da Certidão ou o código de página impresso
-            no documento / QR Code.
+            Informe o código de autenticidade impresso no documento ou obtido via QR Code.
           </p>
         </div>
 
@@ -86,7 +85,7 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
           <Input
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="VBK-… ou 00001284-01"
+            placeholder="VBK-2026-…"
             className="font-mono"
           />
           <Button type="submit" variant="primary">
@@ -103,18 +102,16 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
                 <div>
                   <p className="text-lg font-extrabold text-vebook-navy">Certidão VEBOOK válida</p>
                   <p className="text-sm text-vebook-muted mt-1">
-                    Este identificador corresponde a uma emissão autenticada na plataforma.
+                    Este código corresponde a uma emissão autenticada na plataforma.
                   </p>
                 </div>
               </div>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div>
-                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Nº da Certidão</dt>
-                  <dd className="font-mono font-semibold text-vebook-navy">{cert.documentNumber}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Autenticidade</dt>
-                  <dd className="font-mono font-semibold text-vebook-navy text-xs break-all">
+                <div className="sm:col-span-2">
+                  <dt className="text-xs font-bold uppercase text-vebook-subtle">
+                    Código de autenticidade
+                  </dt>
+                  <dd className="font-mono font-semibold text-vebook-navy text-sm break-all">
                     {cert.authenticityCode}
                   </dd>
                 </div>
@@ -127,34 +124,27 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
                   <dd className="text-vebook-navy">{formatDateTime(cert.historyAsOf)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Veículo</dt>
+                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Placa</dt>
                   <dd className="font-mono font-semibold text-vebook-navy">{cert.vehiclePlate}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Modelo</dt>
-                  <dd className="text-vebook-navy text-sm">{cert.vehicleModel}</dd>
+                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Veículo</dt>
+                  <dd className="text-vebook-navy text-sm">
+                    {cert.vehicleBrand} {cert.vehicleModelName} · {cert.vehicleColor} ·{' '}
+                    {cert.vehicleYearFabrication}/{cert.vehicleYearModel}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-xs font-bold uppercase text-vebook-subtle">Registros no snapshot</dt>
                   <dd className="text-vebook-navy">{cert.totalServices}</dd>
                 </div>
-                <div>
-                  <dt className="text-xs font-bold uppercase text-vebook-subtle">Rastreabilidade</dt>
-                  <dd className="font-mono text-xs text-vebook-navy break-all">{cert.trackingCode}</dd>
-                </div>
                 {pageIdentity ? (
-                  <>
-                    <div>
-                      <dt className="text-xs font-bold uppercase text-vebook-subtle">Página</dt>
-                      <dd className="font-mono font-semibold text-vebook-navy">
-                        {pageIdentity.pageNumber}/{pageIdentity.totalPages}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs font-bold uppercase text-vebook-subtle">ID da página</dt>
-                      <dd className="font-mono text-xs text-vebook-navy">{pageIdentity.pageId}</dd>
-                    </div>
-                  </>
+                  <div>
+                    <dt className="text-xs font-bold uppercase text-vebook-subtle">Página consultada</dt>
+                    <dd className="font-mono font-semibold text-vebook-navy">
+                      {pageIdentity.pageNumber}/{pageIdentity.totalPages}
+                    </dd>
+                  </div>
                 ) : null}
                 <div className="sm:col-span-2">
                   <dt className="text-xs font-bold uppercase text-vebook-subtle">Solicitante</dt>

@@ -120,6 +120,13 @@ export interface CertificateContestationSummary {
  */
 export interface CertificateHistoryEntry {
   id: string;
+  /**
+   * ID sequencial do atendimento no veículo (ex.: BRA2E19-0008).
+   * Estável e cronológico — dificulta troca/adulteração de blocos.
+   */
+  vehicleAttendanceId: string;
+  /** Sequência numérica no veículo (1 = mais antigo). */
+  vehicleAttendanceSeq: number;
   serviceDate: string;
   recordedAt: string;
   mileageKm: number;
@@ -542,13 +549,16 @@ export interface SignupDraft {
 
 export interface Certificate {
   id: string;
-  /** Número documental sequencial (ex.: 00001284) — identificador, não autenticação. */
+  /** Número interno sequencial (não exibido no documento). */
   documentNumber: string;
-  /** Código seguro de autenticidade (não previsível). */
+  /**
+   * Código único de autenticidade/rastreabilidade (ex.: VBK-2026-F05F-4F6C-21AE).
+   * Um só código para o documento; QR e validação usam este valor.
+   */
   authenticityCode: string;
   /** @deprecated Prefer authenticityCode — mantido por compatibilidade. */
   validationCode: string;
-  /** Código de rastreabilidade do documento (sem página). */
+  /** Igual a authenticityCode (código único rastreável). */
   trackingCode: string;
   /** Hash de integridade do snapshot emitido. */
   integrityHash: string;
@@ -556,7 +566,13 @@ export interface Certificate {
   historyAsOf: string;
   qrCodeUrl?: string;
   vehiclePlate: string;
+  /** Linha legível legado (marca/modelo/versão). */
   vehicleModel: string;
+  vehicleBrand: string;
+  vehicleModelName: string;
+  vehicleColor: string;
+  vehicleYearFabrication: number;
+  vehicleYearModel: number;
   requesterName: string;
   requesterDocumentMasked: string;
   issuedAt: string;
@@ -573,14 +589,14 @@ export interface Certificate {
 
 /** Identidade de uma página da Certidão (auto-contida). */
 export interface CertificatePageIdentity {
-  documentNumber: string;
   authenticityCode: string;
-  trackingCode: string;
-  pageTrackingCode: string;
-  pageId: string;
   pageNumber: number;
   totalPages: number;
   vehiclePlate: string;
+  vehicleBrand: string;
+  vehicleModelName: string;
+  vehicleColor: string;
+  vehicleYearLabel: string;
   issuedAt: string;
   verifyPath: string;
   integrityHash: string;

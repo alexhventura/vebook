@@ -53,15 +53,21 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
 
   const previewCert = useMemo((): IssuedCertificate => {
     const historyEntries = getCertificateHistory(vehicle.plate);
+    const authenticityCode = 'VBK-2026-AAAA-BBBB-CCCC';
     return {
       id: 'preview',
       documentNumber: '--------',
-      authenticityCode: 'VBK-PREVIEW',
-      validationCode: 'VBK-PREVIEW',
-      trackingCode: 'VBK-PREV-00000000',
+      authenticityCode,
+      validationCode: authenticityCode,
+      trackingCode: authenticityCode,
       integrityHash: 'H--------',
       historyAsOf: new Date().toISOString(),
       vehiclePlate: vehicle.plate,
+      vehicleBrand: vehicle.brand,
+      vehicleModelName: vehicle.model,
+      vehicleColor: vehicle.color,
+      vehicleYearFabrication: vehicle.yearFabrication,
+      vehicleYearModel: vehicle.yearModel,
       vehicleModel: `${vehicle.brand} ${vehicle.model} ${vehicle.version}`,
       requesterName,
       requesterDocumentMasked: maskCpf(requesterCpf),
@@ -166,7 +172,7 @@ export const CertidaoView: React.FC<CertidaoViewProps> = ({
           ) : (
             <p className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4" />
-              Emitida · nº {issued?.documentNumber} · {issued?.authenticityCode}
+              Emitida · {issued?.authenticityCode}
             </p>
           )}
         </div>

@@ -5,26 +5,23 @@
  * - Cada atendimento é um bloco indivisível.
  * - Se o bloco não cabe no restante da folha, vai integralmente para a próxima.
  * - Meta: até TARGET_ATTENDANCES_PER_PAGE (3) blocos por folha.
- * - Folha 1 (com capa): até FIRST_PAGE_ATTENDANCES (2) para não estourar o espaço.
- * - Bloco excepcionalmente grande: ocupa a folha sozinho.
+ * - Sem capa nem resumo — identificação fica no cabeçalho de cada página.
  */
 
 import type { CertificateHistoryEntry } from '../types';
 
-/** Meta de blocos de atendimento por folha de conteúdo. */
+/** Meta de blocos de atendimento por folha. */
 export const TARGET_ATTENDANCES_PER_PAGE = 3;
-/** Folha 1 inclui capa — reserva menos slots de atendimento. */
-export const FIRST_PAGE_ATTENDANCES = 2;
-
-/** Compat: capacidade em “unidades” (3 slots × peso base). */
+/** Compat: todas as folhas usam a mesma meta (sem capa). */
+export const FIRST_PAGE_ATTENDANCES = TARGET_ATTENDANCES_PER_PAGE;
 export const PAGE_CAPACITY = TARGET_ATTENDANCES_PER_PAGE;
 export const FIRST_PAGE_CAPACITY = FIRST_PAGE_ATTENDANCES;
-export const SUMMARY_UNITS = 1;
 
-export type CertificatePageContent =
-  | { kind: 'cover' }
-  | { kind: 'entry'; entry: CertificateHistoryEntry; attendanceNumber: number }
-  | { kind: 'summary' };
+export type CertificatePageContent = {
+  kind: 'entry';
+  entry: CertificateHistoryEntry;
+  attendanceNumber: number;
+};
 
 export type CertificateDocumentPage = {
   pageNumber: number;
@@ -49,16 +46,11 @@ export function estimateEntryUnits(entry: CertificateHistoryEntry): number {
 }
 
 function entryCount(blocks: CertificatePageContent[]): number {
-  return blocks.filter((b) => b.kind === 'entry').length;
+  return blocks.length;
 }
 
 function usedWeight(blocks: CertificatePageContent[]): number {
-  return blocks.reduce((acc, b) => {
-    if (b.kind === 'cover') return acc + 1;
-    if (b.kind === 'summary') return acc + SUMMARY_UNITS;
-    if (b.kind === 'entry') return acc + estimateEntryUnits(b.entry);
-    return acc;
-  }, 0);
+  return blocks.reduce((acc, b) => acc + estimateEntryUnits(b.entry), 0);
 }
 
 /**
@@ -67,18 +59,9 @@ function usedWeight(blocks: CertificatePageContent[]): number {
  */
 export function paginateCertificateEntries(
   entries: CertificateHistoryEntry[],
-  options: { includeSummary?: boolean } = {},
 ): CertificateDocumentPage[] {
-  const includeSummary = options.includeSummary !== false;
   const pages: CertificateDocumentPage[] = [];
-  let current: CertificatePageContent[] = [{ kind: 'cover' }];
-
-  const maxAttendancesForCurrent = () =>
-    pages.length === 0 && current.some((b) => b.kind === 'cover')
-      ? FIRST_PAGE_ATTENDANCES
-      : TARGET_ATTENDANCES_PER_PAGE;
-
-  const capacityForCurrent = () => maxAttendancesForCurrent() + (current.some((b) => b.kind === 'cover') ? 1 : 0);
+  let current: CertificatePageContent[] = [];
 
   const flush = () => {
     if (current.length === 0) return;
@@ -89,17 +72,14 @@ export function paginateCertificateEntries(
   /** O bloco cabe inteiro na folha atual? (nunca parcial) */
   const fitsIntact = (entry: CertificateHistoryEntry): boolean => {
     const count = entryCount(current);
-    const max = maxAttendancesForCurrent();
-    if (count >= max) return false;
+    if (count >= TARGET_ATTENDANCES_PER_PAGE) return false;
 
     const weight = estimateEntryUnits(entry);
-    // Bloco “pesado”: só cabe sozinho (ou em folha vazia de conteúdo)
     if (weight >= TARGET_ATTENDANCES_PER_PAGE) {
       return count === 0;
     }
-    // Espaço restante em peso + contagem
-    if (count + 1 > max) return false;
-    if (usedWeight(current) + weight > capacityForCurrent()) return false;
+    if (count + 1 > TARGET_ATTENDANCES_PER_PAGE) return false;
+    if (usedWeight(current) + weight > TARGET_ATTENDANCES_PER_PAGE) return false;
     return true;
   };
 
@@ -114,59 +94,20 @@ export function paginateCertificateEntries(
       flush();
     }
 
-    // Após flush, se ainda não couber (bloco gigante na folha 1 com capa),
-    // abre folha só de conteúdo sem misturar com a capa já fechada.
-    if (current.length > 0 && !fitsIntact(entry)) {
-      flush();
-    }
-
     current.push(block);
 
-    // Fecha folha ao atingir a meta de 3 (ou 2 na 1ª) ou bloco exclusivo
     const count = entryCount(current);
     const weight = estimateEntryUnits(entry);
-    if (count >= maxAttendancesForCurrent() || weight >= TARGET_ATTENDANCES_PER_PAGE) {
+    if (count >= TARGET_ATTENDANCES_PER_PAGE || weight >= TARGET_ATTENDANCES_PER_PAGE) {
       flush();
     }
   });
 
-  if (includeSummary) {
-    const summary: CertificatePageContent = { kind: 'summary' };
-    // Resumo na última folha se ainda houver vaga; senão, folha própria
-    const canShare =
-      current.length > 0 &&
-      entryCount(current) < maxAttendancesForCurrent() &&
-      usedWeight(current) + SUMMARY_UNITS <= capacityForCurrent();
-
-    if (!canShare) {
-      if (current.length > 0) flush();
-      current = [summary];
-    } else {
-      current.push(summary);
-    }
-  }
-
   if (current.length > 0) flush();
 
   if (pages.length === 0) {
-    pages.push({
-      pageNumber: 1,
-      blocks: [{ kind: 'cover' }, { kind: 'summary' }],
-    });
+    pages.push({ pageNumber: 1, blocks: [] });
   }
 
   return pages.map((p, i) => ({ ...p, pageNumber: i + 1 }));
-}
-
-export function pageIdFromDocument(documentNumber: string, pageNumber: number): string {
-  return `${documentNumber}-${String(pageNumber).padStart(2, '0')}`;
-}
-
-export function pageTrackingCode(
-  documentNumber: string,
-  authenticityShort: string,
-  pageNumber: number,
-): string {
-  const year = new Date().getFullYear();
-  return `VB-${year}-${documentNumber}-P${String(pageNumber).padStart(2, '0')}-${authenticityShort}`;
 }

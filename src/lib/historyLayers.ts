@@ -56,10 +56,28 @@ function contestationSummary(record: ServiceRecord): CertificateContestationSumm
   };
 }
 
+function recordChronologyKey(record: ServiceRecord): string {
+  return record.recordedAt || `${record.serviceDate}T12:00:00`;
+}
+
+/**
+ * ID sequencial por veículo (cronológico): PLACA-0001, PLACA-0002…
+ * Estável enquanto o conjunto histórico se mantém — impede troca trivial de blocos.
+ */
+export function buildVehicleAttendanceId(plate: string, seq: number): string {
+  return `${plate.toUpperCase()}-${String(seq).padStart(4, '0')}`;
+}
+
 /** Projeta registro completo para a Certidão (sem PII de cliente / comentários privados). */
-export function toCertificateHistoryEntry(record: ServiceRecord): CertificateHistoryEntry {
+export function toCertificateHistoryEntry(
+  record: ServiceRecord,
+  vehicleAttendanceSeq: number,
+): CertificateHistoryEntry {
+  const plate = record.vehiclePlate.toUpperCase();
   return {
     id: record.id,
+    vehicleAttendanceId: buildVehicleAttendanceId(plate, vehicleAttendanceSeq),
+    vehicleAttendanceSeq,
     serviceDate: record.serviceDate,
     recordedAt: record.recordedAt || `${record.serviceDate}T12:00:00`,
     mileageKm: record.mileageKm,
@@ -102,11 +120,18 @@ export function getPublicHistory(plate: string): PublicHistoryItem[] {
     .sort((a, b) => b.serviceDate.localeCompare(a.serviceDate));
 }
 
-/** Certidão: histórico completo permitido + rastreabilidade. */
+/** Certidão: histórico completo + ID sequencial por veículo. */
 export function getCertificateHistory(plate: string): CertificateHistoryEntry[] {
   const records = SERVICES_MOCK[plate] || [];
+  const chronological = [...records].sort((a, b) =>
+    recordChronologyKey(a).localeCompare(recordChronologyKey(b)),
+  );
+  const seqById = new Map<string, number>();
+  chronological.forEach((r, index) => {
+    seqById.set(r.id, index + 1);
+  });
   return records
-    .map(toCertificateHistoryEntry)
+    .map((r) => toCertificateHistoryEntry(r, seqById.get(r.id) || 1))
     .sort((a, b) => b.serviceDate.localeCompare(a.serviceDate));
 }
 
@@ -140,6 +165,8 @@ export function assertPublicHistoryShape(item: Record<string, unknown>): string[
     'cpf',
     'email',
     'phone',
+    'vehicleAttendanceId',
+    'vehicleAttendanceSeq',
   ];
   return forbidden.filter((key) => key in item);
 }

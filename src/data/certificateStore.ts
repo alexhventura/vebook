@@ -1,16 +1,13 @@
 /**
  * Emissões de Certidão VEBOOK — documento formal, versionado e rastreável.
  * Cada emissão é uma fotografia imutável do histórico até historyAsOf.
+ * Um único código de autenticidade/rastreabilidade por Certidão.
  */
 
 import type { Certificate, CertificateHistoryEntry, CertificatePageIdentity } from '../types';
 import { CERTIFICATES_MOCK, VEHICLES_MOCK } from './mockData';
 import { getCertificateHistory } from '../lib/historyLayers';
-import {
-  pageIdFromDocument,
-  pageTrackingCode,
-  paginateCertificateEntries,
-} from '../lib/certificatePagination';
+import { paginateCertificateEntries } from '../lib/certificatePagination';
 
 export type IssuedCertificate = Certificate & {
   historyEntries: CertificateHistoryEntry[];
@@ -44,7 +41,7 @@ function nextDocumentNumber(): string {
   return String(n).padStart(8, '0');
 }
 
-function randomToken(bytes = 4): string {
+function randomToken(bytes = 2): string {
   const arr = new Uint8Array(bytes);
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
     crypto.getRandomValues(arr);
@@ -54,15 +51,19 @@ function randomToken(bytes = 4): string {
   return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('').toUpperCase();
 }
 
-/** Código de autenticidade não previsível (não é só o nº sequencial). */
-export function buildAuthenticityCode(): string {
-  return `VBK-${randomToken(2)}-${randomToken(2)}-${randomToken(2)}`;
+/**
+ * Código único de autenticidade/rastreabilidade.
+ * Ex.: VBK-2026-F05F-4F6C-21AE
+ * Substitui os códigos separados de autenticidade e rastreio de página.
+ */
+export function buildAuthenticityCode(issuedAt = new Date()): string {
+  const year = issuedAt.getFullYear();
+  return `VBK-${year}-${randomToken(2)}-${randomToken(2)}-${randomToken(2)}`;
 }
 
-export function buildTrackingCode(documentNumber: string, authenticityCode: string): string {
-  const short = authenticityCode.replace(/^VBK-/, '').slice(0, 4);
-  const year = new Date().getFullYear();
-  return `VBK-${short}-${year}-${documentNumber}`;
+/** Alias — tracking = autenticidade (código único). */
+export function buildTrackingCode(authenticityCode: string): string {
+  return authenticityCode;
 }
 
 /** Hash simples de integridade do snapshot (protótipo — trocar por HMAC no backend). */
@@ -75,28 +76,41 @@ export function buildIntegrityHash(payload: string): string {
   return `H${(h >>> 0).toString(16).toUpperCase().padStart(8, '0')}`;
 }
 
+function vehicleFields(plate: string) {
+  const vehicle = VEHICLES_MOCK[plate] || VEHICLES_MOCK['BRA2E19'];
+  return {
+    vehiclePlate: vehicle.plate,
+    vehicleBrand: vehicle.brand,
+    vehicleModelName: vehicle.model,
+    vehicleColor: vehicle.color,
+    vehicleYearFabrication: vehicle.yearFabrication,
+    vehicleYearModel: vehicle.yearModel,
+    vehicleModel: `${vehicle.brand} ${vehicle.model} ${vehicle.version} (${vehicle.yearFabrication}/${vehicle.yearModel})`,
+  };
+}
+
 function seedFromMock() {
   if (issued.size > 0) return;
   for (const cert of CERTIFICATES_MOCK) {
     const documentNumber = cert.documentNumber || '00001284';
     const authenticityCode = cert.authenticityCode || cert.validationCode;
-    const trackingCode =
-      cert.trackingCode || buildTrackingCode(documentNumber, authenticityCode);
+    const trackingCode = authenticityCode;
     const historyEntries = getCertificateHistory(cert.vehiclePlate);
     const historyAsOf = cert.historyAsOf || cert.issuedAt;
+    const vf = vehicleFields(cert.vehiclePlate);
     const integrityHash =
       cert.integrityHash ||
       buildIntegrityHash(
         JSON.stringify({
-          documentNumber,
           authenticityCode,
           plate: cert.vehiclePlate,
           historyAsOf,
-          entries: historyEntries.map((e) => e.id),
+          entries: historyEntries.map((e) => e.vehicleAttendanceId),
         }),
       );
     const full: IssuedCertificate = {
       ...cert,
+      ...vf,
       documentNumber,
       authenticityCode,
       validationCode: authenticityCode,
@@ -111,7 +125,6 @@ function seedFromMock() {
     };
     issued.set(authenticityCode.toUpperCase(), full);
     issued.set(documentNumber, full);
-    issued.set(trackingCode.toUpperCase(), full);
   }
 }
 
@@ -126,19 +139,19 @@ export function issueCertificate(input: {
   const vehicle = VEHICLES_MOCK[input.plate] || VEHICLES_MOCK['BRA2E19'];
   const historyEntries = getCertificateHistory(vehicle.plate);
   const documentNumber = nextDocumentNumber();
-  const authenticityCode = buildAuthenticityCode();
-  const trackingCode = buildTrackingCode(documentNumber, authenticityCode);
   const issuedAt = new Date().toISOString();
+  const authenticityCode = buildAuthenticityCode(new Date(issuedAt));
+  const trackingCode = buildTrackingCode(authenticityCode);
   const historyAsOf = issuedAt;
   const dates = historyEntries.map((h) => h.serviceDate).sort();
+  const vf = vehicleFields(vehicle.plate);
   const integrityHash = buildIntegrityHash(
     JSON.stringify({
-      documentNumber,
       authenticityCode,
       plate: vehicle.plate,
       historyAsOf,
       entries: historyEntries.map((e) => ({
-        id: e.id,
+        attendanceId: e.vehicleAttendanceId,
         recordedAt: e.recordedAt,
         mileageKm: e.mileageKm,
         validationStatus: e.validationStatus,
@@ -155,8 +168,7 @@ export function issueCertificate(input: {
     integrityHash,
     historyAsOf,
     qrCodeUrl: `#/validar/${authenticityCode}`,
-    vehiclePlate: vehicle.plate,
-    vehicleModel: `${vehicle.brand} ${vehicle.model} ${vehicle.version} (${vehicle.yearFabrication}/${vehicle.yearModel})`,
+    ...vf,
     requesterName: input.requesterName,
     requesterDocumentMasked: input.requesterDocumentMasked,
     issuedAt,
@@ -174,18 +186,18 @@ export function issueCertificate(input: {
 
   issued.set(authenticityCode.toUpperCase(), cert);
   issued.set(documentNumber, cert);
-  issued.set(trackingCode.toUpperCase(), cert);
   return cert;
 }
 
-/** Extrai número da Certidão e página de códigos de página / pageId. */
+/** Extrai código e, se presente, página (?p= ou legado). */
 export function parseCertificateLookup(code: string): {
+  authenticityCode?: string;
   documentNumber?: string;
   pageNumber?: number;
   raw: string;
 } {
   const raw = code.trim().toUpperCase();
-  // VB-2026-00001284-P01-8F72
+  // Legado: VB-2026-00001284-P01-8F72
   const pageTrack = raw.match(/^VB-\d{4}-(\d{8})-P(\d{2})-[A-F0-9]+$/i);
   if (pageTrack) {
     return {
@@ -194,7 +206,7 @@ export function parseCertificateLookup(code: string): {
       raw,
     };
   }
-  // 00001284-01
+  // Legado: 00001284-01
   const pageId = raw.match(/^(\d{8})-(\d{2})$/);
   if (pageId) {
     return {
@@ -203,6 +215,10 @@ export function parseCertificateLookup(code: string): {
       raw,
     };
   }
+  // Código único: VBK-2026-F05F-4F6C-21AE (ou formato anterior VBK-F05F-…)
+  if (/^VBK-/.test(raw)) {
+    return { authenticityCode: raw, raw };
+  }
   return { raw };
 }
 
@@ -210,6 +226,9 @@ export function findCertificateByCode(code: string): IssuedCertificate | undefin
   seedFromMock();
   const parsed = parseCertificateLookup(code);
   if (!parsed.raw) return undefined;
+  if (parsed.authenticityCode) {
+    return issued.get(parsed.authenticityCode);
+  }
   if (parsed.documentNumber) {
     return (
       issued.get(parsed.documentNumber) ||
@@ -233,18 +252,15 @@ export function buildPageIdentity(
   pageNumber: number,
   totalPages: number,
 ): CertificatePageIdentity {
-  const authenticityShort = cert.authenticityCode.replace(/^VBK-/, '').slice(0, 4);
-  const pageId = pageIdFromDocument(cert.documentNumber, pageNumber);
-  const pageTrack = pageTrackingCode(cert.documentNumber, authenticityShort, pageNumber);
   return {
-    documentNumber: cert.documentNumber,
     authenticityCode: cert.authenticityCode,
-    trackingCode: cert.trackingCode,
-    pageTrackingCode: pageTrack,
-    pageId,
     pageNumber,
     totalPages,
     vehiclePlate: cert.vehiclePlate,
+    vehicleBrand: cert.vehicleBrand,
+    vehicleModelName: cert.vehicleModelName,
+    vehicleColor: cert.vehicleColor,
+    vehicleYearLabel: `${cert.vehicleYearFabrication}/${cert.vehicleYearModel}`,
     issuedAt: cert.issuedAt,
     verifyPath: `#/validar/${encodeURIComponent(cert.authenticityCode)}?p=${pageNumber}`,
     integrityHash: cert.integrityHash,

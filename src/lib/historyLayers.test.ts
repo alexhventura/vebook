@@ -104,12 +104,11 @@ describe('Autenticidade da Certidão', () => {
       requesterDocumentMasked: 'CPF 000.***.***-00',
     });
     assert.ok(cert.authenticityCode.startsWith('VBK-'));
-    assert.ok(cert.documentNumber.match(/^\d{8}$/));
+    assert.equal(cert.trackingCode, cert.authenticityCode);
     assert.ok(cert.qrCodeUrl?.includes(cert.authenticityCode));
     const found = findCertificateByCode(cert.authenticityCode);
     assert.ok(found);
     assert.equal(found!.vehiclePlate, 'BRA2E19');
-    assert.equal(found!.documentNumber, cert.documentNumber);
   });
 });
 
