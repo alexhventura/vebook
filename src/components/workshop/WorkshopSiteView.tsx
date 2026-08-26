@@ -333,70 +333,9 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* COMPOSIÇÃO DO ECOSSISTEMA: LATERAL ESQUERDA | SITE CENTRAL | LATERAL DIREITA */}
-      {/* ========================================================================= */}
-      <div className="max-w-[1600px] mx-auto flex justify-center px-2 sm:px-4 lg:px-6 py-6 gap-6">
-        
-        {/* ---------------------------------------------------- */}
-        {/* LATERAL ESQUERDA (DESKTOP): ESPAÇO PARA PARCEIROS VEBOOK */}
-        {/* ---------------------------------------------------- */}
-        <aside className="hidden xl:block w-56 shrink-0 space-y-4 pt-20">
-          
-          <div className="sticky top-24 space-y-4">
-            
-            {/* Bloco 1 de Parceiro */}
-            <div className="p-4 rounded-2xl bg-white/70 border border-slate-200/80 shadow-2xs space-y-3 text-center backdrop-blur-xs">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-slate-600 block">
-                Parceiro Homologado
-              </span>
-              <div className="h-20 bg-slate-50 rounded-xl border border-slate-200/60 flex flex-col items-center justify-center p-2 text-center">
-                <span className="font-black text-slate-800 text-lg tracking-tight">Mobil 1</span>
-                <span className="text-[10px] text-slate-600 font-medium">Lubrificantes Sintéticos</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                Produtos oficiais aplicados com rastreabilidade pelo Diário Veicular.
-              </p>
-            </div>
-
-            {/* Bloco 2 de Parceiro */}
-            <div className="p-4 rounded-2xl bg-white/70 border border-slate-200/80 shadow-2xs space-y-3 text-center backdrop-blur-xs">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-slate-600 block">
-                Parceiro Homologado
-              </span>
-              <div className="h-20 bg-slate-50 rounded-xl border border-slate-200/60 flex flex-col items-center justify-center p-2 text-center">
-                <span className="font-black text-slate-800 text-lg tracking-tight">MANN+FILTER</span>
-                <span className="text-[10px] text-slate-600 font-medium">Filtração Automotiva Original</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                Tecnologia alemã de alta retenção para ar, óleo e cabine.
-              </p>
-            </div>
-
-            {/* Bloco de Anúncio / Espaço para Fabricante */}
-            <div className="p-4 rounded-2xl bg-slate-100/80 border border-dashed border-slate-300 text-center space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                Espaço para Parceiro
-              </span>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                Anuncie para motoristas que cuidam do carro nesta oficina.
-              </p>
-              <button
-                onClick={() => alert('Simulação: Abrir canal de mídia para marcas e fabricantes parceiros do ecossistema VEBOOK.')}
-                className="text-[11px] font-bold text-slate-700 hover:text-slate-900 underline block mx-auto cursor-pointer"
-              >
-                Quero anunciar
-              </button>
-            </div>
-
-          </div>
-
-        </aside>
-
-        {/* ---------------------------------------------------- */}
-        {/* CONTEÚDO PRINCIPAL: SITE OFICIAL DA OFICINA PARCEIRA */}
-        {/* ---------------------------------------------------- */}
-        <main className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden transition-all">
+      {/* Site oficial da oficina */}
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
+        <main className="w-full bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden transition-all">
           
           {/* 1. CABEÇALHO DO SITE DA OFICINA */}
           <header className="bg-white border-b border-slate-100 sticky top-10 z-40 px-6 sm:px-8 py-4 backdrop-blur-md bg-white/95">
@@ -989,57 +928,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
           </footer>
 
         </main>
-
-        {/* ---------------------------------------------------- */}
-        {/* LATERAL DIREITA (DESKTOP): ESPAÇO PARA PARCEIROS VEBOOK */}
-        {/* ---------------------------------------------------- */}
-        <aside className="hidden xl:block w-56 shrink-0 space-y-4 pt-20">
-          
-          <div className="sticky top-24 space-y-4">
-            
-            {/* Bloco 3 de Parceiro */}
-            <div className="p-4 rounded-2xl bg-white/70 border border-slate-200/80 shadow-2xs space-y-3 text-center backdrop-blur-xs">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-slate-600 block">
-                Parceiro Homologado
-              </span>
-              <div className="h-20 bg-slate-50 rounded-xl border border-slate-200/60 flex flex-col items-center justify-center p-2 text-center">
-                <span className="font-black text-slate-800 text-lg tracking-tight">Cobreq</span>
-                <span className="text-[10px] text-slate-600 font-medium">Pastilhas Cerâmicas & Freios</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                Frenagem segura com composto de alta durabilidade e baixo ruído.
-              </p>
-            </div>
-
-            {/* Bloco 4 de Parceiro */}
-            <div className="p-4 rounded-2xl bg-white/70 border border-slate-200/80 shadow-2xs space-y-3 text-center backdrop-blur-xs">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-slate-600 block">
-                Parceiro Homologado
-              </span>
-              <div className="h-20 bg-slate-50 rounded-xl border border-slate-200/60 flex flex-col items-center justify-center p-2 text-center">
-                <span className="font-black text-slate-800 text-lg tracking-tight">NAKATA</span>
-                <span className="text-[10px] text-slate-600 font-medium">Suspensão & Direção</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                Pivôs, bieletas e amortecedores de qualidade original.
-              </p>
-            </div>
-
-            {/* Bloco Certificação VEBOOK */}
-            <div className="p-4 rounded-2xl bg-sky-950 text-white shadow-md text-center space-y-2">
-              <ShieldCheck className="w-6 h-6 text-sky-400 mx-auto" />
-              <span className="text-[11px] font-bold block text-sky-200">
-                Rede Credenciada
-              </span>
-              <p className="text-[10px] text-slate-300 leading-tight">
-                Oficinas que honram a verdade técnica em cada manutenção.
-              </p>
-            </div>
-
-          </div>
-
-        </aside>
-
       </div>
 
       {/* ========================================================================= */}
