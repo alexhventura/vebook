@@ -390,24 +390,45 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                 </div>
 
                 <div className="space-y-2 text-sm sm:text-base">
-                  <div className="flex justify-between items-center gap-3 py-0.5">
-                    <span className="font-extrabold text-slate-800">Segunda — Sexta</span>
-                    <span className="font-mono font-extrabold text-slate-900">
-                      {workshop.businessHoursDetail?.weekdays || '08:00 — 18:00'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center gap-3 py-0.5">
-                    <span className="font-extrabold text-slate-800">Sábado</span>
-                    <span className="font-mono font-extrabold text-slate-900">
-                      {workshop.businessHoursDetail?.saturday || '08:00 — 13:00'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center gap-3 py-0.5">
-                    <span className="font-extrabold text-slate-800">Domingo</span>
-                    <span className="font-mono font-extrabold text-slate-900">
-                      {workshop.businessHoursDetail?.sunday || 'Fechado'}
-                    </span>
-                  </div>
+                  {workshop.businessHoursDetail?.monday ? (
+                    <>
+                      {[
+                        { label: 'Segunda', value: workshop.businessHoursDetail.monday },
+                        { label: 'Terça', value: workshop.businessHoursDetail.tuesday },
+                        { label: 'Quarta', value: workshop.businessHoursDetail.wednesday },
+                        { label: 'Quinta', value: workshop.businessHoursDetail.thursday },
+                        { label: 'Sexta', value: workshop.businessHoursDetail.friday },
+                        { label: 'Sábado', value: workshop.businessHoursDetail.saturday },
+                        { label: 'Domingo', value: workshop.businessHoursDetail.sunday },
+                      ].map((row) => (
+                        <div key={row.label} className="flex justify-between items-center gap-3 py-0.5">
+                          <span className="font-extrabold text-slate-800">{row.label}</span>
+                          <span className="font-mono font-extrabold text-slate-900">{row.value || '—'}</span>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center gap-3 py-0.5">
+                        <span className="font-extrabold text-slate-800">Segunda — Sexta</span>
+                        <span className="font-mono font-extrabold text-slate-900">
+                          {workshop.businessHoursDetail?.weekdays || '08:00 — 18:00'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center gap-3 py-0.5">
+                        <span className="font-extrabold text-slate-800">Sábado</span>
+                        <span className="font-mono font-extrabold text-slate-900">
+                          {workshop.businessHoursDetail?.saturday || '08:00 — 13:00'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center gap-3 py-0.5">
+                        <span className="font-extrabold text-slate-800">Domingo</span>
+                        <span className="font-mono font-extrabold text-slate-900">
+                          {workshop.businessHoursDetail?.sunday || 'Fechado'}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

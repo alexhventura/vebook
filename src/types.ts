@@ -204,11 +204,25 @@ export interface WorkshopSocialLinks {
 }
 
 export interface WorkshopHoursDetail {
-  weekdays: string;
-  saturday: string;
-  sunday: string;
+  weekdays?: string;
+  saturday?: string;
+  sunday?: string;
+  monday?: string;
+  tuesday?: string;
+  wednesday?: string;
+  thursday?: string;
+  friday?: string;
   notes?: string;
 }
+
+export type SignupWeekdayKey =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday';
 
 export interface Workshop {
   id: string;
@@ -519,31 +533,25 @@ export interface SignupDraft {
   owner: {
     fullName: string;
     cpf: string;
-    phone: string;
     email: string;
     password: string;
   };
   office: {
-    legalName: string;
-    tradeName: string;
+    name: string;
     cnpj: string;
+    address: string;
     phone: string;
-    whatsapp: string;
-    zipCode: string;
-    street: string;
-    streetNumber: string;
-    complement: string;
-    neighborhood: string;
-    city: string;
-    state: string;
   };
-  slug: string;
-  extras: {
-    segments: string[];
-    instagram: string;
-    website: string;
-    shortDescription: string;
-    /** Cor da página pública (espectro / hex). */
+  site: {
+    slug: string;
+    displayName: string;
+    subtitle: string;
+    photoUrl: string;
+    contactPhone: string;
+    contactEmail: string;
+    hours: Record<SignupWeekdayKey, string>;
+    socialLinks: WorkshopSocialLinks;
+    services: string[];
     themeColor: string;
   };
   modality: PlanModality;

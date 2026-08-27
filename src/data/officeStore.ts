@@ -582,10 +582,23 @@ export function listWorkshopsForPublicSite(): Workshop[] {
   return listPublicOffices().map(toPublicWorkshop);
 }
 
-function composeAddress(draft: SignupDraft['office']): string {
-  const line = [draft.street, draft.streetNumber].filter(Boolean).join(', ');
-  const extra = [draft.complement, draft.neighborhood].filter(Boolean).join(' — ');
-  return extra ? `${line} — ${extra}` : line;
+function composeAddress(address: string): string {
+  return address.trim();
+}
+
+function parseCityStateFromAddress(address: string): { city: string; state: string } {
+  const match = address.match(/,\s*([^,/]+)\s*\/\s*([A-Z]{2})\s*$/i);
+  if (match) {
+    return { city: match[1].trim(), state: match[2].toUpperCase() };
+  }
+  return { city: '—', state: '—' };
+}
+
+function businessHoursSummary(hours: SignupDraft['site']['hours']): string {
+  const values = Object.values(hours).filter(Boolean);
+  if (!values.length) return 'Horário a completar no painel';
+  const unique = [...new Set(values)];
+  return unique.length === 1 ? unique[0] : 'Consulte os horários no site';
 }
 
 export async function createPendingOffice(draft: SignupDraft, consent: {
@@ -597,7 +610,7 @@ export async function createPendingOffice(draft: SignupDraft, consent: {
   if (!consent.terms || !consent.privacy || !consent.commercial || !consent.priceChange) {
     throw new Error('Aceite obrigatório incompleto.');
   }
-  const slug = normalizeSlug(draft.slug);
+  const slug = normalizeSlug(draft.site.slug);
   if (!isSlugAvailable(slug)) {
     throw new Error('Endereço digital indisponível.');
   }
@@ -612,39 +625,58 @@ export async function createPendingOffice(draft: SignupDraft, consent: {
   const paymentId = createId('pay');
   const stamp = nowIso();
   const host = workshopHost(slug);
+  const { city, state: uf } = parseCityStateFromAddress(draft.office.address);
+  const contactPhone = onlyDigits(draft.site.contactPhone || draft.office.phone);
+  const serviceNames = draft.site.services.map((item) => item.trim()).filter(Boolean);
 
   const office: Office = {
     id: officeId,
     officeId,
-    name: draft.office.tradeName.trim() || draft.office.legalName.trim(),
-    legalName: draft.office.legalName.trim(),
-    tradeName: draft.office.tradeName.trim() || undefined,
+    name: draft.site.displayName.trim() || draft.office.name.trim(),
+    legalName: draft.office.name.trim(),
+    tradeName: draft.site.displayName.trim() || undefined,
     cnpj: onlyDigits(draft.office.cnpj) || undefined,
     subdomain: host,
     slug,
-    slogan: draft.extras.shortDescription || undefined,
-    themeColor: normalizeThemeColor(draft.extras.themeColor),
-    city: draft.office.city,
-    state: draft.office.state,
-    address: composeAddress(draft.office),
-    neighborhood: draft.office.neighborhood,
-    zipCode: draft.office.zipCode,
-    street: draft.office.street,
-    streetNumber: draft.office.streetNumber,
-    complement: draft.office.complement || undefined,
-    phone: draft.office.phone,
-    whatsapp: draft.office.whatsapp || draft.office.phone,
-    email: draft.owner.email,
-    businessHours: 'Horário a completar no painel',
-    specialties: draft.extras.segments,
-    segments: draft.extras.segments,
+    slogan: draft.site.subtitle.trim() || undefined,
+    themeColor: normalizeThemeColor(draft.site.themeColor),
+    coverImageUrl: draft.site.photoUrl.trim() || undefined,
+    city,
+    state: uf,
+    address: composeAddress(draft.office.address),
+    street: draft.office.address.trim(),
+    streetNumber: '',
+    phone: contactPhone,
+    whatsapp: contactPhone,
+    email: draft.site.contactEmail.trim() || draft.owner.email,
+    businessHours: businessHoursSummary(draft.site.hours),
+    businessHoursDetail: {
+      monday: draft.site.hours.monday || undefined,
+      tuesday: draft.site.hours.tuesday || undefined,
+      wednesday: draft.site.hours.wednesday || undefined,
+      thursday: draft.site.hours.thursday || undefined,
+      friday: draft.site.hours.friday || undefined,
+      saturday: draft.site.hours.saturday || undefined,
+      sunday: draft.site.hours.sunday || undefined,
+    },
+    specialties: serviceNames,
+    segments: serviceNames,
+    servicesList: serviceNames.map((title, index) => ({
+      id: `svc_signup_${index}`,
+      title,
+      category: 'Serviços',
+      shortDescription: title,
+    })),
     totalServicesRegistered: 0,
     validationRate: 0,
     certifiedSince: stamp.slice(0, 10),
-    description: draft.extras.shortDescription || `${draft.office.legalName} no VEBOOK.`,
+    description: draft.site.subtitle.trim() || `${draft.office.name.trim()} no VEBOOK.`,
     socialLinks: {
-      instagram: draft.extras.instagram || undefined,
-      website: draft.extras.website || undefined,
+      instagram: draft.site.socialLinks.instagram?.trim() || undefined,
+      facebook: draft.site.socialLinks.facebook?.trim() || undefined,
+      youtube: draft.site.socialLinks.youtube?.trim() || undefined,
+      tiktok: draft.site.socialLinks.tiktok?.trim() || undefined,
+      website: draft.site.socialLinks.website?.trim() || undefined,
     },
     status: 'pending',
     publicVisible: false,
@@ -658,7 +690,7 @@ export async function createPendingOffice(draft: SignupDraft, consent: {
     officeId,
     fullName: draft.owner.fullName.trim(),
     cpf,
-    phone: onlyDigits(draft.owner.phone),
+    phone: contactPhone || onlyDigits(draft.office.phone),
     email: draft.owner.email.trim().toLowerCase(),
     passwordHash: await hashPassword(cpf, draft.owner.password),
     role: 'owner',
@@ -1512,27 +1544,37 @@ export function onboardingProgress(officeId: string): { items: Array<{ id: strin
 
 export function defaultSignupDraft(modality: PlanModality = 'monthly'): SignupDraft {
   return {
-    owner: { fullName: '', cpf: '', phone: '', email: '', password: '' },
+    owner: { fullName: '', cpf: '', email: '', password: '' },
     office: {
-      legalName: '',
-      tradeName: '',
+      name: '',
       cnpj: '',
+      address: '',
       phone: '',
-      whatsapp: '',
-      zipCode: '',
-      street: '',
-      streetNumber: '',
-      complement: '',
-      neighborhood: '',
-      city: '',
-      state: '',
     },
-    slug: '',
-    extras: {
-      segments: [],
-      instagram: '',
-      website: '',
-      shortDescription: '',
+    site: {
+      slug: '',
+      displayName: '',
+      subtitle: '',
+      photoUrl: '',
+      contactPhone: '',
+      contactEmail: '',
+      hours: {
+        monday: '08:00 — 18:00',
+        tuesday: '08:00 — 18:00',
+        wednesday: '08:00 — 18:00',
+        thursday: '08:00 — 18:00',
+        friday: '08:00 — 18:00',
+        saturday: '08:00 — 13:00',
+        sunday: 'Fechado',
+      },
+      socialLinks: {
+        instagram: '',
+        facebook: '',
+        youtube: '',
+        tiktok: '',
+        website: '',
+      },
+      services: [''],
       themeColor: '#0B1E36',
     },
     modality,
