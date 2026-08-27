@@ -66,6 +66,9 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
   const themeBorder = { borderColor: themeHex } as const;
   const themeSolid = { backgroundColor: themeHex, color: themeOn } as const;
   const themeDot = { backgroundColor: themeHex } as const;
+  const mapHref =
+    workshop.mapUrl?.trim() ||
+    `https://maps.google.com/?q=${encodeURIComponent(`${workshop.name} ${workshop.address} ${workshop.city}`)}`;
 
   const handleWorkshopChange = (id: string) => {
     setCurrentWorkshopId(id);
@@ -159,55 +162,8 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto flex justify-center px-2 sm:px-4 lg:px-6 py-6 gap-6">
-
-        <aside className="hidden xl:block w-56 shrink-0 space-y-4 pt-6">
-          <div className="sticky top-24 space-y-4">
-            <div className="p-4 rounded-2xl bg-white/70 border border-slate-200/80 shadow-2xs space-y-3 text-center backdrop-blur-xs">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-slate-600 block">
-                Parceiro Homologado
-              </span>
-              <div className="h-20 bg-slate-50 rounded-xl border border-slate-200/60 flex flex-col items-center justify-center p-2 text-center">
-                <span className="font-black text-slate-800 text-lg tracking-tight">Mobil 1</span>
-                <span className="text-[10px] text-slate-600 font-medium">Lubrificantes Sintéticos</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                Produtos oficiais aplicados com rastreabilidade pelo Diário Veicular.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-white/70 border border-slate-200/80 shadow-2xs space-y-3 text-center backdrop-blur-xs">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-slate-600 block">
-                Parceiro Homologado
-              </span>
-              <div className="h-20 bg-slate-50 rounded-xl border border-slate-200/60 flex flex-col items-center justify-center p-2 text-center">
-                <span className="font-black text-slate-800 text-lg tracking-tight">MANN+FILTER</span>
-                <span className="text-[10px] text-slate-600 font-medium">Filtração Automotiva Original</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                Tecnologia alemã de alta retenção para ar, óleo e cabine.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-100/80 border border-dashed border-slate-300 text-center space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                Espaço para Parceiro
-              </span>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                Anuncie para motoristas que cuidam do carro nesta oficina.
-              </p>
-              <button
-                type="button"
-                onClick={() => alert('Simulação: Abrir canal de mídia para marcas e fabricantes parceiros do ecossistema VEBOOK.')}
-                className="text-[11px] font-bold text-slate-700 hover:text-slate-900 underline block mx-auto cursor-pointer"
-              >
-                Quero anunciar
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        <main className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden transition-all">
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
+        <main className="w-full bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden transition-all">
 
           {/* Foto da oficina — nome na tarja personalizada sobre a imagem */}
           <section id="sec-hero" className="relative">
@@ -272,15 +228,22 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setMapModalOpen(true)}
+                <a
+                  href={mapHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(event) => {
+                    if (!workshop.mapUrl?.trim()) {
+                      event.preventDefault();
+                      setMapModalOpen(true);
+                    }
+                  }}
                   className="inline-flex items-center gap-1.5 text-sm font-extrabold hover:underline cursor-pointer pt-1"
                   style={themeAccent}
                 >
                   <span>Ver no mapa e rotas</span>
                   <ChevronRight className="w-4 h-4" />
-                </button>
+                </a>
               </div>
 
               {/* Card 2: Contato */}
@@ -444,9 +407,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
               <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
                 Serviços realizados pela oficina
               </h3>
-              <p className="text-base font-bold text-slate-700 max-w-2xl">
-                Itens e especialidades oferecidos por {workshop.name}. O detalhamento acompanha o cadastro da oficina.
-              </p>
             </div>
 
             <div className="rounded-2xl border-2 bg-white p-5 sm:p-6 shadow-2xs" style={themeBorder}>
@@ -527,46 +487,6 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
           </footer>
 
         </main>
-
-        {/* ---------------------------------------------------- */}
-        {/* LATERAL DIREITA (DESKTOP): ESPAÇO PARA PARCEIROS VEBOOK */}
-        {/* ---------------------------------------------------- */}
-        <aside className="hidden xl:block w-56 shrink-0 space-y-4 pt-20">
-          
-          <div className="sticky top-24 space-y-4">
-            
-            {/* Bloco 3 de Parceiro */}
-            <div className="p-4 rounded-2xl bg-white/70 border border-slate-200/80 shadow-2xs space-y-3 text-center backdrop-blur-xs">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-slate-600 block">
-                Parceiro Homologado
-              </span>
-              <div className="h-20 bg-slate-50 rounded-xl border border-slate-200/60 flex flex-col items-center justify-center p-2 text-center">
-                <span className="font-black text-slate-800 text-lg tracking-tight">Cobreq</span>
-                <span className="text-[10px] text-slate-600 font-medium">Pastilhas Cerâmicas & Freios</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                Frenagem segura com composto de alta durabilidade e baixo ruído.
-              </p>
-            </div>
-
-            {/* Bloco 4 de Parceiro */}
-            <div className="p-4 rounded-2xl bg-white/70 border border-slate-200/80 shadow-2xs space-y-3 text-center backdrop-blur-xs">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-slate-600 block">
-                Parceiro Homologado
-              </span>
-              <div className="h-20 bg-slate-50 rounded-xl border border-slate-200/60 flex flex-col items-center justify-center p-2 text-center">
-                <span className="font-black text-slate-800 text-lg tracking-tight">NAKATA</span>
-                <span className="text-[10px] text-slate-600 font-medium">Suspensão & Direção</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-tight">
-                Pivôs, bieletas e amortecedores de qualidade original.
-              </p>
-            </div>
-
-          </div>
-
-        </aside>
-
       </div>
 
       {/* ========================================================================= */}
@@ -618,13 +538,13 @@ export const WorkshopSiteView: React.FC<WorkshopSiteViewProps> = ({
 
             <div className="flex gap-2">
               <a
-                href={`https://maps.google.com/?q=${encodeURIComponent(`${workshop.name} ${workshop.address} ${workshop.city}`)}`}
+                href={mapHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 py-3 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"
               >
                 <ExternalLink className="w-4 h-4" />
-                <span>Abrir no Google Maps</span>
+                <span>{workshop.mapUrl?.trim() ? 'Abrir mapa cadastrado' : 'Abrir no Google Maps'}</span>
               </a>
               <a
                 href={`https://waze.com/ul?q=${encodeURIComponent(`${workshop.name} ${workshop.address} ${workshop.city}`)}`}

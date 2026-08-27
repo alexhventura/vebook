@@ -484,6 +484,14 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
                   />
                 </Field>
               </div>
+              <Field label="Link do mapa" optional hint="URL do Google Maps, Waze ou outro mapa com o endereço da oficina.">
+                <input
+                  className={inputClass}
+                  value={draft.office.mapUrl}
+                  onChange={(e) => setDraft({ ...draft, office: { ...draft.office, mapUrl: e.target.value } })}
+                  placeholder="https://maps.app.goo.gl/..."
+                />
+              </Field>
               <Field label="Telefone" error={errors.officePhone}>
                 <input
                   className={inputClass}

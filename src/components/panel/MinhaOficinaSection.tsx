@@ -28,6 +28,7 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
     city: office.city,
     state: office.state,
     zipCode: office.zipCode ?? '',
+    mapUrl: office.mapUrl ?? '',
     instagram: office.socialLinks?.instagram ?? '',
     facebook: office.socialLinks?.facebook ?? '',
     website: office.socialLinks?.website ?? '',
@@ -83,6 +84,7 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
             city: form.city,
             state: form.state,
             zipCode: form.zipCode,
+            mapUrl: form.mapUrl || undefined,
             logoUrl: form.logoUrl || undefined,
             coverImageUrl: form.coverImageUrl || undefined,
             themeColor: normalizeThemeColor(form.themeColor),
@@ -129,6 +131,9 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
         <Field label="Cidade"><input className={inputClass} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></Field>
         <Field label="UF"><input className={inputClass} value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></Field>
         <Field label="CEP"><input className={inputClass} value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} /></Field>
+        <Field label="Link do mapa" optional hint="Google Maps, Waze ou outro mapa com o endereço da oficina.">
+          <input className={inputClass} value={form.mapUrl} onChange={(e) => setForm({ ...form, mapUrl: e.target.value })} placeholder="https://maps.app.goo.gl/..." />
+        </Field>
         <Field label="Seg–Sex"><input className={inputClass} value={form.weekdays} onChange={(e) => setForm({ ...form, weekdays: e.target.value })} /></Field>
         <Field label="Sábado"><input className={inputClass} value={form.saturday} onChange={(e) => setForm({ ...form, saturday: e.target.value })} /></Field>
         <Field label="Domingo"><input className={inputClass} value={form.sunday} onChange={(e) => setForm({ ...form, sunday: e.target.value })} /></Field>

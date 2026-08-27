@@ -238,6 +238,8 @@ export interface Workshop {
   address: string;
   neighborhood?: string;
   zipCode?: string;
+  /** Link compartilhável do mapa (Google Maps, Waze, etc.). */
+  mapUrl?: string;
   phone: string;
   whatsapp: string;
   email?: string;
@@ -546,6 +548,7 @@ export interface SignupDraft {
     neighborhood: string;
     city: string;
     state: string;
+    mapUrl: string;
     phone: string;
   };
   site: {

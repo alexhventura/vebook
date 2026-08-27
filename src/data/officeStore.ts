@@ -642,6 +642,7 @@ export async function createPendingOffice(draft: SignupDraft, consent: {
     street: draft.office.street.trim(),
     streetNumber: draft.office.streetNumber.trim(),
     complement: draft.office.complement.trim() || undefined,
+    mapUrl: draft.office.mapUrl.trim() || undefined,
     phone: contactPhone,
     whatsapp: contactPhone,
     email: draft.site.contactEmail.trim() || draft.owner.email,
@@ -1551,6 +1552,7 @@ export function defaultSignupDraft(modality: PlanModality = 'monthly'): SignupDr
       neighborhood: '',
       city: '',
       state: '',
+      mapUrl: '',
       phone: '',
     },
     site: {
