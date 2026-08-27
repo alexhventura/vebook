@@ -27,6 +27,7 @@ import {
   takenSlugs,
 } from '../../data/officeStore';
 import { formatCpf, isValidCpf, onlyDigits } from '../../lib/cpf';
+import { formatCep, isValidCep, lookupCep } from '../../lib/cep';
 import { formatPhone, isValidEmail, isValidPhone } from '../../lib/phone';
 import { getPasswordRequirements, isStrongPassword } from '../../lib/password';
 import { isDemoPaymentsEnvironment } from '../../lib/payments/mockGateway';
@@ -43,6 +44,7 @@ import { ThemeColorPicker } from '../ui/ThemeColorPicker';
 import { WorkshopSitePreview } from '../workshop/WorkshopSitePreview';
 import { PlanModality, SignupDraft, SignupWeekdayKey } from '../../types';
 import { normalizeThemeColor } from '../../lib/themeColor';
+import { composeSignupOfficeAddress } from '../../lib/signupAddress';
 
 const WEEKDAY_FIELDS: Array<{ key: SignupWeekdayKey; label: string }> = [
   { key: 'monday', label: 'Segunda-feira' },
@@ -95,6 +97,8 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
   const [draft, setDraft] = useState<SignupDraft>(() => defaultSignupDraft(initialModality));
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [cepStatus, setCepStatus] = useState('');
+  const [addressFromCep, setAddressFromCep] = useState(false);
   const [consent, setConsent] = useState({
     terms: false,
     privacy: false,
@@ -145,12 +149,46 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
     const next: Record<string, string> = {};
     if (draft.office.name.trim().length < 3) next.officeName = 'Informe o nome da oficina.';
     if (!isValidPhone(draft.office.phone)) next.officePhone = 'Telefone inválido.';
-    if (draft.office.address.trim().length < 8) next.address = 'Informe o endereço completo da oficina.';
+    if (!isValidCep(draft.office.zipCode)) next.zipCode = 'CEP inválido.';
+    if (!draft.office.street.trim()) next.street = 'Consulte o CEP ou informe o logradouro.';
+    if (!draft.office.streetNumber.trim()) next.streetNumber = 'Informe o número.';
+    if (!draft.office.neighborhood.trim()) next.neighborhood = 'Informe o bairro.';
+    if (!draft.office.city.trim()) next.city = 'Informe a cidade.';
+    if (!draft.office.state) next.state = 'Informe o estado.';
     if (draft.office.cnpj && onlyDigits(draft.office.cnpj).length !== 14) {
       next.cnpj = 'CNPJ incompleto. Deixe em branco se a oficina não possuir CNPJ.';
     }
     setErrors(next);
     return Object.keys(next).length === 0;
+  };
+
+  const handleCepBlur = async () => {
+    if (!isValidCep(draft.office.zipCode)) return;
+    setCepStatus('Consultando CEP...');
+    try {
+      const found = await lookupCep(draft.office.zipCode);
+      if (!found) {
+        setAddressFromCep(false);
+        setCepStatus('CEP não encontrado. Preencha o endereço manualmente.');
+        return;
+      }
+      setDraft((current) => ({
+        ...current,
+        office: {
+          ...current.office,
+          zipCode: found.zipCode,
+          street: found.street || current.office.street,
+          neighborhood: found.neighborhood || current.office.neighborhood,
+          city: found.city || current.office.city,
+          state: found.state || current.office.state,
+        },
+      }));
+      setAddressFromCep(true);
+      setCepStatus('Endereço localizado pelo CEP. Informe apenas o número e o complemento, se houver.');
+    } catch {
+      setAddressFromCep(false);
+      setCepStatus('Não foi possível consultar o CEP. Preencha o endereço manualmente.');
+    }
   };
 
   const validateStep3 = (): boolean => {
@@ -375,13 +413,77 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
                   onChange={(e) => setDraft({ ...draft, office: { ...draft.office, cnpj: onlyDigits(e.target.value) } })}
                 />
               </Field>
-              <Field label="Endereço" hint="Rua, número, bairro, cidade/UF." error={errors.address}>
+              <Field label="CEP" hint={cepStatus} error={errors.zipCode}>
                 <input
                   className={inputClass}
-                  value={draft.office.address}
-                  onChange={(e) => setDraft({ ...draft, office: { ...draft.office, address: e.target.value } })}
+                  inputMode="numeric"
+                  value={formatCep(draft.office.zipCode)}
+                  onChange={(e) => {
+                    setAddressFromCep(false);
+                    setDraft({ ...draft, office: { ...draft.office, zipCode: onlyDigits(e.target.value) } });
+                  }}
+                  onBlur={() => void handleCepBlur()}
                 />
               </Field>
+              <Field label="Endereço" hint="Preenchido automaticamente pela consulta de CEP." error={errors.street}>
+                <input
+                  className={`${inputClass}${addressFromCep ? ' bg-slate-50' : ''}`}
+                  readOnly={addressFromCep}
+                  value={draft.office.street}
+                  onChange={(e) => setDraft({ ...draft, office: { ...draft.office, street: e.target.value } })}
+                />
+              </Field>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="Número" error={errors.streetNumber}>
+                  <input
+                    className={inputClass}
+                    value={draft.office.streetNumber}
+                    onChange={(e) =>
+                      setDraft({ ...draft, office: { ...draft.office, streetNumber: e.target.value } })
+                    }
+                  />
+                </Field>
+                <Field label="Complemento" optional>
+                  <input
+                    className={inputClass}
+                    value={draft.office.complement}
+                    onChange={(e) =>
+                      setDraft({ ...draft, office: { ...draft.office, complement: e.target.value } })
+                    }
+                  />
+                </Field>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Field label="Bairro" error={errors.neighborhood}>
+                  <input
+                    className={`${inputClass}${addressFromCep ? ' bg-slate-50' : ''}`}
+                    readOnly={addressFromCep}
+                    value={draft.office.neighborhood}
+                    onChange={(e) =>
+                      setDraft({ ...draft, office: { ...draft.office, neighborhood: e.target.value } })
+                    }
+                  />
+                </Field>
+                <Field label="Cidade" error={errors.city}>
+                  <input
+                    className={`${inputClass}${addressFromCep ? ' bg-slate-50' : ''}`}
+                    readOnly={addressFromCep}
+                    value={draft.office.city}
+                    onChange={(e) => setDraft({ ...draft, office: { ...draft.office, city: e.target.value } })}
+                  />
+                </Field>
+                <Field label="Estado" error={errors.state}>
+                  <input
+                    className={`${inputClass}${addressFromCep ? ' bg-slate-50' : ''}`}
+                    readOnly={addressFromCep}
+                    value={draft.office.state}
+                    onChange={(e) =>
+                      setDraft({ ...draft, office: { ...draft.office, state: e.target.value.toUpperCase().slice(0, 2) } })
+                    }
+                    placeholder="UF"
+                  />
+                </Field>
+              </div>
               <Field label="Telefone" error={errors.officePhone}>
                 <input
                   className={inputClass}
@@ -600,7 +702,7 @@ export const CadastroOficinaView: React.FC<CadastroOficinaViewProps> = ({
                 <div className="rounded-2xl border border-slate-200 p-4 space-y-1">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Oficina</p>
                   <p><strong>{draft.office.name}</strong></p>
-                  <p>{draft.office.address}</p>
+                  <p>{composeSignupOfficeAddress(draft.office)}</p>
                   <p>{formatPhone(draft.office.phone)}</p>
                   {draft.office.cnpj ? <p>CNPJ {formatCnpj(draft.office.cnpj)}</p> : null}
                 </div>

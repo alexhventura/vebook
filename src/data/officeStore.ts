@@ -582,16 +582,10 @@ export function listWorkshopsForPublicSite(): Workshop[] {
   return listPublicOffices().map(toPublicWorkshop);
 }
 
-function composeAddress(address: string): string {
-  return address.trim();
-}
-
-function parseCityStateFromAddress(address: string): { city: string; state: string } {
-  const match = address.match(/,\s*([^,/]+)\s*\/\s*([A-Z]{2})\s*$/i);
-  if (match) {
-    return { city: match[1].trim(), state: match[2].toUpperCase() };
-  }
-  return { city: '—', state: '—' };
+function composeAddress(office: SignupDraft['office']): string {
+  const line = [office.street.trim(), office.streetNumber.trim()].filter(Boolean).join(', ');
+  const extra = [office.complement.trim(), office.neighborhood.trim()].filter(Boolean).join(' — ');
+  return extra ? `${line} — ${extra}` : line;
 }
 
 function businessHoursSummary(hours: SignupDraft['site']['hours']): string {
@@ -625,7 +619,6 @@ export async function createPendingOffice(draft: SignupDraft, consent: {
   const paymentId = createId('pay');
   const stamp = nowIso();
   const host = workshopHost(slug);
-  const { city, state: uf } = parseCityStateFromAddress(draft.office.address);
   const contactPhone = onlyDigits(draft.site.contactPhone || draft.office.phone);
   const serviceNames = draft.site.services.map((item) => item.trim()).filter(Boolean);
 
@@ -641,11 +634,14 @@ export async function createPendingOffice(draft: SignupDraft, consent: {
     slogan: draft.site.subtitle.trim() || undefined,
     themeColor: normalizeThemeColor(draft.site.themeColor),
     coverImageUrl: draft.site.photoUrl.trim() || undefined,
-    city,
-    state: uf,
-    address: composeAddress(draft.office.address),
-    street: draft.office.address.trim(),
-    streetNumber: '',
+    city: draft.office.city.trim() || '—',
+    state: draft.office.state.trim() || '—',
+    address: composeAddress(draft.office),
+    neighborhood: draft.office.neighborhood.trim() || undefined,
+    zipCode: draft.office.zipCode.trim() || undefined,
+    street: draft.office.street.trim(),
+    streetNumber: draft.office.streetNumber.trim(),
+    complement: draft.office.complement.trim() || undefined,
     phone: contactPhone,
     whatsapp: contactPhone,
     email: draft.site.contactEmail.trim() || draft.owner.email,
@@ -1548,7 +1544,13 @@ export function defaultSignupDraft(modality: PlanModality = 'monthly'): SignupDr
     office: {
       name: '',
       cnpj: '',
-      address: '',
+      zipCode: '',
+      street: '',
+      streetNumber: '',
+      complement: '',
+      neighborhood: '',
+      city: '',
+      state: '',
       phone: '',
     },
     site: {

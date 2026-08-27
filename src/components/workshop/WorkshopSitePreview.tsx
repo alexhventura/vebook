@@ -4,6 +4,7 @@ import { SignupDraft } from '../../types';
 import { contrastTextOn, normalizeThemeColor } from '../../lib/themeColor';
 import { workshopHost } from '../../lib/slug';
 import { formatPhone } from '../../lib/phone';
+import { composeSignupOfficeAddress } from '../../lib/signupAddress';
 
 const WEEKDAY_LABELS: Array<{ key: keyof SignupDraft['site']['hours']; label: string }> = [
   { key: 'monday', label: 'Segunda' },
@@ -88,7 +89,7 @@ export const WorkshopSitePreview: React.FC<WorkshopSitePreviewProps> = ({ draft,
                   Endereço
                 </div>
                 <p className="text-sm font-bold text-slate-900">
-                  {draft.office.address.trim() || 'Endereço da oficina'}
+                  {composeSignupOfficeAddress(draft.office) || 'Endereço da oficina'}
                 </p>
               </div>
 
