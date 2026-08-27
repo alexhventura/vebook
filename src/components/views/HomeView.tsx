@@ -189,7 +189,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <section id="home-ledger" className="relative bg-vebook-surface border-b border-vebook-border">
         <Spine />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
             <div className="lg:col-span-5 space-y-5">
               <div className="space-y-3">
                 <p className={SECTION_LABEL}>Para o veículo</p>
@@ -234,24 +234,26 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </ul>
             </div>
 
-            <div className="lg:col-span-7">
+            <div className="lg:col-span-7 lg:sticky lg:top-24">
               <div
                 id="home-consulta"
-                className="h-full rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-navy text-vebook-white p-6 sm:p-8 lg:p-10 space-y-6 shadow-vebook-md transition-[transform,box-shadow,border-color] duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
+                className="flex flex-col gap-4 rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-navy text-vebook-white p-5 sm:p-6 shadow-vebook-md transition-[transform,box-shadow,border-color] duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
               >
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-vebook-mustard">
                     Consulta
                   </p>
-                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">Consultar veículo</h3>
-                  <p className="text-sm sm:text-base text-vebook-blue-muted leading-relaxed">
+                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight leading-tight">
+                    Consultar veículo
+                  </h3>
+                  <p className="text-sm text-vebook-blue-muted leading-relaxed">
                     Escolha entre consulta simples do Diário Veicular, emissão de Certidão VEBOOK ou
                     verificação de autenticidade do documento.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="rounded-vebook border border-vebook-mustard/55 bg-vebook-navy-mid/50 p-4 space-y-1.5">
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  <div className="rounded-vebook border border-vebook-mustard/55 bg-vebook-navy-mid/50 p-3.5 space-y-1">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
                       Consulta
                     </p>
@@ -260,7 +262,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       Visão resumida e gratuita: totais e existência de registros da placa.
                     </p>
                   </div>
-                  <div className="rounded-vebook border border-vebook-mustard bg-vebook-mustard/15 p-4 space-y-1.5">
+                  <div className="rounded-vebook border border-vebook-mustard bg-vebook-mustard/15 p-3.5 space-y-1">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
                       Certidão
                     </p>
@@ -268,7 +270,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     <p className="text-xs text-vebook-blue-muted leading-relaxed">
                       Documento formal do histórico detalhado disponível na emissão.
                     </p>
-                    <p className="pt-1 text-base font-bold text-vebook-mustard">
+                    <p className="pt-0.5 text-sm font-bold text-vebook-mustard">
                       {formatBRL(CERTIDAO_PRICE)}
                       <span className="ml-1 text-xs font-semibold text-vebook-blue-muted">
                         por certidão
