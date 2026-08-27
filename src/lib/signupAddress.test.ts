@@ -1,4 +1,4 @@
-import { composeSignupOfficeAddress } from '../src/lib/signupAddress.ts';
+import { composeSignupOfficeAddress } from './signupAddress';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -14,6 +14,7 @@ describe('composeSignupOfficeAddress', () => {
       neighborhood: 'Bela Vista',
       city: 'São Paulo',
       state: 'SP',
+      mapUrl: '',
       phone: '',
     });
 
