@@ -94,6 +94,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
     else onOpenCredenciamento();
   };
 
+  /** Cadastro sem plano pré-escolhido — abre o pop-up de escolha. */
+  const requestCadastro = () => {
+    onOpenCredenciamento();
+  };
+
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
@@ -513,7 +518,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <OfficePillarModal
         pillar={openPillar}
         onClose={() => setOpenPillarId(null)}
-        onStartCadastro={() => startCadastro('monthly')}
+        onStartCadastro={requestCadastro}
       />
       <GovernancePillarModal
         pillar={openGovPillar}

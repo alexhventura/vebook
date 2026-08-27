@@ -16,6 +16,7 @@ import { TransparenciaView } from './components/views/TransparenciaView';
 import { OfficePanelView } from './components/panel/OfficePanelView';
 
 import { LegalModal } from './components/modals/LegalModal';
+import { PlanChoiceModal } from './components/modals/PlanChoiceModal';
 import { CookieBanner } from './components/cookies/CookieBanner';
 import { MinhaPrivacidadeModal } from './components/privacy/MinhaPrivacidadeModal';
 import { ContestacaoModal } from './components/contestation/ContestacaoModal';
@@ -46,6 +47,7 @@ export default function App() {
   const [panelTab, setPanelTab] = useState<string | undefined>(initial.panelTab);
   const [signupModality, setSignupModality] = useState<PlanModality>('monthly');
   const [signupPlanPreselected, setSignupPlanPreselected] = useState(false);
+  const [isPlanChoiceOpen, setIsPlanChoiceOpen] = useState(false);
 
   const [isCookieConfigModalOpen, setIsCookieConfigModalOpen] = useState(false);
   const [isPrivacidadeModalOpen, setIsPrivacidadeModalOpen] = useState(false);
@@ -156,6 +158,18 @@ export default function App() {
     setIsContestacaoModalOpen(true);
   };
 
+  /** CTAs de cadastro sem plano pré-escolhido (fora dos banners de preço). */
+  const handleRequestCadastro = () => {
+    setIsPlanChoiceOpen(true);
+  };
+
+  const handleStartCadastroWithPlan = (modality: PlanModality) => {
+    setIsPlanChoiceOpen(false);
+    setSignupModality(modality);
+    setSignupPlanPreselected(true);
+    handleNavigate('cadastro-oficina');
+  };
+
   const immersive = currentView === 'site-oficina' || currentView === 'painel-oficina' || currentView === 'cadastro-oficina';
 
   return (
@@ -171,16 +185,9 @@ export default function App() {
           <HomeView
             onNavigate={handleNavigate}
             onSearchPlate={handleSearchPlateFromHome}
-            onOpenCredenciamento={() => {
-              setSignupPlanPreselected(false);
-              handleNavigate('cadastro-oficina');
-            }}
+            onOpenCredenciamento={handleRequestCadastro}
             onOpenJaCredenciado={() => handleNavigate('painel-oficina', { workshopSlug: undefined })}
-            onStartCadastro={(modality) => {
-              setSignupModality(modality);
-              setSignupPlanPreselected(true);
-              handleNavigate('cadastro-oficina');
-            }}
+            onStartCadastro={handleStartCadastroWithPlan}
             onOpenContato={() => setLegalModalType('contato')}
             onOpenWorkshop={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}
             onNavigateTransparencia={handleNavigateTransparencia}
@@ -233,11 +240,7 @@ export default function App() {
         {currentView === 'oficinas' && (
           <ParaOficinasView
             onNavigate={handleNavigate}
-            onStartCadastro={(modality) => {
-              setSignupModality(modality);
-              setSignupPlanPreselected(true);
-              handleNavigate('cadastro-oficina');
-            }}
+            onStartCadastro={handleStartCadastroWithPlan}
             onOpenPainel={() => handleNavigate('painel-oficina', { workshopSlug: undefined })}
             onOpenWorkshop={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}
           />
@@ -356,6 +359,12 @@ export default function App() {
             onClose={() => setLegalModalType(null)}
           />
         )}
+
+        <PlanChoiceModal
+          open={isPlanChoiceOpen}
+          onClose={() => setIsPlanChoiceOpen(false)}
+          onSelect={handleStartCadastroWithPlan}
+        />
       </div>
     </div>
   );
