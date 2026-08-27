@@ -5,6 +5,7 @@
 /** Visões da aplicação (navegação institucional). */
 export type AppView =
   | 'home'
+  | 'consulta'
   | 'diario'
   | 'como-funciona'
   | 'certidao'

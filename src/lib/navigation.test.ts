@@ -23,4 +23,9 @@ describe('navegação — consulta gratuita com placa (QR)', () => {
   it('buildConsultaVeicularUrl monta link para QR', () => {
     assert.equal(buildConsultaVeicularUrl('bra2e19'), '#/diario/BRA2E19');
   });
+
+  it('parseHash e toHash suportam hub de consulta', () => {
+    assert.equal(parseHash('#/consulta').view, 'consulta');
+    assert.equal(toHash({ view: 'consulta' }), '#/consulta');
+  });
 });

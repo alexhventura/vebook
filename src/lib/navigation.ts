@@ -37,6 +37,7 @@ export function parseHash(hash = window.location.hash): RouteState {
   const params = new URLSearchParams(queryPart || '');
   const parts = path.split('/').filter(Boolean);
 
+  if (parts[0] === 'consulta') return { view: 'consulta' };
   if (parts[0] === 'diario') {
     const fromPath = parts[1] ? formatPlate(decodeURIComponent(parts[1])) : '';
     const fromQuery = params.get('placa') ? formatPlate(params.get('placa')!) : '';
@@ -99,6 +100,8 @@ export function toHash(state: RouteState): string {
   switch (state.view) {
     case 'home':
       return '#/';
+    case 'consulta':
+      return '#/consulta';
     case 'diario':
       return state.consultaPlate
         ? `#/diario/${encodeURIComponent(state.consultaPlate)}`

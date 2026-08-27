@@ -3,12 +3,10 @@ import {
   Search,
   Car,
   Wrench,
-  FileCheck2,
   ArrowRight,
   Mail,
   ChevronDown,
 } from 'lucide-react';
-import { formatPlate, isValidPlateFormat } from '../../lib/utils';
 import { formatBRL } from '../../lib/currency';
 import { PLAN_OFFERS } from '../../data/officePlans';
 import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
@@ -16,7 +14,7 @@ import { OFFICE_PILLARS, type OfficePillarId } from '../../data/officePillars';
 import { GOVERNANCE_PILLARS, type GovernancePillarId } from '../../data/governancePillars';
 import { CONSULTATION_PILLARS, type ConsultationPillarId } from '../../data/consultationPillars';
 import { AppView, PlanModality, TransparenciaSection } from '../../types';
-import { Button, Input } from '../ui';
+import { Button } from '../ui';
 import { HomeAtmosphere } from '../home/HomeAtmosphere';
 import { HomeFaqAccordion } from '../home/HomeFaqAccordion';
 import { OfficePillarModal } from '../modals/OfficePillarModal';
@@ -81,7 +79,7 @@ const OfficeAdvantageCard: React.FC<{
 
 export const HomeView: React.FC<HomeViewProps> = ({
   onNavigate,
-  onSearchPlate,
+  onSearchPlate: _onSearchPlate,
   onOpenCredenciamento,
   onOpenJaCredenciado: _onOpenJaCredenciado,
   onStartCadastro,
@@ -89,8 +87,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenWorkshop,
   onNavigateTransparencia,
 }) => {
-  const [inputPlate, setInputPlate] = useState('');
-  const [plateError, setPlateError] = useState<string | null>(null);
   const [openPillarId, setOpenPillarId] = useState<OfficePillarId | null>(null);
   const [openGovId, setOpenGovId] = useState<GovernancePillarId | null>(null);
   const [openConsultaId, setOpenConsultaId] = useState<ConsultationPillarId | null>(null);
@@ -106,22 +102,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
     else onOpenCredenciamento();
   };
 
-  const scrollTo = (id: string, focusInput = false) => {
+  const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    if (focusInput) {
-      setTimeout(() => document.getElementById('home-plate-input')?.focus(), 420);
-    }
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const clean = formatPlate(inputPlate);
-    if (!clean || !isValidPlateFormat(clean)) {
-      setPlateError('Informe uma placa válida no formato Mercosul (ABC1D23) ou tradicional (ABC1234).');
-      return;
-    }
-    setPlateError(null);
-    onSearchPlate(clean);
   };
 
   return (
@@ -155,7 +137,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
               <button
                 type="button"
-                onClick={() => scrollTo('home-ledger', true)}
+                onClick={() => onNavigate('consulta')}
                 className="group text-left rounded-vebook-lg border border-vebook-mustard/70 bg-gradient-to-br from-vebook-white to-vebook-blue-soft p-6 sm:p-8 shadow-vebook-md transition-all duration-300 hover:-translate-y-1 hover:border-vebook-mustard hover:shadow-[0_10px_28px_rgba(196,163,90,0.22)] cursor-pointer"
               >
                 <div className="flex items-center gap-3 text-vebook-navy">
@@ -253,17 +235,18 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
 
             <div className="lg:col-span-7">
-              <form
+              <div
                 id="home-consulta"
-                onSubmit={handleSearchSubmit}
                 className="h-full rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-navy text-vebook-white p-6 sm:p-8 lg:p-10 space-y-6 shadow-vebook-md transition-[transform,box-shadow,border-color] duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
               >
                 <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-vebook-mustard">Consulta</p>
-                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">Informe a placa</h3>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-vebook-mustard">
+                    Consulta
+                  </p>
+                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">Consultar veículo</h3>
                   <p className="text-sm sm:text-base text-vebook-blue-muted leading-relaxed">
-                    A consulta é gratuita e traz os dados numéricos do histórico. A Certidão VEBOOK
-                    entrega a informação completa e documentada.
+                    Escolha entre consulta simples do Diário Veicular, emissão de Certidão VEBOOK ou
+                    verificação de autenticidade do documento.
                   </p>
                 </div>
 
@@ -287,57 +270,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     </p>
                     <p className="pt-1 text-base font-bold text-vebook-mustard">
                       {formatBRL(CERTIDAO_PRICE)}
-                      <span className="ml-1 text-xs font-semibold text-vebook-blue-muted">por certidão</span>
+                      <span className="ml-1 text-xs font-semibold text-vebook-blue-muted">
+                        por certidão
+                      </span>
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <label htmlFor="home-plate-input" className="block text-sm font-medium text-vebook-blue-muted">
-                    Digite a placa
-                  </label>
-                  <Input
-                    id="home-plate-input"
-                    type="text"
-                    value={inputPlate}
-                    onChange={(e) => {
-                      setInputPlate(formatPlate(e.target.value));
-                      if (plateError) setPlateError(null);
-                    }}
-                    placeholder="Ex.: ABC1D23"
-                    maxLength={7}
-                    autoComplete="off"
-                    invalid={Boolean(plateError)}
-                    aria-describedby={plateError ? 'home-plate-error' : 'home-plate-hint'}
-                    className="bg-vebook-white h-14 text-center text-lg font-semibold tracking-widest uppercase placeholder:tracking-normal"
-                  />
-                  {plateError && (
-                    <p id="home-plate-error" className="text-xs text-vebook-error" role="alert">
-                      {plateError}
-                    </p>
-                  )}
-                  <p id="home-plate-hint" className="text-xs text-vebook-blue-muted/90">
-                    Fluxo real do Diário Veicular. O exemplo é apenas de formato.
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <Button type="submit" variant="accent" size="lg" fullWidth>
-                      <Search className="w-4 h-4" aria-hidden />
-                      Consultar veículo
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="inverse"
-                      size="lg"
-                      fullWidth
-                      onClick={() => onNavigate('certidao')}
-                    >
-                      <FileCheck2 className="w-4 h-4" aria-hidden />
-                      Solicitar certidão
-                    </Button>
-                  </div>
-                </div>
-              </form>
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="lg"
+                  fullWidth
+                  onClick={() => onNavigate('consulta')}
+                >
+                  <Search className="w-4 h-4" aria-hidden />
+                  Consultar veículo
+                </Button>
+              </div>
             </div>
           </div>
         </div>

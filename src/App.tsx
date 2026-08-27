@@ -3,6 +3,7 @@ import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 
 import { HomeView } from './components/views/HomeView';
+import { ConsultaVeiculoView } from './components/views/ConsultaVeiculoView';
 import { DiarioVeicularView } from './components/views/DiarioVeicularView';
 import { ComoFuncionaView } from './components/views/ComoFuncionaView';
 import { CertidaoView } from './components/views/CertidaoView';
@@ -184,6 +185,10 @@ export default function App() {
             onOpenWorkshop={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}
             onNavigateTransparencia={handleNavigateTransparencia}
           />
+        )}
+
+        {currentView === 'consulta' && (
+          <ConsultaVeiculoView onNavigate={handleNavigate} />
         )}
 
         {currentView === 'diario' && (
