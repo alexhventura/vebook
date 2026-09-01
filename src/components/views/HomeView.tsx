@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Mail,
   ChevronDown,
+  ShieldCheck,
 } from 'lucide-react';
 import { formatBRL } from '../../lib/currency';
 import { PLAN_OFFERS } from '../../data/officePlans';
@@ -233,49 +234,66 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="lg:col-span-7 flex">
               <div
                 id="home-consulta"
-                className="flex h-full w-full flex-col rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-navy text-vebook-white p-5 sm:p-6 shadow-vebook-md transition-[transform,box-shadow,border-color] duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
+                className="flex h-full w-full flex-col justify-between gap-4 rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-navy text-vebook-white p-5 sm:p-6 lg:p-7 shadow-vebook-md transition-[transform,box-shadow,border-color] duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
               >
-                <div className="space-y-1.5">
+                <header className="space-y-2 shrink-0">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-vebook-mustard">
                     Consulta
                   </p>
                   <h3 className="text-xl sm:text-2xl font-bold tracking-tight leading-tight">
                     Consultar veículo
                   </h3>
-                  <p className="text-sm text-vebook-blue-muted leading-relaxed">
-                    Escolha entre consulta simples do Diário Veicular, emissão de Certidão VEBOOK ou
-                    verificação de autenticidade do documento.
+                  <p className="text-sm text-vebook-blue-muted leading-relaxed max-w-prose">
+                    Diário Veicular gratuito, Certidão VEBOOK com histórico completo ou verificação de
+                    autenticidade do documento.
                   </p>
+                </header>
+
+                <div className="flex flex-1 flex-col justify-center gap-3 sm:gap-4 min-h-0 py-1">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                    <div className="flex h-full min-h-[8.5rem] flex-col rounded-vebook border border-vebook-mustard/55 bg-vebook-navy-mid/50 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
+                        Consulta
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-vebook-white">Dados numéricos</p>
+                      <p className="mt-1.5 flex-1 text-xs text-vebook-blue-muted leading-relaxed">
+                        Totais e existência de registros da placa, sem custo.
+                      </p>
+                      <p className="mt-3 text-sm font-bold text-vebook-mustard">Gratuita</p>
+                    </div>
+                    <div className="flex h-full min-h-[8.5rem] flex-col rounded-vebook border border-vebook-mustard bg-vebook-mustard/15 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
+                        Certidão
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-vebook-white">Informação completa</p>
+                      <p className="mt-1.5 flex-1 text-xs text-vebook-blue-muted leading-relaxed">
+                        Documento formal com histórico detalhado e QR Code.
+                      </p>
+                      <p className="mt-3 text-sm font-bold text-vebook-mustard">
+                        {formatBRL(CERTIDAO_PRICE)}
+                        <span className="ml-1 text-xs font-semibold text-vebook-blue-muted">
+                          por certidão
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 rounded-vebook border border-vebook-mustard/40 bg-vebook-navy-mid/30 px-4 py-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-vebook border border-vebook-mustard/50 bg-vebook-navy text-vebook-mustard">
+                      <ShieldCheck className="h-4 w-4" aria-hidden />
+                    </span>
+                    <div className="min-w-0 space-y-0.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
+                        Autenticidade
+                      </p>
+                      <p className="text-xs text-vebook-blue-muted leading-snug">
+                        Valide uma certidão recebida por código alfanumérico ou QR Code.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                  <div className="rounded-vebook border border-vebook-mustard/55 bg-vebook-navy-mid/50 p-3.5 space-y-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
-                      Consulta
-                    </p>
-                    <p className="text-sm font-bold text-vebook-white">Dados numéricos</p>
-                    <p className="text-xs text-vebook-blue-muted leading-relaxed">
-                      Visão resumida e gratuita: totais e existência de registros da placa.
-                    </p>
-                  </div>
-                  <div className="rounded-vebook border border-vebook-mustard bg-vebook-mustard/15 p-3.5 space-y-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
-                      Certidão
-                    </p>
-                    <p className="text-sm font-bold text-vebook-white">Informação completa</p>
-                    <p className="text-xs text-vebook-blue-muted leading-relaxed">
-                      Documento formal do histórico detalhado disponível na emissão.
-                    </p>
-                    <p className="pt-0.5 text-sm font-bold text-vebook-mustard">
-                      {formatBRL(CERTIDAO_PRICE)}
-                      <span className="ml-1 text-xs font-semibold text-vebook-blue-muted">
-                        por certidão
-                      </span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-auto pt-6">
+                <div className="shrink-0">
                   <Button
                     type="button"
                     variant="accent"
