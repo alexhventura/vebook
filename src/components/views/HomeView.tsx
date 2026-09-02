@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import {
-  Search,
   Car,
   Wrench,
   ArrowRight,
   Mail,
   ChevronDown,
+  BookOpen,
+  FileCheck2,
   ShieldCheck,
 } from 'lucide-react';
 import { formatBRL } from '../../lib/currency';
 import { PLAN_OFFERS } from '../../data/officePlans';
-import { CERTIDAO_PRICE } from '../../data/certidaoPricing';
 import { OFFICE_PILLARS, type OfficePillarId } from '../../data/officePillars';
 import { GOVERNANCE_PILLARS, type GovernancePillarId } from '../../data/governancePillars';
 import { CONSULTATION_PILLARS, type ConsultationPillarId } from '../../data/consultationPillars';
@@ -234,7 +234,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="lg:col-span-7 flex">
               <div
                 id="home-consulta"
-                className="flex h-full w-full flex-col justify-between gap-4 rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-navy text-vebook-white p-5 sm:p-6 lg:p-7 shadow-vebook-md transition-[transform,box-shadow,border-color] duration-200 hover:border-vebook-mustard hover:shadow-[0_8px_24px_rgba(196,163,90,0.18)]"
+                className="flex h-full w-full flex-col gap-4 rounded-vebook-lg border border-vebook-mustard/70 bg-vebook-navy text-vebook-white p-5 sm:p-6 lg:p-7 shadow-vebook-md"
               >
                 <header className="space-y-2 shrink-0">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-vebook-mustard">
@@ -244,66 +244,59 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     Consultar veículo
                   </h3>
                   <p className="text-sm text-vebook-blue-muted leading-relaxed max-w-prose">
-                    Diário Veicular gratuito, Certidão VEBOOK com histórico completo ou verificação de
-                    autenticidade do documento.
+                    Escolha o tipo de consulta: Diário Veicular, Certidão VEBOOK ou verificação de
+                    autenticidade.
                   </p>
                 </header>
 
-                <div className="flex flex-1 flex-col justify-center gap-3 sm:gap-4 min-h-0 py-1">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-                    <div className="flex h-full min-h-[8.5rem] flex-col rounded-vebook border border-vebook-mustard/55 bg-vebook-navy-mid/50 p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
-                        Consulta
-                      </p>
-                      <p className="mt-1 text-sm font-bold text-vebook-white">Dados numéricos</p>
-                      <p className="mt-1.5 flex-1 text-xs text-vebook-blue-muted leading-relaxed">
-                        Totais e existência de registros da placa, sem custo.
-                      </p>
-                      <p className="mt-3 text-sm font-bold text-vebook-mustard">Gratuita</p>
-                    </div>
-                    <div className="flex h-full min-h-[8.5rem] flex-col rounded-vebook border border-vebook-mustard bg-vebook-mustard/15 p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
-                        Certidão
-                      </p>
-                      <p className="mt-1 text-sm font-bold text-vebook-white">Informação completa</p>
-                      <p className="mt-1.5 flex-1 text-xs text-vebook-blue-muted leading-relaxed">
-                        Documento formal com histórico detalhado e QR Code.
-                      </p>
-                      <p className="mt-3 text-sm font-bold text-vebook-mustard">
-                        {formatBRL(CERTIDAO_PRICE)}
-                        <span className="ml-1 text-xs font-semibold text-vebook-blue-muted">
-                          por certidão
+                <div className="flex flex-1 flex-col justify-center gap-3">
+                  {[
+                    {
+                      view: 'diario' as const,
+                      label: 'Consulta',
+                      title: 'Diário Veicular',
+                      text: 'Totais e existência de registros da placa, sem narrativa completa.',
+                      icon: <BookOpen className="h-4 w-4" aria-hidden />,
+                    },
+                    {
+                      view: 'certidao' as const,
+                      label: 'Certidão',
+                      title: 'Histórico completo',
+                      text: 'Documento formal com histórico detalhado e QR Code.',
+                      icon: <FileCheck2 className="h-4 w-4" aria-hidden />,
+                    },
+                    {
+                      view: 'validar-certidao' as const,
+                      label: 'Autenticidade',
+                      title: 'Validar documento',
+                      text: 'Confirme uma certidão recebida por código alfanumérico ou QR Code.',
+                      icon: <ShieldCheck className="h-4 w-4" aria-hidden />,
+                    },
+                  ].map((option) => (
+                    <button
+                      key={option.view}
+                      type="button"
+                      onClick={() => onNavigate(option.view)}
+                      className="group flex w-full items-start gap-3 rounded-vebook border border-vebook-mustard/55 bg-vebook-navy-mid/45 p-4 text-left transition-colors hover:border-vebook-mustard hover:bg-vebook-navy-mid/70 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vebook-mustard/40"
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-vebook border border-vebook-mustard/50 bg-vebook-navy text-vebook-mustard">
+                        {option.icon}
+                      </span>
+                      <span className="min-w-0 flex-1 space-y-0.5">
+                        <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
+                          {option.label}
                         </span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 rounded-vebook border border-vebook-mustard/40 bg-vebook-navy-mid/30 px-4 py-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-vebook border border-vebook-mustard/50 bg-vebook-navy text-vebook-mustard">
-                      <ShieldCheck className="h-4 w-4" aria-hidden />
-                    </span>
-                    <div className="min-w-0 space-y-0.5">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-vebook-mustard">
-                        Autenticidade
-                      </p>
-                      <p className="text-xs text-vebook-blue-muted leading-snug">
-                        Valide uma certidão recebida por código alfanumérico ou QR Code.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <Button
-                    type="button"
-                    variant="accent"
-                    size="lg"
-                    fullWidth
-                    onClick={() => onNavigate('consulta')}
-                  >
-                    <Search className="w-4 h-4" aria-hidden />
-                    Consultar veículo
-                  </Button>
+                        <span className="block text-sm font-bold text-vebook-white">{option.title}</span>
+                        <span className="block text-xs text-vebook-blue-muted leading-relaxed">
+                          {option.text}
+                        </span>
+                      </span>
+                      <ArrowRight
+                        className="mt-1 h-4 w-4 shrink-0 text-vebook-mustard transition-transform group-hover:translate-x-0.5"
+                        aria-hidden
+                      />
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
