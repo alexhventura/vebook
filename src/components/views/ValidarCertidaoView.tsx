@@ -9,6 +9,7 @@ import {
 import { AppView } from '../../types';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { ServiceExplainerLayout } from './ServiceExplainerLayout';
 
 interface ValidarCertidaoViewProps {
   initialCode?: string;
@@ -29,8 +30,7 @@ function formatDateTime(iso: string): string {
 }
 
 /**
- * Verificação pública de autenticidade da Certidão VEBOOK.
- * Exibe apenas dados públicos apropriados — sem PII completa do solicitante.
+ * Autenticidade: explicações + busca pelo código da Certidão.
  */
 export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
   initialCode = '',
@@ -65,37 +65,63 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
     setSubmitted(code.trim());
   };
 
-  return (
-    <div className="bg-vebook-surface min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-xl mx-auto space-y-8">
-        <div className="space-y-3 text-center">
-          <div className="inline-flex items-center gap-2 text-vebook-mustard-deep">
-            <ShieldCheck className="h-5 w-5" aria-hidden />
-            <span className="text-xs font-bold uppercase tracking-[0.16em]">Autenticidade</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-vebook-navy">
-            Verificar Certidão VEBOOK
-          </h1>
-          <p className="text-sm text-vebook-muted leading-relaxed">
-            Informe o código de autenticidade impresso no documento ou obtido via QR Code.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+  const searchSlot = (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="space-y-1.5">
+        <label htmlFor="auth-code-input" className="block text-sm font-bold text-vebook-navy">
+          Informe o código da Certidão
+        </label>
+        <div className="flex flex-col sm:flex-row gap-3">
           <Input
+            id="auth-code-input"
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="VBK-2026-…"
-            className="font-mono"
+            placeholder="VBK-2026-… ou código do QR"
+            className="h-14 font-mono text-center sm:text-left"
           />
-          <Button type="submit" variant="primary">
+          <Button type="submit" variant="primary" size="lg" className="sm:self-stretch sm:min-w-[10rem]">
             <Search className="w-4 h-4" aria-hidden />
             Verificar
           </Button>
-        </form>
+        </div>
+        <p className="text-xs text-vebook-muted">
+          Use o código alfanumérico impresso no documento ou obtido pela leitura do QR Code.
+        </p>
+      </div>
+    </form>
+  );
 
-        {submitted ? (
-          cert ? (
+  return (
+    <ServiceExplainerLayout
+      eyebrow="Autenticidade"
+      title="Verificar autenticidade da Certidão"
+      lead="Confirme se uma Certidão VEBOOK recebida em papel ou PDF é autêntica e corresponde a uma emissão registrada na plataforma."
+      meaning="A verificação de autenticidade consulta o código único da Certidão (impresso e no QR Code) e informa se aquele documento foi realmente emitido pelo VEBOOK."
+      purpose="Serve para quem recebeu uma Certidão e precisa validar a procedência do documento antes de confiar nas informações — sem reabrir o histórico completo pago."
+      howItWorks={[
+        'Localize o código de autenticidade na Certidão ou leia o QR Code.',
+        'Cole ou digite o código na barra de busca acima.',
+        'O VEBOOK confirma se a emissão existe e mostra dados públicos de validação.',
+        'Códigos inexistentes ou adulterados não são reconhecidos.',
+      ]}
+      onBack={() => onNavigate('home')}
+      searchSlot={searchSlot}
+      aside={
+        <aside className="rounded-vebook-lg border border-vebook-border bg-vebook-white p-5 space-y-2">
+          <div className="flex items-center gap-2 text-vebook-mustard-deep">
+            <ShieldCheck className="h-4 w-4" aria-hidden />
+            <h2 className="text-sm font-bold">O que esta página não faz</h2>
+          </div>
+          <p className="text-sm text-vebook-muted leading-relaxed">
+            A autenticação não emite nova Certidão e não substitui a consulta básica pela placa. Ela
+            apenas valida um documento já emitido.
+          </p>
+        </aside>
+      }
+    >
+      {submitted ? (
+        <section className="space-y-4 border-t border-vebook-border pt-8" aria-label="Resultado da verificação">
+          {cert ? (
             <div className="rounded-vebook-lg border border-emerald-200 bg-emerald-50/60 p-6 space-y-4">
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-6 w-6 text-emerald-700 shrink-0" aria-hidden />
@@ -165,19 +191,9 @@ export const ValidarCertidaoView: React.FC<ValidarCertidaoViewProps> = ({
                 </p>
               </div>
             </div>
-          )
-        ) : null}
-
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => onNavigate('home')}
-            className="text-sm font-semibold text-vebook-muted hover:text-vebook-navy underline cursor-pointer"
-          >
-            Voltar ao início
-          </button>
-        </div>
-      </div>
-    </div>
+          )}
+        </section>
+      ) : null}
+    </ServiceExplainerLayout>
   );
 };

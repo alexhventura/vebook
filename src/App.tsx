@@ -41,6 +41,7 @@ export default function App() {
   const [consultaPlate, setConsultaPlate] = useState<string | undefined>(initial.consultaPlate);
   const [certificateCode, setCertificateCode] = useState<string | undefined>(initial.certificateCode);
   const [certificatePage, setCertificatePage] = useState<number | undefined>(initial.certificatePage);
+  const [certidaoAutoStart, setCertidaoAutoStart] = useState(false);
   const [legalModalType, setLegalModalType] = useState<'termos' | 'privacidade' | 'contato' | 'comercial' | null>(null);
   const [workshopSlug, setWorkshopSlug] = useState<string | undefined>(initial.workshopSlug);
   const [panelSection, setPanelSection] = useState<PanelSection>(initial.panelSection || 'inicio');
@@ -119,7 +120,7 @@ export default function App() {
     return () => window.removeEventListener('hashchange', sync);
   }, []);
 
-  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string; certificateCode?: string; certificatePage?: number; consultaPlate?: string }) => {
+  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string; certificateCode?: string; certificatePage?: number; consultaPlate?: string; certidaoAutoStart?: boolean }) => {
     if (extra && 'workshopSlug' in extra) {
       setWorkshopSlug(extra.workshopSlug);
     }
@@ -138,6 +139,13 @@ export default function App() {
     if (extra && 'consultaPlate' in extra) {
       setConsultaPlate(extra.consultaPlate);
       if (extra.consultaPlate) setSelectedPlateForCertidao(extra.consultaPlate);
+    } else if (view === 'diario') {
+      setConsultaPlate(undefined);
+    }
+    if (view === 'certidao') {
+      setCertidaoAutoStart(Boolean(extra?.certidaoAutoStart));
+    } else {
+      setCertidaoAutoStart(false);
     }
     setCurrentView(view);
     const slug = extra && 'workshopSlug' in extra ? extra.workshopSlug : workshopSlug;
@@ -145,11 +153,7 @@ export default function App() {
     const code = extra && 'certificateCode' in extra ? extra.certificateCode : certificateCode;
     const page = extra && 'certificatePage' in extra ? extra.certificatePage : certificatePage;
     const plateForDiario =
-      view === 'diario'
-        ? extra && 'consultaPlate' in extra
-          ? extra.consultaPlate
-          : consultaPlate
-        : undefined;
+      view === 'diario' && extra && 'consultaPlate' in extra ? extra.consultaPlate : undefined;
     applyHash({
       view,
       workshopSlug: view === 'site-oficina' ? slug || 'prisma' : view === 'painel-oficina' ? slug : undefined,
@@ -177,7 +181,7 @@ export default function App() {
 
   const handleEmitirCertidaoForPlate = (plate: string) => {
     setSelectedPlateForCertidao(plate);
-    handleNavigate('certidao');
+    handleNavigate('certidao', { certidaoAutoStart: true });
   };
 
   const handleOpenContestacaoForRecord = (record: ServiceRecord) => {
@@ -230,7 +234,7 @@ export default function App() {
 
         {currentView === 'diario' && (
           <DiarioVeicularView
-            initialPlate={selectedPlateForCertidao}
+            initialPlate={consultaPlate}
             fromQrLink={Boolean(consultaPlate)}
             onNavigate={handleNavigate}
             onEmitirCertidaoForPlate={handleEmitirCertidaoForPlate}
@@ -251,7 +255,8 @@ export default function App() {
 
         {currentView === 'certidao' && (
           <CertidaoView
-            initialPlate={selectedPlateForCertidao}
+            initialPlate={certidaoAutoStart ? selectedPlateForCertidao : undefined}
+            autoStart={certidaoAutoStart}
             onNavigate={handleNavigate}
             onValidateCertificate={(code) =>
               handleNavigate('validar-certidao', { certificateCode: code })

@@ -253,23 +253,23 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   {[
                     {
                       view: 'diario' as const,
-                      label: 'Consulta',
-                      title: 'Diário Veicular',
-                      text: 'Totais e existência de registros da placa, sem narrativa completa.',
+                      label: 'Consulta básica',
+                      title: 'Diário Veicular gratuito',
+                      text: 'Explicação completa e busca pela placa para ver os registros essenciais.',
                       icon: <BookOpen className="h-4 w-4" aria-hidden />,
                     },
                     {
                       view: 'certidao' as const,
                       label: 'Certidão',
-                      title: 'Histórico completo',
-                      text: 'Documento formal com histórico detalhado e QR Code.',
+                      title: 'Documento formal completo',
+                      text: 'Entenda o valor, busque pela placa e libere o histórico com pagamento.',
                       icon: <FileCheck2 className="h-4 w-4" aria-hidden />,
                     },
                     {
                       view: 'validar-certidao' as const,
                       label: 'Autenticidade',
-                      title: 'Validar documento',
-                      text: 'Confirme uma certidão recebida por código alfanumérico ou QR Code.',
+                      title: 'Validar Certidão emitida',
+                      text: 'Saiba como funciona e verifique o código ou QR Code do documento.',
                       icon: <ShieldCheck className="h-4 w-4" aria-hidden />,
                     },
                   ].map((option) => (
