@@ -1,4 +1,4 @@
-const CACHE = 'vebook-oficina-painel-v1';
+const CACHE = 'vebook-oficina-painel-v2';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
