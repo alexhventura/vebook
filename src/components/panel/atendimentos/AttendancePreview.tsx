@@ -53,7 +53,6 @@ export const AttendancePreview: React.FC<AttendancePreviewProps> = ({
   laborAmount,
   notes,
   total,
-  currentStep,
   onEditStep,
 }) => {
   const servicesTotal = services.reduce(
