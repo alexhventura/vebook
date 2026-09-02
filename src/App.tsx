@@ -55,11 +55,43 @@ export default function App() {
   const [targetContestationRecord, setTargetContestationRecord] = useState<ServiceRecord | null>(null);
 
   const consultaInputRef = useRef<HTMLInputElement | null>(null);
+  const footerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     void initOfficeStore();
     initOfficeReputationStore();
   }, []);
+
+  const immersive = currentView === 'site-oficina' || currentView === 'painel-oficina' || currentView === 'cadastro-oficina';
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (immersive) {
+      root.style.setProperty('--vebook-footer-h', '0px');
+      return undefined;
+    }
+
+    const footer = footerRef.current;
+    if (!footer) {
+      root.style.setProperty('--vebook-footer-h', '0px');
+      return undefined;
+    }
+
+    const syncFooterHeight = () => {
+      const height = Math.ceil(footer.getBoundingClientRect().height);
+      root.style.setProperty('--vebook-footer-h', `${height}px`);
+    };
+
+    syncFooterHeight();
+    const observer = new ResizeObserver(syncFooterHeight);
+    observer.observe(footer);
+    window.addEventListener('resize', syncFooterHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', syncFooterHeight);
+    };
+  }, [immersive, currentView]);
 
   useEffect(() => {
     const sync = () => {
@@ -170,8 +202,6 @@ export default function App() {
     handleNavigate('cadastro-oficina');
   };
 
-  const immersive = currentView === 'site-oficina' || currentView === 'painel-oficina' || currentView === 'cadastro-oficina';
-
   return (
     <div className="min-h-screen flex flex-col bg-vebook-surface text-vebook-text font-sans">
       {!immersive && (
@@ -180,7 +210,7 @@ export default function App() {
         </div>
       )}
 
-      <main className="flex-1">
+      <main className={`flex-1${immersive ? '' : ' vebook-main-with-footer'}`}>
         {currentView === 'home' && (
           <HomeView
             onNavigate={handleNavigate}
@@ -299,6 +329,7 @@ export default function App() {
       {!immersive && (
         <div className="vebook-no-print">
           <Footer
+            ref={footerRef}
             onNavigate={handleNavigate}
             onNavigateTransparencia={handleNavigateTransparencia}
             onOpenCookiesConfig={() => setIsCookieConfigModalOpen(true)}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CookiePreferences } from '../../types';
 import { ShieldCheck, Cookie, Sliders, Check, X, Info } from 'lucide-react';
 import { Button } from '../ui';
@@ -26,47 +26,6 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
 
   const [hasAnswered, setHasAnswered] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const bannerRef = useRef<HTMLDivElement>(null);
-
-  const syncBannerOffset = useCallback(() => {
-    const banner = bannerRef.current;
-    const visible = Boolean(banner) && !hasAnswered && !isModalOpen;
-    if (!visible || !banner) {
-      document.documentElement.style.removeProperty('--vebook-cookie-banner-h');
-      document.documentElement.style.removeProperty('padding-bottom');
-      document.body.style.removeProperty('padding-bottom');
-      document.documentElement.classList.remove('vebook-cookie-banner-open');
-      document.body.classList.remove('vebook-cookie-banner-open');
-      return;
-    }
-    const height = Math.ceil(banner.getBoundingClientRect().height);
-    const offset = `${height}px`;
-    document.documentElement.style.setProperty('--vebook-cookie-banner-h', offset);
-    document.documentElement.style.paddingBottom = offset;
-    document.body.style.paddingBottom = offset;
-    document.documentElement.classList.add('vebook-cookie-banner-open');
-    document.body.classList.add('vebook-cookie-banner-open');
-  }, [hasAnswered, isModalOpen]);
-
-  useEffect(() => {
-    syncBannerOffset();
-    const banner = bannerRef.current;
-    if (!banner || hasAnswered || isModalOpen) return undefined;
-
-    const observer = new ResizeObserver(() => syncBannerOffset());
-    observer.observe(banner);
-    window.addEventListener('resize', syncBannerOffset);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', syncBannerOffset);
-      document.documentElement.style.removeProperty('--vebook-cookie-banner-h');
-      document.documentElement.style.removeProperty('padding-bottom');
-      document.body.style.removeProperty('padding-bottom');
-      document.documentElement.classList.remove('vebook-cookie-banner-open');
-      document.body.classList.remove('vebook-cookie-banner-open');
-    };
-  }, [hasAnswered, isModalOpen, syncBannerOffset]);
 
   useEffect(() => {
     try {
@@ -125,11 +84,10 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
     <>
       {!hasAnswered && !isModalOpen && (
         <div
-          ref={bannerRef}
           id="vebook-cookie-banner"
           role="dialog"
           aria-label="Preferências de cookies"
-          className="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-5 bg-vebook-navy-deep/95 backdrop-blur-md border-t border-vebook-navy-mid shadow-vebook-md animate-in slide-in-from-bottom duration-300"
+          className="fixed inset-x-0 z-50 p-4 sm:p-5 bg-vebook-navy-deep/95 backdrop-blur-md border-t border-vebook-navy-mid shadow-vebook-md animate-in slide-in-from-bottom duration-300"
         >
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5 max-w-3xl min-w-0 flex-1">
@@ -184,7 +142,7 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
       {isModalOpen && (
         <div
           id="modal-cookie-preferences"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-vebook-ink/70 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-vebook-ink/70 backdrop-blur-sm"
         >
           <div className="bg-vebook-white rounded-vebook-lg border border-vebook-border shadow-vebook-md max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
             <div className="p-5 bg-vebook-navy text-vebook-white flex items-center justify-between border-b border-vebook-navy-mid">

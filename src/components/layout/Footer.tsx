@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { AppView, TransparenciaSection } from '../../types';
 
 interface FooterProps {
@@ -14,18 +14,21 @@ interface FooterProps {
 }
 
 /**
- * Rodapé baixo: links institucionais e legais, sem menu de navegação principal.
+ * Rodapé institucional fixo na base da viewport (páginas não imersivas).
  */
-export const Footer: React.FC<FooterProps> = ({
-  onNavigate,
-  onNavigateTransparencia,
-  onOpenCookiesConfig,
-  onOpenPrivacidadeModal: _onOpenPrivacidadeModal,
-  onOpenContestacaoModal: _onOpenContestacaoModal,
-  onOpenContato: _onOpenContato,
-  onOpenDemoWorkshopSite,
-  onOpenDemoPanel,
-}) => {
+export const Footer = forwardRef<HTMLElement, FooterProps>(function Footer(
+  {
+    onNavigate,
+    onNavigateTransparencia,
+    onOpenCookiesConfig,
+    onOpenPrivacidadeModal: _onOpenPrivacidadeModal,
+    onOpenContestacaoModal: _onOpenContestacaoModal,
+    onOpenContato: _onOpenContato,
+    onOpenDemoWorkshopSite,
+    onOpenDemoPanel,
+  },
+  ref,
+) {
   const handleNav = (view: AppView) => {
     onNavigate(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -41,8 +44,9 @@ export const Footer: React.FC<FooterProps> = ({
 
   return (
     <footer
+      ref={ref}
       id="footer-institucional-vebook"
-      className="bg-vebook-navy-deep text-vebook-subtle py-4 sm:py-5 px-4 sm:px-6 lg:px-8 border-t border-vebook-navy-mid"
+      className="fixed inset-x-0 bottom-0 z-40 bg-vebook-navy-deep text-vebook-subtle py-4 sm:py-5 px-4 sm:px-6 lg:px-8 border-t border-vebook-navy-mid"
     >
       <div className="max-w-6xl mx-auto space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -114,4 +118,4 @@ export const Footer: React.FC<FooterProps> = ({
       </div>
     </footer>
   );
-};
+});

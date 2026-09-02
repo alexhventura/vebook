@@ -58,18 +58,18 @@ html {
   scroll-behavior: smooth;
 }
 
-html.vebook-cookie-banner-open,
-body.vebook-cookie-banner-open {
-  padding-bottom: var(--vebook-cookie-banner-h, 0px);
-}
-
-html.vebook-cookie-banner-open {
-  scroll-padding-bottom: var(--vebook-cookie-banner-h, 0px);
+:root {
+  --vebook-footer-h: 0px;
 }
 
 #vebook-cookie-banner {
+  bottom: var(--vebook-footer-h, 0px);
   max-height: min(40vh, 12rem);
   overflow-y: auto;
+}
+
+.vebook-main-with-footer {
+  padding-bottom: var(--vebook-footer-h, 0px);
 }
 
 body {
