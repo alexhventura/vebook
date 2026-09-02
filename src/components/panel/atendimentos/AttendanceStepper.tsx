@@ -26,15 +26,15 @@ export const AttendanceStepper: React.FC<AttendanceStepperProps> = ({
   const progressPercent = Math.round(((currentIndex + 1) / ATTENDANCE_STEPS.length) * 100);
 
   return (
-    <div className="space-y-3" aria-label="Progresso do cadastro">
-      <div className="flex items-center justify-between gap-3 text-xs">
+    <div className="space-y-2 sm:space-y-2.5" aria-label="Progresso do cadastro">
+      <div className="flex items-center justify-between gap-2 text-[11px] sm:text-xs">
         <p className="font-semibold text-[#0B1E36]">
           Etapa {currentIndex + 1} de {ATTENDANCE_STEPS.length}
         </p>
         <p className="font-bold text-[#a8863f]">{progressPercent}%</p>
       </div>
 
-      <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+      <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
         <div
           className="h-full rounded-full bg-[#c4a35a] transition-all duration-300 ease-out"
           style={{ width: `${progressPercent}%` }}
@@ -45,7 +45,7 @@ export const AttendanceStepper: React.FC<AttendanceStepperProps> = ({
         />
       </div>
 
-      <ol className="flex items-start gap-1 sm:gap-0">
+      <ol className="grid grid-cols-5 gap-1 sm:flex sm:items-start sm:gap-0">
         {ATTENDANCE_STEPS.map((step, index) => {
           const isCurrent = step.id === current;
           const isDone = completed.has(step.id) && !isCurrent;
@@ -53,13 +53,13 @@ export const AttendanceStepper: React.FC<AttendanceStepperProps> = ({
           const canNavigate = isDone || isCurrent;
 
           return (
-            <li key={step.id} className="flex flex-1 items-start min-w-0">
-              <div className="flex flex-1 flex-col items-center gap-1.5 min-w-0">
+            <li key={step.id} className="sm:flex sm:flex-1 sm:items-start sm:min-w-0">
+              <div className="flex sm:flex-1 sm:flex-col sm:items-center gap-1.5 sm:gap-1 min-w-0">
                 <button
                   type="button"
                   disabled={!canNavigate}
                   onClick={() => canNavigate && onNavigate(step.id)}
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all ${
+                  className={`flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full text-[11px] sm:text-xs font-bold transition-all ${
                     isCurrent
                       ? 'bg-[#0B1E36] text-white ring-2 ring-[#c4a35a]/50 ring-offset-2'
                       : isDone
@@ -70,20 +70,20 @@ export const AttendanceStepper: React.FC<AttendanceStepperProps> = ({
                 >
                   {isDone ? <Check className="h-4 w-4" aria-hidden /> : index + 1}
                 </button>
-                <div className="text-center min-w-0 px-0.5">
+                <div className="min-w-0 flex-1 sm:text-center sm:px-0.5">
                   <p
-                    className={`text-[11px] sm:text-xs font-bold truncate ${
+                    className={`text-[10px] sm:text-xs font-bold truncate leading-tight ${
                       isCurrent ? 'text-[#0B1E36]' : isDone ? 'text-emerald-800' : isFuture ? 'text-slate-400' : 'text-slate-500'
                     }`}
                   >
                     {step.label}
                   </p>
-                  <p className="hidden sm:block text-[10px] text-slate-500 truncate">{step.hint}</p>
+                  <p className="hidden md:block text-[10px] text-slate-500 truncate">{step.hint}</p>
                 </div>
               </div>
               {index < ATTENDANCE_STEPS.length - 1 ? (
                 <div
-                  className={`hidden sm:block h-0.5 w-full max-w-[2.5rem] mt-4 mx-1 rounded-full ${
+                  className={`hidden sm:block h-0.5 w-full max-w-[2rem] mt-3.5 mx-0.5 rounded-full ${
                     index < currentIndex || completed.has(step.id) ? 'bg-[#c4a35a]/70' : 'bg-slate-200'
                   }`}
                   aria-hidden

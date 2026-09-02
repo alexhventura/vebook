@@ -15,7 +15,6 @@ import { formatPhone } from '../../../lib/phone';
 import { onlyDigits } from '../../../lib/cpf';
 import { formatPlate } from '../../../lib/utils';
 import { Field, inputClass } from '../../ui/Field';
-import { CommunicationNotice } from '../shared';
 import { AttendancePreview } from './AttendancePreview';
 import { ATTENDANCE_STEPS, AttendanceStepper, type AttendanceWizardStep } from './AttendanceStepper';
 
@@ -230,30 +229,28 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
   const stepMeta = ATTENDANCE_STEPS[stepIndex(currentStep)];
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
+    <section className="space-y-3 sm:space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+        <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#a8863f]">Novo atendimento</p>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-[#0B1E36]">Registrar serviço realizado</h2>
-          <p className="text-sm text-slate-600">Nenhuma mensagem é enviada ao cliente.</p>
+          <h2 className="text-lg sm:text-xl font-extrabold text-[#0B1E36] leading-tight">Registrar serviço realizado</h2>
         </div>
-        <button type="button" onClick={onBack} className="text-sm font-bold text-sky-800 cursor-pointer">
+        <button type="button" onClick={onBack} className="text-sm font-bold text-sky-800 cursor-pointer shrink-0">
           Voltar
         </button>
       </div>
 
-      <CommunicationNotice />
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.75fr)] gap-3 sm:gap-4 items-start">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[24rem] sm:min-h-[26rem]">
+          <div className="border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4">
+            <AttendanceStepper current={currentStep} completed={completedSteps} onNavigate={goToStep} />
+          </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm">
-        <AttendanceStepper current={currentStep} completed={completedSteps} onNavigate={goToStep} />
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.85fr)] gap-5 items-start">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 lg:p-7 shadow-sm space-y-5 min-h-[28rem]">
-          <header className="space-y-1 border-b border-slate-100 pb-4">
+          <div className="flex flex-1 flex-col px-4 py-4 sm:px-5 sm:py-5 lg:px-6 space-y-4">
+          <header className="space-y-0.5">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#a8863f]">Etapa {stepNumber}</p>
-            <h3 className="text-lg sm:text-xl font-extrabold text-[#0B1E36]">{stepMeta.label}</h3>
-            <p className="text-sm text-slate-600">{stepMeta.hint}</p>
+            <h3 className="text-base sm:text-lg font-extrabold text-[#0B1E36]">{stepMeta.label}</h3>
+            <p className="text-xs sm:text-sm text-slate-600">{stepMeta.hint}</p>
           </header>
 
           {currentStep === 'veiculo' ? (
@@ -534,7 +531,7 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
 
           {stepError ? <p className="text-sm text-rose-700 font-semibold" role="alert">{stepError}</p> : null}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5">
+          <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
             {stepIndex(currentStep) > 0 ? (
               <button
                 type="button"
@@ -549,19 +546,20 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
             )}
 
             {currentStep === 'resumo' ? (
-              <button type="button" onClick={finish} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#0B1E36] text-white font-extrabold text-sm cursor-pointer hover:bg-[#132c4d]">
+              <button type="button" onClick={finish} className="inline-flex items-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-[#0B1E36] text-white font-extrabold text-sm cursor-pointer hover:bg-[#132c4d]">
                 Finalizar atendimento
               </button>
             ) : (
               <button
                 type="button"
                 onClick={continueStep}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#0B1E36] text-white font-extrabold text-sm cursor-pointer hover:bg-[#132c4d]"
+                className="inline-flex items-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-[#0B1E36] text-white font-extrabold text-sm cursor-pointer hover:bg-[#132c4d]"
               >
                 Continuar
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </button>
             )}
+          </div>
           </div>
         </div>
 
@@ -575,7 +573,6 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
           laborAmount={laborAmount}
           notes={notes}
           total={total}
-          currentStep={currentStep}
           onEditStep={(step) => goToStep(step)}
         />
       </div>

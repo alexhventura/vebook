@@ -17,7 +17,6 @@ interface AttendancePreviewProps {
   laborAmount: string;
   notes: string;
   total: number;
-  currentStep: string;
   onEditStep?: (step: 'veiculo' | 'cliente' | 'servico' | 'produtos') => void;
 }
 
@@ -28,7 +27,7 @@ const PreviewBlock: React.FC<{
   onEdit?: () => void;
   children: React.ReactNode;
 }> = ({ icon, label, filled, onEdit, children }) => (
-  <div className={`rounded-xl border p-4 space-y-2 transition-colors ${filled ? 'border-slate-200 bg-white' : 'border-dashed border-slate-200 bg-slate-50/80'}`}>
+  <div className={`rounded-lg border p-3 space-y-1.5 transition-colors ${filled ? 'border-slate-200 bg-white' : 'border-dashed border-slate-200 bg-slate-50/80'}`}>
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#a8863f]">
         {icon}
@@ -68,11 +67,10 @@ export const AttendancePreview: React.FC<AttendancePreviewProps> = ({
   const labor = Number(laborAmount || 0);
 
   return (
-    <aside className="space-y-4 lg:sticky lg:top-6">
-      <div className="space-y-1">
+    <aside className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sm:p-4 space-y-3 xl:sticky xl:top-4 max-h-[calc(100vh-7rem)] overflow-y-auto">
+      <div className="space-y-0.5">
         <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#a8863f]">Pré-visualização</p>
-        <h3 className="text-lg font-extrabold text-[#0B1E36]">Registro em construção</h3>
-        <p className="text-xs text-slate-600">Os dados aparecem aqui conforme você preenche cada etapa.</p>
+        <h3 className="text-base font-extrabold text-[#0B1E36]">Registro em construção</h3>
       </div>
 
       <PreviewBlock
@@ -162,7 +160,7 @@ export const AttendancePreview: React.FC<AttendancePreviewProps> = ({
         )}
       </PreviewBlock>
 
-      <div className="rounded-xl border border-[#0B1E36]/15 bg-[#0B1E36]/[0.03] p-4 space-y-2">
+      <div className="rounded-lg border border-[#0B1E36]/15 bg-[#0B1E36]/[0.03] p-3 space-y-1.5">
         <div className="flex justify-between text-sm">
           <span className="text-slate-600">Serviços</span>
           <strong className="text-[#0B1E36]">{formatBRL(servicesTotal)}</strong>
@@ -179,14 +177,8 @@ export const AttendancePreview: React.FC<AttendancePreviewProps> = ({
           <span>Total</span>
           <span>{formatBRL(total)}</span>
         </div>
-        {notes ? <p className="text-[11px] text-slate-500 border-t border-slate-200 pt-2">Obs.: {notes}</p> : null}
+        {notes ? <p className="text-[11px] text-slate-500 border-t border-slate-200 pt-1.5">Obs.: {notes}</p> : null}
       </div>
-
-      <p className="text-[11px] text-slate-500 rounded-lg border border-sky-100 bg-sky-50/80 px-3 py-2">
-        {currentStep === 'resumo'
-          ? 'Revise os dados e finalize o atendimento quando estiver tudo correto.'
-          : 'O registro permanece em andamento até a finalização. Você pode voltar a qualquer etapa concluída.'}
-      </p>
     </aside>
   );
 };

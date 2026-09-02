@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { CookiePreferences } from '../../types';
 import { ShieldCheck, Cookie, Sliders, Check, X, Info } from 'lucide-react';
 
@@ -20,8 +20,42 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
     advertising: false,
   });
 
-  const [hasAnswered, setHasAnswered] = useState<boolean>(true); // Inicia oculto até checar
+  const [hasAnswered, setHasAnswered] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  const syncBannerOffset = useCallback(() => {
+    const banner = bannerRef.current;
+    const visible = Boolean(banner) && !hasAnswered && !isModalOpen;
+    if (!visible || !banner) {
+      document.documentElement.style.removeProperty('--vebook-cookie-banner-h');
+      document.documentElement.classList.remove('vebook-cookie-banner-open');
+      document.body.classList.remove('vebook-cookie-banner-open');
+      return;
+    }
+    const height = Math.ceil(banner.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--vebook-cookie-banner-h', `${height}px`);
+    document.documentElement.classList.add('vebook-cookie-banner-open');
+    document.body.classList.add('vebook-cookie-banner-open');
+  }, [hasAnswered, isModalOpen]);
+
+  useEffect(() => {
+    syncBannerOffset();
+    const banner = bannerRef.current;
+    if (!banner || hasAnswered || isModalOpen) return undefined;
+
+    const observer = new ResizeObserver(() => syncBannerOffset());
+    observer.observe(banner);
+    window.addEventListener('resize', syncBannerOffset);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', syncBannerOffset);
+      document.documentElement.style.removeProperty('--vebook-cookie-banner-h');
+      document.documentElement.classList.remove('vebook-cookie-banner-open');
+      document.body.classList.remove('vebook-cookie-banner-open');
+    };
+  }, [hasAnswered, isModalOpen, syncBannerOffset]);
 
   useEffect(() => {
     try {
@@ -81,28 +115,31 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
       {/* BANNER INFERIOR INSTITUCIONAL (Só aparece se o usuário ainda não tiver optado) */}
       {!hasAnswered && !isModalOpen && (
         <div
+          ref={bannerRef}
           id="vebook-cookie-banner"
-          className="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-5 bg-[#071526]/95 backdrop-blur-md border-t border-slate-700 shadow-2xl animate-in slide-in-from-bottom duration-300"
+          role="dialog"
+          aria-label="Preferências de cookies"
+          className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-700/80 bg-[#071526] shadow-[0_-4px_24px_rgba(0,0,0,0.18)] animate-in slide-in-from-bottom duration-300"
         >
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5 max-w-3xl">
-              <div className="p-2.5 rounded-lg bg-sky-950/80 border border-sky-800/60 text-sky-400 shrink-0 mt-0.5">
-                <Cookie className="w-5 h-5" />
+          <div className="max-w-6xl mx-auto px-4 py-3 sm:px-5 sm:py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <div className="p-2 rounded-lg bg-sky-950/80 border border-sky-800/60 text-sky-400 shrink-0">
+                <Cookie className="w-4 h-4" />
               </div>
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  <span>Sua privacidade e governança de dados importam</span>
-                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-sky-900/60 text-sky-300 border border-sky-700/50">
-                    LGPD & Marco Civil
+              <div className="space-y-0.5 min-w-0">
+                <h4 className="text-sm font-bold text-white leading-snug">
+                  Sua privacidade importa
+                  <span className="ml-2 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-sky-900/60 text-sky-300 border border-sky-700/50 align-middle">
+                    LGPD
                   </span>
                 </h4>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  O <strong>VEBOOK</strong> utiliza cookies e tecnologias estritamente necessárias para garantir segurança, autenticação de registros e funcionamento da plataforma. Cookies opcionais para estatísticas anônimas de desempenho e personalização dependem da sua escolha livre e informada.
+                <p className="text-xs text-slate-300 leading-relaxed line-clamp-2 sm:line-clamp-none">
+                  Cookies essenciais garantem o funcionamento do VEBOOK. Opcionais dependem da sua escolha.
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
+            <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
               <button
                 id="btn-cookie-configurar"
                 onClick={() => setIsModalOpen(true)}
