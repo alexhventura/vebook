@@ -12,7 +12,7 @@ import { formatBRL } from '../../lib/currency';
 import { onlyDigits } from '../../lib/cpf';
 import { formatPhone } from '../../lib/phone';
 import { Field, inputClass } from '../ui/Field';
-import { CommunicationNotice, SectionTitle, formatIsoDate, formatKm, returnSituation } from './shared';
+import { SectionTitle, formatIsoDate, formatKm, returnSituation } from './shared';
 
 export const ClientesSection: React.FC<{ officeId: string }> = ({ officeId }) => {
   useOfficeStore();
@@ -44,7 +44,6 @@ export const ClientesSection: React.FC<{ officeId: string }> = ({ officeId }) =>
       <section className="space-y-4">
         <button type="button" onClick={() => setSelectedId(null)} className="text-sm font-bold text-sky-800 cursor-pointer">← Voltar para clientes</button>
         <SectionTitle title={selected.name} subtitle="Perfil administrativo do cliente. Dados privados ficam só no painel." />
-        <CommunicationNotice />
         <div className="bg-white rounded-2xl border border-slate-200 p-4 text-sm space-y-1">
           <p>Telefone: {selected.phone ? formatPhone(selected.phone) : 'não informado'}</p>
           <p>WhatsApp: {selected.whatsapp ? formatPhone(selected.whatsapp) : 'não informado'}</p>
@@ -84,7 +83,6 @@ export const ClientesSection: React.FC<{ officeId: string }> = ({ officeId }) =>
         title="Clientes"
         subtitle="Cadastro administrativo da oficina. Telefone, WhatsApp e e-mail não aparecem na página pública do veículo nem na consulta do Diário."
       />
-      <CommunicationNotice />
       <form
         className="bg-white rounded-2xl border border-slate-200 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3"
         onSubmit={(e) => {

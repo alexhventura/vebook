@@ -4,7 +4,7 @@ import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { AppointmentStatus } from '../../types';
 import { formatPhone } from '../../lib/phone';
 import { RetornosPanel } from './RetornosSection';
-import { CommunicationNotice, SectionTitle, APPOINTMENT_STATUS_LABEL, formatIsoDate } from './shared';
+import { SectionTitle, APPOINTMENT_STATUS_LABEL, formatIsoDate } from './shared';
 
 const ACTIONS: AppointmentStatus[] = ['requested', 'confirmed', 'reschedule', 'cancelled', 'completed'];
 
@@ -26,9 +26,8 @@ export const AgendaSection: React.FC<{ officeId: string; initialTab?: AgendaTab 
     <section className="space-y-4">
       <SectionTitle
         title="Agenda"
-        subtitle="Agendamentos e retornos internos. O VEBOOK registra; a oficina se comunica com o cliente."
+        subtitle="Agendamentos e retornos internos."
       />
-      <CommunicationNotice />
 
       <div className="flex flex-wrap gap-2">
         {([

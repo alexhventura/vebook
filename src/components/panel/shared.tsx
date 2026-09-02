@@ -86,15 +86,6 @@ export function returnSituation(status: string, dueDate?: string): string {
   return 'Pendente';
 }
 
-export const CommunicationNotice: React.FC = () => (
-  <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-slate-700 space-y-1">
-    <p className="font-extrabold text-[#0B1E36]">O VEBOOK registra. A oficina se comunica.</p>
-    <p>
-      Nesta fase o VEBOOK não envia WhatsApp, SMS, e-mail nem lembretes ao cliente. Os dados de contato ficam no painel para a oficina consultar e usar pelos seus próprios meios.
-    </p>
-  </div>
-);
-
 export const SectionTitle: React.FC<{ title: string; subtitle?: string }> = ({ title, subtitle }) => (
   <div className="space-y-1">
     <h2 className="text-xl font-extrabold text-[#0B1E36]">{title}</h2>

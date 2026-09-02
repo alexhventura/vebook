@@ -19,7 +19,6 @@ import { planLabel, planSummaryLines } from '../../data/officePlans';
 import { Office } from '../../types';
 import {
   APPOINTMENT_STATUS_LABEL,
-  CommunicationNotice,
   PeriodKey,
   formatIsoDate,
   formatKm,
@@ -227,8 +226,6 @@ export const DashboardSection: React.FC<{
           ))}
         </ul>
       </div>
-
-      <CommunicationNotice />
 
       {subscription ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-5 text-sm space-y-1">
