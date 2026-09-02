@@ -118,6 +118,25 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
     setQuickVehicle(false);
   };
 
+  const startNewVehicleFromQuery = (raw: string) => {
+    const plate = formatPlate(raw);
+    if (!plate) return;
+    setVehicleId('');
+    setNewPlate(plate);
+    setVehicleQuery(plate);
+    setNewBrand('');
+    setNewModel('');
+    setNewYear('');
+    setNewVehicleMileage('');
+    setQuickVehicle(true);
+    window.setTimeout(() => document.getElementById('wiz-marca')?.focus(), 0);
+  };
+
+  const plateAlreadyRegistered = (raw: string) => {
+    const plate = formatPlate(raw);
+    return Boolean(plate && vehicles.some((row) => formatPlate(row.plate) === plate));
+  };
+
   const vehicleOptions = useMemo(
     () =>
       vehicles.map((vehicle) => ({
@@ -349,6 +368,9 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
                       const vehicle = vehicles.find((row) => row.id === option.id);
                       if (vehicle) applyKnownVehicle(vehicle);
                     }}
+                    onAddWhenEmpty={plateAlreadyRegistered(vehicleQuery) ? undefined : startNewVehicleFromQuery}
+                    addWhenEmptyLabel={(v) => `Adicionar placa ${formatPlate(v)}`}
+                    emptyHint="Veículo não encontrado. Use Adicionar para cadastrar com esta placa."
                   />
                 </Field>
                 <div className="flex items-end">
@@ -388,10 +410,17 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
                           const vehicle = vehicles.find((row) => row.id === option.id);
                           if (vehicle) applyKnownVehicle(vehicle);
                         }}
+                        onAddWhenEmpty={plateAlreadyRegistered(newPlate) ? undefined : () => {
+                          setQuickVehicle(true);
+                          window.setTimeout(() => document.getElementById('wiz-marca')?.focus(), 0);
+                        }}
+                        addWhenEmptyLabel={(v) => `Adicionar placa ${formatPlate(v)}`}
+                        emptyHint="Placa não cadastrada. Use Adicionar para continuar."
                       />
                     </Field>
                     <Field label="Marca" optional>
                       <AutocompleteField
+                        id="wiz-marca"
                         value={newBrand}
                         options={brandOptions}
                         onChange={setNewBrand}

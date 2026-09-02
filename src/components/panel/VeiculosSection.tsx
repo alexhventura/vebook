@@ -102,7 +102,30 @@ export const VeiculosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
     });
   }, [rows, query, customers]);
 
+  const startNewVehicleWithPlate = (rawPlate: string) => {
+    const plate = formatPlate(rawPlate);
+    if (!plate) return;
+    setForm({
+      plate,
+      brand: '',
+      model: '',
+      version: '',
+      year: '',
+      mileageKm: '',
+      notes: '',
+      customerId: '',
+    });
+    setCustomerQuery('');
+    setQuery('');
+    window.setTimeout(() => document.getElementById('veiculo-marca')?.focus(), 0);
+  };
+
   const selected = rows.find((row) => row.id === selectedId);
+
+  const plateAlreadyExists = (rawPlate: string) => {
+    const plate = formatPlate(rawPlate);
+    return Boolean(plate && rows.some((row) => formatPlate(row.plate) === plate));
+  };
 
   if (selected) {
     const customer = customers.find((item) => item.id === selected.customerId);
@@ -192,6 +215,9 @@ export const VeiculosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
               });
               setCustomerQuery(customer?.name || '');
             }}
+            onAddWhenEmpty={plateAlreadyExists(form.plate) ? undefined : startNewVehicleWithPlate}
+            addWhenEmptyLabel={(v) => `Adicionar placa ${formatPlate(v)}`}
+            emptyHint="Placa não cadastrada. Use Adicionar para continuar o cadastro."
             placeholder="ABC1D23"
           />
         </Field>
@@ -211,7 +237,13 @@ export const VeiculosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
           />
         </Field>
         <Field label="Marca">
-          <AutocompleteField value={form.brand} options={brandOptions} onChange={(next) => setForm({ ...form, brand: next })} placeholder="Marca" />
+          <AutocompleteField
+            id="veiculo-marca"
+            value={form.brand}
+            options={brandOptions}
+            onChange={(next) => setForm({ ...form, brand: next })}
+            placeholder="Marca"
+          />
         </Field>
         <Field label="Modelo">
           <AutocompleteField value={form.model} options={modelOptions} onChange={(next) => setForm({ ...form, model: next })} placeholder="Modelo" />
@@ -227,10 +259,25 @@ export const VeiculosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
         options={searchOptions}
         placeholder="Buscar por placa, modelo ou cliente"
         onChange={setQuery}
-        showEmptyMessage={false}
+        onAddWhenEmpty={plateAlreadyExists(query) ? undefined : startNewVehicleWithPlate}
+        addWhenEmptyLabel={(v) => `Adicionar veículo com placa ${formatPlate(v)}`}
+        emptyHint="Nenhum veículo encontrado com esse termo."
       />
       <div className="bg-white rounded-2xl border border-slate-200 divide-y">
-        {filtered.length === 0 ? <p className="p-4 text-sm text-slate-500">Nenhum veículo encontrado.</p> : null}
+        {filtered.length === 0 ? (
+          <div className="p-4 text-sm text-slate-500 space-y-3">
+            <p>Nenhum veículo encontrado.</p>
+            {query.trim() && !plateAlreadyExists(query) ? (
+              <button
+                type="button"
+                className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-bold text-sky-900 hover:bg-sky-100 cursor-pointer"
+                onClick={() => startNewVehicleWithPlate(query)}
+              >
+                Adicionar veículo com placa {formatPlate(query)}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         {filtered.map((row) => {
           const customer = customers.find((item) => item.id === row.customerId);
           const last = lastAttendanceForVehicle(officeId, row.id);

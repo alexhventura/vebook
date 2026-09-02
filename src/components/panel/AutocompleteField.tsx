@@ -29,6 +29,9 @@ type AutocompleteFieldProps = {
   /** Quando false, não mostra o aviso de lista vazia (útil em busca livre). Padrão: true */
   showEmptyMessage?: boolean;
   emptyHint?: string;
+  /** Quando não houver sugestões, permite usar o texto digitado (ex.: cadastrar novo). */
+  onAddWhenEmpty?: (value: string) => void;
+  addWhenEmptyLabel?: (value: string) => string;
 };
 
 function normalizeText(value: string): string {
@@ -77,6 +80,8 @@ export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
   normalizeValue,
   showEmptyMessage = true,
   emptyHint = 'Nenhuma sugestão encontrada.',
+  onAddWhenEmpty,
+  addWhenEmptyLabel,
 }) => {
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -106,8 +111,9 @@ export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
   const visible = expanded ? matches : matches.slice(0, initialLimit);
   const remaining = Math.max(0, matches.length - initialLimit);
   const showList = open && ready && matches.length > 0;
-  const showEmpty = showEmptyMessage && open && ready && matches.length === 0;
+  const showEmpty = (showEmptyMessage || onAddWhenEmpty) && open && ready && matches.length === 0;
   const showMenu = showList || showEmpty;
+  const canAddWhenEmpty = Boolean(onAddWhenEmpty && value.trim());
 
   const updateMenuPosition = () => {
     const el = inputRef.current;
@@ -163,6 +169,13 @@ export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
   };
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (showEmpty && canAddWhenEmpty && event.key === 'Enter') {
+      event.preventDefault();
+      onAddWhenEmpty?.(value);
+      setOpen(false);
+      setExpanded(false);
+      return;
+    }
     if (!showList) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -230,7 +243,26 @@ export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
                 ) : null}
               </>
             ) : (
-              <div className="px-3 py-2 text-xs text-slate-500">{emptyHint}</div>
+              <div className="px-3 py-2 space-y-2">
+                {showEmptyMessage && !canAddWhenEmpty ? (
+                  <p className="text-xs text-slate-500">{emptyHint}</p>
+                ) : null}
+                {canAddWhenEmpty ? (
+                  <button
+                    type="button"
+                    className="w-full rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-left text-sm font-bold text-sky-900 hover:bg-sky-100 cursor-pointer"
+                    onClick={() => {
+                      onAddWhenEmpty?.(value);
+                      setOpen(false);
+                      setExpanded(false);
+                    }}
+                  >
+                    {addWhenEmptyLabel?.(value) ?? `Adicionar "${value}"`}
+                  </button>
+                ) : showEmptyMessage ? (
+                  <p className="text-xs text-slate-500">{emptyHint}</p>
+                ) : null}
+              </div>
             )}
           </div>,
           document.body,
