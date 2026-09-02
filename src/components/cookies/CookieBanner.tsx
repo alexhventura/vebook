@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { CookiePreferences } from '../../types';
 import { ShieldCheck, Cookie, Sliders, Check, X, Info } from 'lucide-react';
 import { Button } from '../ui';
@@ -9,9 +9,16 @@ interface CookieBannerProps {
 }
 
 const COOKIE_STORAGE_KEY = 'vebook_cookie_preferences_v1';
+const FOOTER_SELECTOR = '#footer-institucional-vebook';
 
 const toggleTrack =
   "w-10 h-5 bg-vebook-border-strong peer-focus:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-vebook-blue/40 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-vebook-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-vebook-white after:border after:border-vebook-border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-vebook-navy";
+
+function readFooterHeight(): number {
+  const footer = document.querySelector(FOOTER_SELECTOR);
+  if (!footer) return 0;
+  return Math.ceil(footer.getBoundingClientRect().height);
+}
 
 export const CookieBanner: React.FC<CookieBannerProps> = ({
   isOpenModalExternally = false,
@@ -26,6 +33,30 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
 
   const [hasAnswered, setHasAnswered] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [footerOffset, setFooterOffset] = useState(0);
+
+  const syncFooterOffset = useCallback(() => {
+    const height = readFooterHeight();
+    setFooterOffset(height);
+    document.documentElement.style.setProperty('--vebook-footer-h', `${height}px`);
+  }, []);
+
+  useLayoutEffect(() => {
+    syncFooterOffset();
+
+    const footer = document.querySelector(FOOTER_SELECTOR);
+    const observer = new ResizeObserver(() => syncFooterOffset());
+    if (footer) observer.observe(footer);
+
+    window.addEventListener('resize', syncFooterOffset);
+    const raf = window.requestAnimationFrame(syncFooterOffset);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', syncFooterOffset);
+      window.cancelAnimationFrame(raf);
+    };
+  }, [syncFooterOffset, hasAnswered, isModalOpen]);
 
   useEffect(() => {
     try {
@@ -87,7 +118,8 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
           id="vebook-cookie-banner"
           role="dialog"
           aria-label="Preferências de cookies"
-          className="fixed inset-x-0 z-50 p-4 sm:p-5 bg-vebook-navy-deep/95 backdrop-blur-md border-t border-vebook-navy-mid shadow-vebook-md animate-in slide-in-from-bottom duration-300"
+          style={{ bottom: footerOffset }}
+          className="fixed inset-x-0 z-50 p-4 sm:p-5 bg-vebook-navy-deep/95 backdrop-blur-md border-t border-vebook-navy-mid shadow-vebook-md"
         >
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5 max-w-3xl min-w-0 flex-1">

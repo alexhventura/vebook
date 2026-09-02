@@ -63,9 +63,15 @@ html {
 }
 
 #vebook-cookie-banner {
+  /* fallback; o componente também aplica bottom inline medindo o rodapé */
   bottom: var(--vebook-footer-h, 0px);
-  max-height: min(40vh, 12rem);
+  max-height: min(45vh, 14rem);
   overflow-y: auto;
+}
+
+#footer-institucional-vebook {
+  /* rodapé sempre no limite inferior da viewport */
+  bottom: 0;
 }
 
 .vebook-main-with-footer {

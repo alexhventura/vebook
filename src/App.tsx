@@ -72,24 +72,46 @@ export default function App() {
       return undefined;
     }
 
-    const footer = footerRef.current;
-    if (!footer) {
-      root.style.setProperty('--vebook-footer-h', '0px');
-      return undefined;
-    }
+    let observer: ResizeObserver | null = null;
+    let cancelled = false;
+    let attachedFooter: Element | null = null;
 
     const syncFooterHeight = () => {
+      const footer = attachedFooter ?? footerRef.current ?? document.querySelector('#footer-institucional-vebook');
+      if (!footer) {
+        root.style.setProperty('--vebook-footer-h', '0px');
+        return;
+      }
       const height = Math.ceil(footer.getBoundingClientRect().height);
       root.style.setProperty('--vebook-footer-h', `${height}px`);
     };
 
-    syncFooterHeight();
-    const observer = new ResizeObserver(syncFooterHeight);
-    observer.observe(footer);
+    const attach = () => {
+      if (cancelled) return;
+      const footer = footerRef.current ?? document.querySelector('#footer-institucional-vebook');
+      if (!footer) {
+        root.style.setProperty('--vebook-footer-h', '0px');
+        return;
+      }
+      if (attachedFooter === footer) {
+        syncFooterHeight();
+        return;
+      }
+      observer?.disconnect();
+      attachedFooter = footer;
+      syncFooterHeight();
+      observer = new ResizeObserver(syncFooterHeight);
+      observer.observe(footer);
+    };
+
+    attach();
+    const raf = window.requestAnimationFrame(attach);
     window.addEventListener('resize', syncFooterHeight);
 
     return () => {
-      observer.disconnect();
+      cancelled = true;
+      window.cancelAnimationFrame(raf);
+      observer?.disconnect();
       window.removeEventListener('resize', syncFooterHeight);
     };
   }, [immersive, currentView]);
