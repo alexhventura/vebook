@@ -280,8 +280,8 @@ const PanelShell: React.FC<{
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#071A33]">
-      <header className="bg-[#0B1E36] text-white">
+    <div className="fixed inset-0 z-30 flex flex-col overflow-hidden bg-[#F8FAFC] text-[#071A33]">
+      <header className="shrink-0 bg-[#0B1E36] text-white z-20">
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <button
@@ -337,55 +337,65 @@ const PanelShell: React.FC<{
       </header>
 
       {pending ? (
-        <div className="bg-amber-50 border-b border-amber-200 text-amber-950 text-sm px-4 py-3 text-center font-medium">
+        <div className="shrink-0 bg-amber-50 border-b border-amber-200 text-amber-950 text-sm px-4 py-3 text-center font-medium">
           Pagamento ainda não confirmado. A oficina permanece pendente e fora da busca pública até a ativação.
         </div>
       ) : null}
 
-      <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
-        <aside className={`space-y-4 ${menuOpen ? 'block' : 'hidden'} lg:block`}>
-          {nav}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-2 text-xs">
-            <p className="font-bold text-[#0B1E36] flex items-center gap-1"><Download className="w-3.5 h-3.5" /> Instalar o VEBOOK</p>
-            <p className="text-slate-600">PWA VEBOOK — Gestão da Oficina. O atalho abre diretamente no painel.</p>
-            <button
-              type="button"
-              onClick={async () => {
-                if (installEvent) {
-                  await installEvent.prompt();
-                  setInstallEvent(null);
-                  setInstallHint('Instalação solicitada.');
-                  return;
-                }
-                setInstallHint('No celular, use o menu do navegador e escolha “Adicionar à tela inicial”. No computador, use o ícone de instalação da barra de endereço.');
-              }}
-              className="w-full py-2 rounded-lg bg-slate-100 font-bold cursor-pointer"
-            >
-              Instalar aplicativo
-            </button>
-            {installHint ? <p className="text-slate-500">{installHint}</p> : null}
-          </div>
-          <p className="text-[11px] text-slate-500 px-1">Dados isolados por office_id.</p>
-        </aside>
+      <div className="flex-1 min-h-0">
+        <div className="h-full max-w-6xl mx-auto px-4 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-4 lg:gap-6 items-stretch">
+          <aside
+            className={`min-h-0 flex flex-col gap-4 ${
+              menuOpen ? 'block' : 'hidden'
+            } lg:flex`}
+          >
+            <div className="min-h-0 overflow-y-auto overscroll-contain pr-0.5">
+              {nav}
+            </div>
+            <div className="shrink-0 bg-white rounded-2xl border border-slate-200 p-4 space-y-2 text-xs">
+              <p className="font-bold text-[#0B1E36] flex items-center gap-1"><Download className="w-3.5 h-3.5" /> Instalar o VEBOOK</p>
+              <p className="text-slate-600">PWA VEBOOK — Gestão da Oficina. O atalho abre diretamente no painel.</p>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (installEvent) {
+                    await installEvent.prompt();
+                    setInstallEvent(null);
+                    setInstallHint('Instalação solicitada.');
+                    return;
+                  }
+                  setInstallHint('No celular, use o menu do navegador e escolha “Adicionar à tela inicial”. No computador, use o ícone de instalação da barra de endereço.');
+                }}
+                className="w-full py-2 rounded-lg bg-slate-100 font-bold cursor-pointer"
+              >
+                Instalar aplicativo
+              </button>
+              {installHint ? <p className="text-slate-500">{installHint}</p> : null}
+            </div>
+            <p className="shrink-0 text-[11px] text-slate-500 px-1">Dados isolados por office_id.</p>
+          </aside>
 
-        <main className="min-w-0">
-          {section === 'inicio' && (
-            <DashboardSection
-              office={office}
-              onSectionChange={(next, tab) => go(next, tab)}
-            />
-          )}
-          {section === 'atendimentos' && <AtendimentosSection officeId={office.officeId} />}
-          {section === 'agenda' && <AgendaSection officeId={office.officeId} initialTab={agendaTab} />}
-          {section === 'clientes' && <ClientesSection officeId={office.officeId} />}
-          {section === 'veiculos' && <VeiculosSection officeId={office.officeId} />}
-          {section === 'servicos' && <ServicosSection officeId={office.officeId} />}
-          {section === 'produtos' && <ProdutosSection officeId={office.officeId} />}
-          {section === 'financeiro' && <FinanceiroSection officeId={office.officeId} />}
-          {section === 'minha-oficina' && <MinhaOficinaSection office={office} onViewPublicPage={onViewPublicPage} />}
-          {section === 'perfil' && <PerfilSection user={user} />}
-          {section === 'configuracoes' && <ConfiguracoesSection office={office} user={user} initialTab={configTab} />}
-        </main>
+          <main className="min-h-0 min-w-0 flex flex-col">
+            <div className="vebook-panel-frame flex-1 min-h-0 overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
+              {section === 'inicio' && (
+                <DashboardSection
+                  office={office}
+                  onSectionChange={(next, tab) => go(next, tab)}
+                />
+              )}
+              {section === 'atendimentos' && <AtendimentosSection officeId={office.officeId} />}
+              {section === 'agenda' && <AgendaSection officeId={office.officeId} initialTab={agendaTab} />}
+              {section === 'clientes' && <ClientesSection officeId={office.officeId} />}
+              {section === 'veiculos' && <VeiculosSection officeId={office.officeId} />}
+              {section === 'servicos' && <ServicosSection officeId={office.officeId} />}
+              {section === 'produtos' && <ProdutosSection officeId={office.officeId} />}
+              {section === 'financeiro' && <FinanceiroSection officeId={office.officeId} />}
+              {section === 'minha-oficina' && <MinhaOficinaSection office={office} onViewPublicPage={onViewPublicPage} />}
+              {section === 'perfil' && <PerfilSection user={user} />}
+              {section === 'configuracoes' && <ConfiguracoesSection office={office} user={user} initialTab={configTab} />}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

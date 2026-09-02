@@ -78,6 +78,24 @@ html {
   padding-bottom: var(--vebook-footer-h, 0px);
 }
 
+/* Quadro estável do painel da oficina — rolagem interna sem deslocar a página */
+.vebook-panel-frame {
+  scrollbar-gutter: stable;
+}
+
+.vebook-panel-frame::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vebook-panel-frame::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 0.55);
+  border-radius: 999px;
+}
+
+.vebook-panel-frame::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 body {
   font-family: var(--font-sans);
   color: var(--color-vebook-text);
