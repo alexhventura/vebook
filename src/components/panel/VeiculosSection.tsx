@@ -13,6 +13,7 @@ import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { formatBRL } from '../../lib/currency';
 import { formatPlate } from '../../lib/utils';
 import { Field, inputClass } from '../ui/Field';
+import { AutocompleteField } from './AutocompleteField';
 import { SectionTitle, formatIsoDate, formatKm, returnSituation } from './shared';
 
 export const VeiculosSection: React.FC<{ officeId: string }> = ({ officeId }) => {
@@ -22,6 +23,7 @@ export const VeiculosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
   const attendances = listAttendances(officeId);
   const returns = listReturns(officeId);
   const [query, setQuery] = useState('');
+  const [customerQuery, setCustomerQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState({
     plate: '',
@@ -33,6 +35,63 @@ export const VeiculosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
     notes: '',
     customerId: '',
   });
+
+  const customerOptions = useMemo(
+    () =>
+      customers.map((customer) => ({
+        id: customer.id,
+        label: customer.name,
+        description: customer.phone || undefined,
+        keywords: `${customer.name} ${customer.phone || ''} ${customer.email || ''}`,
+      })),
+    [customers],
+  );
+
+  const plateOptions = useMemo(
+    () =>
+      rows.map((row) => ({
+        id: row.id,
+        label: row.plate,
+        description: [row.brand, row.model].filter(Boolean).join(' ') || undefined,
+      })),
+    [rows],
+  );
+
+  const brandOptions = useMemo(() => {
+    const brands = [...new Set(rows.map((row) => row.brand).filter(Boolean) as string[])];
+    return brands.map((brand) => ({ id: brand, label: brand }));
+  }, [rows]);
+
+  const modelOptions = useMemo(() => {
+    const models = [...new Set(rows.map((row) => row.model).filter(Boolean) as string[])];
+    return models.map((model) => ({ id: model, label: model }));
+  }, [rows]);
+
+  const searchOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const options: Array<{ id: string; label: string; description?: string }> = [];
+    rows.forEach((row) => {
+      const customer = customers.find((item) => item.id === row.customerId);
+      const label = row.plate;
+      if (!seen.has(label)) {
+        seen.add(label);
+        options.push({
+          id: `plate-${row.id}`,
+          label,
+          description: [row.brand, row.model, customer?.name].filter(Boolean).join(' · ') || undefined,
+        });
+      }
+      if (customer?.name && !seen.has(customer.name)) {
+        seen.add(customer.name);
+        options.push({ id: `cust-${customer.id}`, label: customer.name, description: 'Cliente' });
+      }
+      if (row.model && !seen.has(row.model)) {
+        seen.add(row.model);
+        options.push({ id: `model-${row.model}`, label: row.model, description: row.brand || 'Modelo' });
+      }
+    });
+    return options;
+  }, [rows, customers]);
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -107,19 +166,69 @@ export const VeiculosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
             customerId: form.customerId || undefined,
           });
           setForm({ plate: '', brand: '', model: '', version: '', year: '', mileageKm: '', notes: '', customerId: '' });
+          setCustomerQuery('');
         }}
       >
-        <Field label="Placa"><input className={`${inputClass} uppercase`} value={form.plate} onChange={(e) => setForm({ ...form, plate: e.target.value })} /></Field>
-        <Field label="Cliente"><select className={inputClass} value={form.customerId} onChange={(e) => setForm({ ...form, customerId: e.target.value })}><option value="">Selecionar</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}</select></Field>
-        <Field label="Marca"><input className={inputClass} value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></Field>
-        <Field label="Modelo"><input className={inputClass} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} /></Field>
+        <Field label="Placa">
+          <AutocompleteField
+            inputClassName="uppercase"
+            normalizeValue={(raw) => formatPlate(raw)}
+            value={form.plate}
+            options={plateOptions}
+            onChange={(next) => setForm({ ...form, plate: next })}
+            onSelect={(option) => {
+              const vehicle = rows.find((row) => row.id === option.id);
+              if (!vehicle) return;
+              const customer = customers.find((row) => row.id === vehicle.customerId);
+              setForm({
+                ...form,
+                plate: vehicle.plate,
+                brand: vehicle.brand || '',
+                model: vehicle.model || '',
+                version: vehicle.version || '',
+                year: vehicle.year ? String(vehicle.year) : '',
+                mileageKm: vehicle.mileageKm != null ? String(vehicle.mileageKm) : '',
+                customerId: vehicle.customerId || '',
+              });
+              setCustomerQuery(customer?.name || '');
+            }}
+            placeholder="ABC1D23"
+          />
+        </Field>
+        <Field label="Cliente">
+          <AutocompleteField
+            value={customerQuery}
+            options={customerOptions}
+            placeholder="Digite o nome do cliente"
+            onChange={(next) => {
+              setCustomerQuery(next);
+              if (!next.trim()) setForm({ ...form, customerId: '' });
+            }}
+            onSelect={(option) => {
+              setForm({ ...form, customerId: option.id });
+              setCustomerQuery(option.label);
+            }}
+          />
+        </Field>
+        <Field label="Marca">
+          <AutocompleteField value={form.brand} options={brandOptions} onChange={(next) => setForm({ ...form, brand: next })} placeholder="Marca" />
+        </Field>
+        <Field label="Modelo">
+          <AutocompleteField value={form.model} options={modelOptions} onChange={(next) => setForm({ ...form, model: next })} placeholder="Modelo" />
+        </Field>
         <Field label="Versão" optional><input className={inputClass} value={form.version} onChange={(e) => setForm({ ...form, version: e.target.value })} /></Field>
         <Field label="Ano" optional><input className={inputClass} type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} /></Field>
         <Field label="Quilometragem" optional><input className={inputClass} type="number" value={form.mileageKm} onChange={(e) => setForm({ ...form, mileageKm: e.target.value })} /></Field>
         <Field label="Observações" optional><input className={inputClass} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
         <button className="sm:col-span-2 rounded-xl bg-[#0B1E36] text-white font-bold text-sm py-2.5 cursor-pointer">Cadastrar veículo</button>
       </form>
-      <input className={inputClass} placeholder="Buscar por placa, modelo ou cliente" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <AutocompleteField
+        value={query}
+        options={searchOptions}
+        placeholder="Buscar por placa, modelo ou cliente"
+        onChange={setQuery}
+        showEmptyMessage={false}
+      />
       <div className="bg-white rounded-2xl border border-slate-200 divide-y">
         {filtered.length === 0 ? <p className="p-4 text-sm text-slate-500">Nenhum veículo encontrado.</p> : null}
         {filtered.map((row) => {

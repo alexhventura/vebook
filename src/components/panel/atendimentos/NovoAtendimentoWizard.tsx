@@ -15,6 +15,7 @@ import { formatPhone } from '../../../lib/phone';
 import { onlyDigits } from '../../../lib/cpf';
 import { formatPlate } from '../../../lib/utils';
 import { Field, inputClass } from '../../ui/Field';
+import { AutocompleteField } from '../AutocompleteField';
 import { AttendancePreview } from './AttendancePreview';
 import { ATTENDANCE_STEPS, AttendanceStepper, type AttendanceWizardStep } from './AttendanceStepper';
 
@@ -78,6 +79,10 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
   const [newBrand, setNewBrand] = useState('');
   const [newModel, setNewModel] = useState('');
   const [newYear, setNewYear] = useState('');
+  const [vehicleQuery, setVehicleQuery] = useState('');
+  const [customerQuery, setCustomerQuery] = useState('');
+  const [serviceCatalogQuery, setServiceCatalogQuery] = useState('');
+  const [productCatalogQuery, setProductCatalogQuery] = useState('');
   const [newVehicleMileage, setNewVehicleMileage] = useState('');
 
   const selectedVehicle = vehicles.find((row) => row.id === vehicleId);
@@ -98,15 +103,90 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
   const applyKnownVehicle = (vehicle: typeof selectedVehicle) => {
     if (!vehicle) return;
     setVehicleId(vehicle.id);
+    setVehicleQuery(`${vehicle.plate} · ${vehicle.model || vehicle.brand || 'modelo'}`);
     setNewPlate(vehicle.plate);
     setNewBrand(vehicle.brand || '');
     setNewModel(vehicle.model || '');
     setNewYear(vehicle.year ? String(vehicle.year) : '');
     setNewVehicleMileage(vehicle.mileageKm ? String(vehicle.mileageKm) : '');
-    if (vehicle.customerId) setCustomerId(vehicle.customerId);
+    if (vehicle.customerId) {
+      setCustomerId(vehicle.customerId);
+      const customer = customers.find((row) => row.id === vehicle.customerId);
+      if (customer) setCustomerQuery(customer.name);
+    }
     if (vehicle.mileageKm && !mileageKm) setMileageKm(String(vehicle.mileageKm));
     setQuickVehicle(false);
   };
+
+  const vehicleOptions = useMemo(
+    () =>
+      vehicles.map((vehicle) => ({
+        id: vehicle.id,
+        label: `${vehicle.plate} · ${vehicle.model || vehicle.brand || 'modelo'}`,
+        description: [vehicle.brand, vehicle.year].filter(Boolean).join(' · ') || undefined,
+        keywords: `${vehicle.plate} ${vehicle.brand || ''} ${vehicle.model || ''}`,
+      })),
+    [vehicles],
+  );
+
+  const plateOptions = useMemo(
+    () =>
+      vehicles.map((vehicle) => ({
+        id: vehicle.id,
+        label: vehicle.plate,
+        description: [vehicle.brand, vehicle.model].filter(Boolean).join(' ') || undefined,
+        keywords: `${vehicle.plate} ${vehicle.brand || ''} ${vehicle.model || ''}`,
+      })),
+    [vehicles],
+  );
+
+  const customerOptions = useMemo(
+    () =>
+      customers.map((customer) => ({
+        id: customer.id,
+        label: customer.name,
+        description: customer.phone || customer.whatsapp || customer.email || undefined,
+        keywords: `${customer.name} ${customer.phone || ''} ${customer.whatsapp || ''} ${customer.email || ''}`,
+      })),
+    [customers],
+  );
+
+  const serviceOptions = useMemo(
+    () =>
+      serviceCatalog.map((item) => ({
+        id: item.id,
+        label: item.name,
+        description: `${item.category || 'Catálogo'} · ${formatBRL(item.price)}`,
+        keywords: `${item.name} ${item.category || ''}`,
+      })),
+    [serviceCatalog],
+  );
+
+  const productOptions = useMemo(
+    () =>
+      productCatalog.map((item) => ({
+        id: item.id,
+        label: item.name,
+        description: `${item.brand || 's/ marca'} · ${formatBRL(item.price)}`,
+        keywords: `${item.name} ${item.brand || ''} ${item.category || ''}`,
+      })),
+    [productCatalog],
+  );
+
+  const brandOptions = useMemo(() => {
+    const brands = [...new Set(vehicles.map((row) => row.brand).filter(Boolean) as string[])];
+    return brands.map((brand) => ({ id: brand, label: brand }));
+  }, [vehicles]);
+
+  const modelOptions = useMemo(() => {
+    const models = [...new Set(vehicles.map((row) => row.model).filter(Boolean) as string[])];
+    return models.map((model) => ({ id: model, label: model }));
+  }, [vehicles]);
+
+  const productBrandOptions = useMemo(() => {
+    const brands = [...new Set(productCatalog.map((row) => row.brand).filter(Boolean) as string[])];
+    return brands.map((brand) => ({ id: brand, label: brand }));
+  }, [productCatalog]);
 
   const validateStep = (step: AttendanceWizardStep): string => {
     if (step === 'veiculo') {
@@ -257,30 +337,19 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
             <div className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Veículo cadastrado">
-                  <select
-                    className={inputClass}
-                    value={vehicleId}
-                    onChange={(e) => {
-                      const nextId = e.target.value;
-                      setVehicleId(nextId);
-                      const vehicle = vehicles.find((row) => row.id === nextId);
-                      if (vehicle) {
-                        setNewPlate(vehicle.plate);
-                        setNewBrand(vehicle.brand || '');
-                        setNewModel(vehicle.model || '');
-                        setNewYear(vehicle.year ? String(vehicle.year) : '');
-                        if (vehicle.mileageKm) setMileageKm(String(vehicle.mileageKm));
-                        if (vehicle.customerId) setCustomerId(vehicle.customerId);
-                      }
+                  <AutocompleteField
+                    value={vehicleQuery}
+                    placeholder="Digite a placa ou modelo"
+                    options={vehicleOptions}
+                    onChange={(next) => {
+                      setVehicleQuery(next);
+                      if (!next.trim()) setVehicleId('');
                     }}
-                  >
-                    <option value="">Selecionar veículo</option>
-                    {vehicles.map((vehicle) => (
-                      <option key={vehicle.id} value={vehicle.id}>
-                        {vehicle.plate} · {vehicle.model || vehicle.brand || 'modelo'}
-                      </option>
-                    ))}
-                  </select>
+                    onSelect={(option) => {
+                      const vehicle = vehicles.find((row) => row.id === option.id);
+                      if (vehicle) applyKnownVehicle(vehicle);
+                    }}
+                  />
                 </Field>
                 <div className="flex items-end">
                   <button
@@ -305,21 +374,37 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
                   ) : null}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <Field label="Placa">
-                      <input
-                        className={`${inputClass} uppercase`}
+                      <AutocompleteField
                         placeholder="ABC1D23"
                         value={newPlate}
-                        onChange={(e) => setNewPlate(e.target.value)}
-                        onBlur={() => {
-                          if (knownPlate && !vehicleId) applyKnownVehicle(knownPlate);
+                        inputClassName="uppercase"
+                        normalizeValue={(raw) => formatPlate(raw)}
+                        options={plateOptions}
+                        onChange={(next) => {
+                          setNewPlate(next);
+                          setVehicleId('');
+                        }}
+                        onSelect={(option) => {
+                          const vehicle = vehicles.find((row) => row.id === option.id);
+                          if (vehicle) applyKnownVehicle(vehicle);
                         }}
                       />
                     </Field>
                     <Field label="Marca" optional>
-                      <input className={inputClass} value={newBrand} onChange={(e) => setNewBrand(e.target.value)} />
+                      <AutocompleteField
+                        value={newBrand}
+                        options={brandOptions}
+                        onChange={setNewBrand}
+                        placeholder="Marca"
+                      />
                     </Field>
                     <Field label="Modelo" optional>
-                      <input className={inputClass} value={newModel} onChange={(e) => setNewModel(e.target.value)} />
+                      <AutocompleteField
+                        value={newModel}
+                        options={modelOptions}
+                        onChange={setNewModel}
+                        placeholder="Modelo"
+                      />
                     </Field>
                     <Field label="Ano" optional>
                       <input className={inputClass} type="number" value={newYear} onChange={(e) => setNewYear(e.target.value)} />
@@ -359,10 +444,19 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
             <div className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Cliente">
-                  <select className={inputClass} value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
-                    <option value="">Selecionar cliente</option>
-                    {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}
-                  </select>
+                  <AutocompleteField
+                    value={customerQuery}
+                    placeholder="Digite o nome do cliente"
+                    options={customerOptions}
+                    onChange={(next) => {
+                      setCustomerQuery(next);
+                      if (!next.trim()) setCustomerId('');
+                    }}
+                    onSelect={(option) => {
+                      setCustomerId(option.id);
+                      setCustomerQuery(option.label);
+                    }}
+                  />
                 </Field>
                 <div className="flex items-end">
                   <button type="button" onClick={() => setQuickCustomer((value) => !value)} className="text-sm font-bold text-sky-800 cursor-pointer">
@@ -372,7 +466,20 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
               </div>
               {quickCustomer ? (
                 <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <input className={inputClass} placeholder="Nome completo" value={newCustomerName} onChange={(e) => setNewCustomerName(e.target.value)} />
+                  <AutocompleteField
+                    placeholder="Nome completo"
+                    value={newCustomerName}
+                    options={customerOptions}
+                    onChange={setNewCustomerName}
+                    onSelect={(option) => {
+                      setCustomerId(option.id);
+                      setCustomerQuery(option.label);
+                      setNewCustomerName(option.label);
+                      const customer = customers.find((row) => row.id === option.id);
+                      if (customer?.phone) setNewCustomerPhone(customer.phone);
+                      setQuickCustomer(false);
+                    }}
+                  />
                   <input className={inputClass} placeholder="Telefone" value={formatPhone(newCustomerPhone)} onChange={(e) => setNewCustomerPhone(onlyDigits(e.target.value))} />
                   <button
                     type="button"
@@ -381,6 +488,7 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
                       if (!newCustomerName.trim()) return;
                       const created = upsertCustomer(officeId, { name: newCustomerName, phone: newCustomerPhone, whatsapp: newCustomerPhone });
                       setCustomerId(created.id);
+                      setCustomerQuery(created.name);
                       if (vehicleId) {
                         const vehicle = vehicles.find((row) => row.id === vehicleId);
                         if (vehicle) upsertVehicle(officeId, { ...vehicle, customerId: created.id, id: vehicle.id });
@@ -414,11 +522,14 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h4 className="font-extrabold text-[#0B1E36]">Serviços</h4>
-                  <select
-                    className={`${inputClass} max-w-xs`}
-                    defaultValue=""
-                    onChange={(e) => {
-                      const item = serviceCatalog.find((row) => row.id === e.target.value);
+                  <AutocompleteField
+                    className="w-full max-w-xs"
+                    value={serviceCatalogQuery}
+                    placeholder="Buscar no catálogo"
+                    options={serviceOptions}
+                    onChange={setServiceCatalogQuery}
+                    onSelect={(option) => {
+                      const item = serviceCatalog.find((row) => row.id === option.id);
                       if (!item) return;
                       setServices((prev) => [...prev, {
                         catalogServiceId: item.id,
@@ -427,12 +538,9 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
                         unitPrice: String(item.price),
                         notes: '',
                       }]);
-                      e.target.value = '';
+                      setServiceCatalogQuery('');
                     }}
-                  >
-                    <option value="">Adicionar do catálogo</option>
-                    {serviceCatalog.map((item) => <option key={item.id} value={item.id}>{item.name} · {formatBRL(item.price)}</option>)}
-                  </select>
+                  />
                 </div>
                 <button
                   type="button"
@@ -443,7 +551,22 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
                 </button>
                 {services.map((row, index) => (
                   <div key={`${row.catalogServiceId || 'svc'}-${index}`} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <input className={inputClass} placeholder="Descrição" value={row.title} onChange={(e) => setServices((prev) => prev.map((item, i) => i === index ? { ...item, title: e.target.value } : item))} />
+                    <AutocompleteField
+                      placeholder="Descrição"
+                      value={row.title}
+                      options={serviceOptions}
+                      onChange={(next) => setServices((prev) => prev.map((item, i) => i === index ? { ...item, title: next, catalogServiceId: undefined } : item))}
+                      onSelect={(option) => {
+                        const item = serviceCatalog.find((rowItem) => rowItem.id === option.id);
+                        if (!item) return;
+                        setServices((prev) => prev.map((entry, i) => i === index ? {
+                          ...entry,
+                          catalogServiceId: item.id,
+                          title: item.name,
+                          unitPrice: String(item.price),
+                        } : entry));
+                      }}
+                    />
                     <input className={inputClass} type="number" placeholder="Qtd" value={row.quantity} onChange={(e) => setServices((prev) => prev.map((item, i) => i === index ? { ...item, quantity: e.target.value } : item))} />
                     <input className={inputClass} type="number" placeholder="Valor" value={row.unitPrice} onChange={(e) => setServices((prev) => prev.map((item, i) => i === index ? { ...item, unitPrice: e.target.value } : item))} />
                     <button type="button" className="text-xs font-bold text-rose-700 cursor-pointer self-center text-left" onClick={() => setServices((prev) => prev.filter((_, i) => i !== index))}>Remover</button>
@@ -461,11 +584,14 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h4 className="font-extrabold text-[#0B1E36]">Produtos</h4>
-                <select
-                  className={`${inputClass} max-w-xs`}
-                  defaultValue=""
-                  onChange={(e) => {
-                    const item = productCatalog.find((row) => row.id === e.target.value);
+                <AutocompleteField
+                  className="w-full max-w-xs"
+                  value={productCatalogQuery}
+                  placeholder="Buscar no catálogo"
+                  options={productOptions}
+                  onChange={setProductCatalogQuery}
+                  onSelect={(option) => {
+                    const item = productCatalog.find((row) => row.id === option.id);
                     if (!item) return;
                     setProducts((prev) => [...prev, {
                       catalogProductId: item.id,
@@ -475,20 +601,39 @@ export const NovoAtendimentoWizard: React.FC<NovoAtendimentoWizardProps> = ({
                       unit: item.unit,
                       unitPrice: String(item.price),
                     }]);
-                    e.target.value = '';
+                    setProductCatalogQuery('');
                   }}
-                >
-                  <option value="">Adicionar do catálogo</option>
-                  {productCatalog.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.brand || 's/ marca'}</option>)}
-                </select>
+                />
               </div>
               {products.length === 0 ? (
                 <p className="text-sm text-slate-500">Nenhum produto adicionado. Esta etapa é opcional — continue quando quiser.</p>
               ) : null}
               {products.map((row, index) => (
                 <div key={`${row.catalogProductId || 'prd'}-${index}`} className="grid grid-cols-1 sm:grid-cols-5 gap-3">
-                  <input className={inputClass} placeholder="Produto" value={row.name} onChange={(e) => setProducts((prev) => prev.map((item, i) => i === index ? { ...item, name: e.target.value } : item))} />
-                  <input className={inputClass} placeholder="Marca" value={row.brand} onChange={(e) => setProducts((prev) => prev.map((item, i) => i === index ? { ...item, brand: e.target.value } : item))} />
+                  <AutocompleteField
+                    placeholder="Produto"
+                    value={row.name}
+                    options={productOptions}
+                    onChange={(next) => setProducts((prev) => prev.map((item, i) => i === index ? { ...item, name: next, catalogProductId: undefined } : item))}
+                    onSelect={(option) => {
+                      const item = productCatalog.find((rowItem) => rowItem.id === option.id);
+                      if (!item) return;
+                      setProducts((prev) => prev.map((entry, i) => i === index ? {
+                        ...entry,
+                        catalogProductId: item.id,
+                        name: item.name,
+                        brand: item.brand || '',
+                        unit: item.unit,
+                        unitPrice: String(item.price),
+                      } : entry));
+                    }}
+                  />
+                  <AutocompleteField
+                    placeholder="Marca"
+                    value={row.brand}
+                    options={productBrandOptions}
+                    onChange={(next) => setProducts((prev) => prev.map((item, i) => i === index ? { ...item, brand: next } : item))}
+                  />
                   <input className={inputClass} type="number" placeholder="Qtd" value={row.quantity} onChange={(e) => setProducts((prev) => prev.map((item, i) => i === index ? { ...item, quantity: e.target.value } : item))} />
                   <input className={inputClass} placeholder="Unidade" value={row.unit} onChange={(e) => setProducts((prev) => prev.map((item, i) => i === index ? { ...item, unit: e.target.value } : item))} />
                   <input className={inputClass} type="number" placeholder="Valor unit." value={row.unitPrice} onChange={(e) => setProducts((prev) => prev.map((item, i) => i === index ? { ...item, unitPrice: e.target.value } : item))} />

@@ -12,6 +12,7 @@ import { formatBRL } from '../../lib/currency';
 import { onlyDigits } from '../../lib/cpf';
 import { formatPhone } from '../../lib/phone';
 import { Field, inputClass } from '../ui/Field';
+import { AutocompleteField } from './AutocompleteField';
 import { SectionTitle, formatIsoDate, formatKm, returnSituation } from './shared';
 
 export const ClientesSection: React.FC<{ officeId: string }> = ({ officeId }) => {
@@ -23,6 +24,37 @@ export const ClientesSection: React.FC<{ officeId: string }> = ({ officeId }) =>
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', whatsapp: '', email: '', notes: '' });
+
+  const nameOptions = useMemo(
+    () =>
+      rows.map((row) => ({
+        id: row.id,
+        label: row.name,
+        description: row.phone ? formatPhone(row.phone) : row.email || undefined,
+        keywords: `${row.name} ${row.phone || ''} ${row.whatsapp || ''} ${row.email || ''}`,
+      })),
+    [rows],
+  );
+
+  const searchOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const options: Array<{ id: string; label: string; description?: string }> = [];
+    rows.forEach((row) => {
+      if (!seen.has(row.name)) {
+        seen.add(row.name);
+        options.push({
+          id: row.id,
+          label: row.name,
+          description: row.phone ? formatPhone(row.phone) : row.email || undefined,
+        });
+      }
+      if (row.email && !seen.has(row.email)) {
+        seen.add(row.email);
+        options.push({ id: `email-${row.id}`, label: row.email, description: row.name });
+      }
+    });
+    return options;
+  }, [rows]);
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -92,7 +124,25 @@ export const ClientesSection: React.FC<{ officeId: string }> = ({ officeId }) =>
           setForm({ name: '', phone: '', whatsapp: '', email: '', notes: '' });
         }}
       >
-        <Field label="Nome completo"><input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+        <Field label="Nome completo">
+          <AutocompleteField
+            value={form.name}
+            options={nameOptions}
+            placeholder="Digite o nome"
+            onChange={(next) => setForm({ ...form, name: next })}
+            onSelect={(option) => {
+              const customer = rows.find((row) => row.id === option.id);
+              if (!customer) return;
+              setForm({
+                name: customer.name,
+                phone: customer.phone || '',
+                whatsapp: customer.whatsapp || '',
+                email: customer.email || '',
+                notes: customer.notes || '',
+              });
+            }}
+          />
+        </Field>
         <Field label="Telefone"><input className={inputClass} value={formatPhone(form.phone)} onChange={(e) => setForm({ ...form, phone: onlyDigits(e.target.value) })} /></Field>
         <Field label="WhatsApp" optional><input className={inputClass} value={formatPhone(form.whatsapp)} onChange={(e) => setForm({ ...form, whatsapp: onlyDigits(e.target.value) })} /></Field>
         <Field label="E-mail" optional><input className={inputClass} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
@@ -101,7 +151,13 @@ export const ClientesSection: React.FC<{ officeId: string }> = ({ officeId }) =>
         </Field>
         <button className="sm:col-span-2 rounded-xl bg-[#0B1E36] text-white font-bold text-sm py-2.5 cursor-pointer">Cadastrar cliente</button>
       </form>
-      <input className={inputClass} placeholder="Buscar por nome, telefone ou e-mail" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <AutocompleteField
+        value={query}
+        options={searchOptions}
+        placeholder="Buscar por nome, telefone ou e-mail"
+        onChange={setQuery}
+        showEmptyMessage={false}
+      />
       <div className="bg-white rounded-2xl border border-slate-200 divide-y">
         {filtered.length === 0 ? <p className="p-4 text-sm text-slate-500">Nenhum cliente encontrado.</p> : null}
         {filtered.map((row) => {

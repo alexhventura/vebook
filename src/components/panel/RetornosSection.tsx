@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { listCustomers, listReturns, listVehicles, upsertReturn } from '../../data/officeStore';
+import { listCustomers, listReturns, listServiceCatalog, listVehicles, upsertReturn } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { Field, inputClass } from '../ui/Field';
+import { AutocompleteField } from './AutocompleteField';
 import { daysUntilIso, formatIsoDate, formatKm, returnSituation } from './shared';
 
 /** Painel de retornos reutilizado dentro de Agenda (sem aba independente no menu). */
@@ -10,9 +11,12 @@ export const RetornosPanel: React.FC<{ officeId: string }> = ({ officeId }) => {
   const rows = listReturns(officeId);
   const customers = listCustomers(officeId);
   const vehicles = listVehicles(officeId);
+  const serviceCatalog = listServiceCatalog(officeId);
   const [filter, setFilter] = useState<'proximos' | 'atrasados' | 'concluidos' | 'todos'>('proximos');
   const [customerId, setCustomerId] = useState('');
   const [vehicleId, setVehicleId] = useState('');
+  const [customerQuery, setCustomerQuery] = useState('');
+  const [vehicleQuery, setVehicleQuery] = useState('');
   const [serviceTitle, setServiceTitle] = useState('');
   const [nextMileageKm, setNextMileageKm] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -20,6 +24,46 @@ export const RetornosPanel: React.FC<{ officeId: string }> = ({ officeId }) => {
 
   const customerById = Object.fromEntries(customers.map((row) => [row.id, row]));
   const vehicleById = Object.fromEntries(vehicles.map((row) => [row.id, row]));
+
+  const customerOptions = useMemo(
+    () =>
+      customers.map((customer) => ({
+        id: customer.id,
+        label: customer.name,
+        description: customer.phone || undefined,
+      })),
+    [customers],
+  );
+
+  const vehicleOptions = useMemo(
+    () =>
+      vehicles.map((vehicle) => ({
+        id: vehicle.id,
+        label: vehicle.plate,
+        description: [vehicle.brand, vehicle.model].filter(Boolean).join(' ') || undefined,
+        keywords: `${vehicle.plate} ${vehicle.brand || ''} ${vehicle.model || ''}`,
+      })),
+    [vehicles],
+  );
+
+  const serviceOptions = useMemo(() => {
+    const fromCatalog = serviceCatalog.map((item) => ({
+      id: item.id,
+      label: item.name,
+      description: item.category || 'Catálogo',
+    }));
+    const fromReturns = rows
+      .map((row) => row.serviceTitle || row.reason)
+      .filter(Boolean)
+      .map((title, index) => ({ id: `ret-svc-${index}-${title}`, label: title as string }));
+    const seen = new Set<string>();
+    return [...fromCatalog, ...fromReturns].filter((option) => {
+      const key = option.label.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [serviceCatalog, rows]);
 
   const filtered = useMemo(() => {
     return rows.filter((row) => {
@@ -54,6 +98,8 @@ export const RetornosPanel: React.FC<{ officeId: string }> = ({ officeId }) => {
           });
           setCustomerId('');
           setVehicleId('');
+          setCustomerQuery('');
+          setVehicleQuery('');
           setServiceTitle('');
           setNextMileageKm('');
           setDueDate('');
@@ -61,18 +107,52 @@ export const RetornosPanel: React.FC<{ officeId: string }> = ({ officeId }) => {
         }}
       >
         <Field label="Cliente">
-          <select className={inputClass} value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
-            <option value="">Selecionar</option>
-            {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}
-          </select>
+          <AutocompleteField
+            value={customerQuery}
+            options={customerOptions}
+            placeholder="Digite o nome do cliente"
+            onChange={(next) => {
+              setCustomerQuery(next);
+              if (!next.trim()) setCustomerId('');
+            }}
+            onSelect={(option) => {
+              setCustomerId(option.id);
+              setCustomerQuery(option.label);
+            }}
+          />
         </Field>
         <Field label="Veículo">
-          <select className={inputClass} value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
-            <option value="">Selecionar</option>
-            {vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.plate}</option>)}
-          </select>
+          <AutocompleteField
+            value={vehicleQuery}
+            options={vehicleOptions}
+            placeholder="Digite a placa"
+            inputClassName="uppercase"
+            onChange={(next) => {
+              setVehicleQuery(next);
+              if (!next.trim()) setVehicleId('');
+            }}
+            onSelect={(option) => {
+              setVehicleId(option.id);
+              setVehicleQuery(option.label);
+              const vehicle = vehicles.find((row) => row.id === option.id);
+              if (vehicle?.customerId) {
+                const customer = customers.find((row) => row.id === vehicle.customerId);
+                if (customer) {
+                  setCustomerId(customer.id);
+                  setCustomerQuery(customer.name);
+                }
+              }
+            }}
+          />
         </Field>
-        <Field label="Serviço"><input className={inputClass} value={serviceTitle} onChange={(e) => setServiceTitle(e.target.value)} placeholder="Ex.: Troca de óleo" /></Field>
+        <Field label="Serviço">
+          <AutocompleteField
+            value={serviceTitle}
+            options={serviceOptions}
+            onChange={setServiceTitle}
+            placeholder="Ex.: Troca de óleo"
+          />
+        </Field>
         <Field label="Quilometragem prevista" optional><input className={inputClass} type="number" value={nextMileageKm} onChange={(e) => setNextMileageKm(e.target.value)} /></Field>
         <Field label="Data prevista" optional><input className={inputClass} type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></Field>
         <Field label="Observação" optional><input className={inputClass} value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>

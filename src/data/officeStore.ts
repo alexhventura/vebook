@@ -468,6 +468,100 @@ function enrichDemoOperationalRecords(): void {
       },
     ];
   }
+  // Veículos extras com prefixo BRA para demonstrar autocomplete (3 + Mais).
+  const demoVehicles: Array<Omit<OfficeVehicleRecord, 'officeId' | 'createdAt'> & { customerName: string; phone: string }> = [
+    { id: 'veh_demo_bra_01', customerName: 'Ana Beatriz Mendes', phone: '11977770001', plate: 'BRA1A11', brand: 'Honda', model: 'Civic', year: 2021, mileageKm: 32000, customerId: 'cust_demo_bra_01' },
+    { id: 'veh_demo_bra_02', customerName: 'Bruno Ferreira Lima', phone: '11977770002', plate: 'BRA2B22', brand: 'Volkswagen', model: 'Gol', year: 2019, mileageKm: 61000, customerId: 'cust_demo_bra_02' },
+    { id: 'veh_demo_bra_03', customerName: 'Carla Souza Nunes', phone: '11977770003', plate: 'BRA3C33', brand: 'Fiat', model: 'Argo', year: 2022, mileageKm: 18500, customerId: 'cust_demo_bra_03' },
+    { id: 'veh_demo_bra_04', customerName: 'Diego Martins Rocha', phone: '11977770004', plate: 'BRA4D44', brand: 'Chevrolet', model: 'Onix', year: 2020, mileageKm: 45200, customerId: 'cust_demo_bra_04' },
+  ];
+  demoVehicles.forEach((item) => {
+    if (!state.customers.some((row) => row.id === item.customerId)) {
+      state.customers = [
+        ...state.customers,
+        {
+          id: item.customerId!,
+          officeId: prisma.officeId,
+          name: item.customerName,
+          phone: item.phone,
+          whatsapp: item.phone,
+          createdAt: nowIso(),
+        },
+      ];
+    }
+    if (!state.vehicles.some((row) => row.id === item.id)) {
+      state.vehicles = [
+        ...state.vehicles,
+        {
+          id: item.id,
+          officeId: prisma.officeId,
+          customerId: item.customerId,
+          plate: item.plate,
+          brand: item.brand,
+          model: item.model,
+          year: item.year,
+          mileageKm: item.mileageKm,
+          createdAt: nowIso(),
+        },
+      ];
+    }
+  });
+
+  if (!state.serviceCatalog.some((row) => row.id === 'svc_demo_freios')) {
+    state.serviceCatalog = [
+      ...state.serviceCatalog,
+      {
+        id: 'svc_demo_freios',
+        officeId: prisma.officeId,
+        name: 'Revisão de freios',
+        category: 'Freios',
+        price: 180,
+        durationMinutes: 60,
+        status: 'active',
+        publicVisible: true,
+        createdAt: nowIso(),
+      },
+      {
+        id: 'svc_demo_balanceamento',
+        officeId: prisma.officeId,
+        name: 'Balanceamento',
+        category: 'Direção e suspensão',
+        price: 70,
+        durationMinutes: 25,
+        status: 'active',
+        publicVisible: true,
+        createdAt: nowIso(),
+      },
+    ];
+  }
+  if (!state.productCatalog.some((row) => row.id === 'prd_demo_filtro')) {
+    state.productCatalog = [
+      ...state.productCatalog,
+      {
+        id: 'prd_demo_filtro',
+        officeId: prisma.officeId,
+        name: 'Filtro de óleo',
+        brand: 'Mann',
+        category: 'Filtros',
+        unit: 'unidade',
+        price: 45,
+        status: 'active',
+        createdAt: nowIso(),
+      },
+      {
+        id: 'prd_demo_pastilha',
+        officeId: prisma.officeId,
+        name: 'Pastilha de freio',
+        brand: 'Bosch',
+        category: 'Freios',
+        unit: 'jogo',
+        price: 160,
+        status: 'active',
+        createdAt: nowIso(),
+      },
+    ];
+  }
+
   if (!state.subscriptions.some((row) => row.officeId === prisma.officeId)) {
     state.subscriptions = [
       ...state.subscriptions,

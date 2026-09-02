@@ -8,7 +8,8 @@ import {
 } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { formatBRL } from '../../lib/currency';
-import { Field, inputClass } from '../ui/Field';
+import { inputClass } from '../ui/Field';
+import { AutocompleteField } from './AutocompleteField';
 import { SectionTitle, formatIsoDate } from './shared';
 import { NovoAtendimentoWizard } from './atendimentos/NovoAtendimentoWizard';
 
@@ -21,6 +22,23 @@ export const AtendimentosSection: React.FC<{ officeId: string }> = ({ officeId }
   const [mode, setMode] = useState<'list' | 'new'>('list');
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+
+  const searchOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const options: Array<{ id: string; label: string; description?: string }> = [];
+    const push = (id: string, label: string, description?: string) => {
+      const key = label.toLowerCase();
+      if (!label || seen.has(key)) return;
+      seen.add(key);
+      options.push({ id, label, description });
+    };
+    customers.forEach((customer) => push(`c-${customer.id}`, customer.name, 'Cliente'));
+    vehicles.forEach((vehicle) => push(`v-${vehicle.id}`, vehicle.plate, [vehicle.brand, vehicle.model].filter(Boolean).join(' ') || 'Veículo'));
+    rows.forEach((row) => {
+      listAttendanceServices(officeId, row.id).forEach((line) => push(`s-${line.id}`, line.title, 'Serviço'));
+    });
+    return options;
+  }, [customers, vehicles, rows, officeId]);
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -53,7 +71,13 @@ export const AtendimentosSection: React.FC<{ officeId: string }> = ({ officeId }
         </button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <input className={inputClass} placeholder="Buscar por cliente, placa ou serviço" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <AutocompleteField
+          value={query}
+          options={searchOptions}
+          placeholder="Buscar por cliente, placa ou serviço"
+          onChange={setQuery}
+          showEmptyMessage={false}
+        />
         <select className={inputClass} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="">Todos os status</option>
           <option value="completed">Concluído</option>

@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { listServiceCatalog, upsertServiceCatalog } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { formatBRL } from '../../lib/currency';
 import { Field, inputClass } from '../ui/Field';
+import { AutocompleteField } from './AutocompleteField';
 import { SectionTitle } from './shared';
 
 export const ServicosSection: React.FC<{ officeId: string }> = ({ officeId }) => {
   useOfficeStore();
   const rows = listServiceCatalog(officeId);
+  const [query, setQuery] = useState('');
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -17,6 +19,29 @@ export const ServicosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
     status: 'active' as 'active' | 'inactive',
     publicVisible: true,
   });
+
+  const nameOptions = useMemo(
+    () =>
+      rows.map((row) => ({
+        id: row.id,
+        label: row.name,
+        description: `${row.category || 'Catálogo'} · ${formatBRL(row.price)}`,
+      })),
+    [rows],
+  );
+
+  const categoryOptions = useMemo(() => {
+    const categories = [...new Set(rows.map((row) => row.category).filter(Boolean) as string[])];
+    return categories.map((category) => ({ id: category, label: category }));
+  }, [rows]);
+
+  const filtered = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    return rows.filter((row) => {
+      const haystack = [row.name, row.category, row.description].filter(Boolean).join(' ').toLowerCase();
+      return !term || haystack.includes(term);
+    });
+  }, [rows, query]);
 
   return (
     <section className="space-y-4">
@@ -41,8 +66,35 @@ export const ServicosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
           setForm({ name: '', description: '', category: '', price: '', durationMinutes: '', status: 'active', publicVisible: true });
         }}
       >
-        <Field label="Nome"><input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-        <Field label="Categoria"><input className={inputClass} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Ex.: Freios" /></Field>
+        <Field label="Nome">
+          <AutocompleteField
+            value={form.name}
+            options={nameOptions}
+            placeholder="Ex.: Troca de óleo"
+            onChange={(next) => setForm({ ...form, name: next })}
+            onSelect={(option) => {
+              const item = rows.find((row) => row.id === option.id);
+              if (!item) return;
+              setForm({
+                name: item.name,
+                description: item.description || '',
+                category: item.category || '',
+                price: String(item.price),
+                durationMinutes: item.durationMinutes != null ? String(item.durationMinutes) : '',
+                status: item.status,
+                publicVisible: item.publicVisible,
+              });
+            }}
+          />
+        </Field>
+        <Field label="Categoria">
+          <AutocompleteField
+            value={form.category}
+            options={categoryOptions}
+            placeholder="Ex.: Freios"
+            onChange={(next) => setForm({ ...form, category: next })}
+          />
+        </Field>
         <Field label="Preço"><input className={inputClass} type="number" min={0} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></Field>
         <Field label="Duração estimada (min)" optional><input className={inputClass} type="number" min={0} value={form.durationMinutes} onChange={(e) => setForm({ ...form, durationMinutes: e.target.value })} /></Field>
         <Field label="Descrição" optional>
@@ -54,9 +106,16 @@ export const ServicosSection: React.FC<{ officeId: string }> = ({ officeId }) =>
         </div>
         <button className="sm:col-span-2 rounded-xl bg-[#0B1E36] text-white font-bold text-sm py-2.5 cursor-pointer">Cadastrar serviço</button>
       </form>
+      <AutocompleteField
+        value={query}
+        options={nameOptions}
+        placeholder="Buscar serviço no catálogo"
+        onChange={setQuery}
+        showEmptyMessage={false}
+      />
       <div className="bg-white rounded-2xl border border-slate-200 divide-y">
-        {rows.length === 0 ? <p className="p-4 text-sm text-slate-500">Nenhum serviço no catálogo.</p> : null}
-        {rows.map((row) => (
+        {filtered.length === 0 ? <p className="p-4 text-sm text-slate-500">Nenhum serviço no catálogo.</p> : null}
+        {filtered.map((row) => (
           <div key={row.id} className="px-4 py-3 text-sm flex flex-wrap items-center justify-between gap-2">
             <div>
               <p><strong>{row.name}</strong> · {row.category || 'sem categoria'}</p>
