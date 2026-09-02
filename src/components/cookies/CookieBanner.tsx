@@ -29,12 +29,17 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
     const visible = Boolean(banner) && !hasAnswered && !isModalOpen;
     if (!visible || !banner) {
       document.documentElement.style.removeProperty('--vebook-cookie-banner-h');
+      document.documentElement.style.removeProperty('padding-bottom');
+      document.body.style.removeProperty('padding-bottom');
       document.documentElement.classList.remove('vebook-cookie-banner-open');
       document.body.classList.remove('vebook-cookie-banner-open');
       return;
     }
     const height = Math.ceil(banner.getBoundingClientRect().height);
-    document.documentElement.style.setProperty('--vebook-cookie-banner-h', `${height}px`);
+    const offset = `${height}px`;
+    document.documentElement.style.setProperty('--vebook-cookie-banner-h', offset);
+    document.documentElement.style.paddingBottom = offset;
+    document.body.style.paddingBottom = offset;
     document.documentElement.classList.add('vebook-cookie-banner-open');
     document.body.classList.add('vebook-cookie-banner-open');
   }, [hasAnswered, isModalOpen]);
@@ -52,6 +57,8 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({
       observer.disconnect();
       window.removeEventListener('resize', syncBannerOffset);
       document.documentElement.style.removeProperty('--vebook-cookie-banner-h');
+      document.documentElement.style.removeProperty('padding-bottom');
+      document.body.style.removeProperty('padding-bottom');
       document.documentElement.classList.remove('vebook-cookie-banner-open');
       document.body.classList.remove('vebook-cookie-banner-open');
     };
