@@ -26,6 +26,8 @@ import { PLAN_OFFERS, planCardsExplainer } from '../../data/officePlans';
 import { formatBRL } from '../../lib/currency';
 import { PlanOfferCard } from '../plans/PlanOfferCard';
 import { searchPublicOffices } from '../../data/officeStore';
+import { getOfficeReputation } from '../../data/officeReputationStore';
+import { formatOfficeIndexLine } from '../../lib/officeRegularityIndex';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
 import { workshopHost } from '../../lib/slug';
 import { AppView, PlanModality } from '../../types';
@@ -160,12 +162,20 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {publicOffices.map((office) => (
+            {publicOffices.map((office) => {
+              const reputation = getOfficeReputation(office.id || office.officeId);
+              return (
               <article key={office.officeId} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
                 <div>
                   <h3 className="font-extrabold text-[#0B1E36]">{office.name}</h3>
-                  <p className="text-xs text-slate-600">{office.city} — {office.state}</p>
+                  <p className="text-xs text-slate-600">{office.city} — {office.state}{office.neighborhood ? ` · ${office.neighborhood}` : ''}</p>
                   <p className="text-xs text-slate-500 mt-1">{(office.specialties || office.segments || []).slice(0, 4).join(' · ')}</p>
+                  <p className="text-xs font-bold text-[#0B1E36] mt-2">
+                    {formatOfficeIndexLine(reputation)}
+                    {!reputation.inFormation ? (
+                      <span className="ml-2 font-semibold text-amber-800">{reputation.classificationLabel}</span>
+                    ) : null}
+                  </p>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[11px] font-mono text-slate-500">{workshopHost(office.slug)}</span>
@@ -178,7 +188,8 @@ export const ParaOficinasView: React.FC<ParaOficinasViewProps> = ({
                   </button>
                 </div>
               </article>
-            ))}
+              );
+            })}
             {publicOffices.length === 0 ? (
               <p className="text-sm text-slate-500">Nenhuma oficina ativa encontrada com esses filtros.</p>
             ) : null}

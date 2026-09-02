@@ -14,6 +14,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --port 3000 --host",
     "lint": "tsc --noEmit",
+    "test": "npx --yes tsx --test src/lib/historyLayers.test.ts src/lib/certificatePagination.test.ts src/lib/navigation.test.ts",
     "clean": "rm -rf dist"
   },
   "dependencies": {

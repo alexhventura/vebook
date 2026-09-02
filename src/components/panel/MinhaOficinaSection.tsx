@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { listServiceCatalog, updateOfficeProfile, upsertServiceCatalog } from '../../data/officeStore';
 import { useOfficeStore } from '../../hooks/useOfficeStore';
+import { normalizeThemeColor } from '../../lib/themeColor';
 import { workshopHost } from '../../lib/slug';
 import { Office } from '../../types';
 import { Field, inputClass } from '../ui/Field';
+import { ThemeColorPicker } from '../ui/ThemeColorPicker';
 import { SectionTitle } from './shared';
 
 export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (slug: string) => void }> = ({
@@ -26,6 +28,7 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
     city: office.city,
     state: office.state,
     zipCode: office.zipCode ?? '',
+    mapUrl: office.mapUrl ?? '',
     instagram: office.socialLinks?.instagram ?? '',
     facebook: office.socialLinks?.facebook ?? '',
     website: office.socialLinks?.website ?? '',
@@ -34,6 +37,7 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
     sunday: office.businessHoursDetail?.sunday ?? 'Fechado',
     logoUrl: office.logoUrl ?? '',
     coverImageUrl: office.coverImageUrl ?? '',
+    themeColor: normalizeThemeColor(office.themeColor),
   });
   const [saved, setSaved] = useState(false);
 
@@ -80,8 +84,10 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
             city: form.city,
             state: form.state,
             zipCode: form.zipCode,
+            mapUrl: form.mapUrl || undefined,
             logoUrl: form.logoUrl || undefined,
             coverImageUrl: form.coverImageUrl || undefined,
+            themeColor: normalizeThemeColor(form.themeColor),
             socialLinks: {
               ...office.socialLinks,
               instagram: form.instagram || undefined,
@@ -101,6 +107,14 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
       >
         <Field label="Nome"><input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
         <Field label="Nome fantasia"><input className={inputClass} value={form.tradeName} onChange={(e) => setForm({ ...form, tradeName: e.target.value })} /></Field>
+        <div className="sm:col-span-2">
+          <ThemeColorPicker
+            id="office-theme-color"
+            value={form.themeColor}
+            onChange={(themeColor) => setForm({ ...form, themeColor })}
+            hint="Cor usada na tarja do nome, botões e bordas dos cards do site público. Escolhida no espectro e editável a qualquer momento."
+          />
+        </div>
         <Field label="Logo (URL)" optional><input className={inputClass} value={form.logoUrl} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} /></Field>
         <Field label="Capa (URL)" optional><input className={inputClass} value={form.coverImageUrl} onChange={(e) => setForm({ ...form, coverImageUrl: e.target.value })} /></Field>
         <Field label="Descrição">
@@ -117,6 +131,9 @@ export const MinhaOficinaSection: React.FC<{ office: Office; onViewPublicPage: (
         <Field label="Cidade"><input className={inputClass} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></Field>
         <Field label="UF"><input className={inputClass} value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></Field>
         <Field label="CEP"><input className={inputClass} value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} /></Field>
+        <Field label="Link do mapa" optional hint="Google Maps, Waze ou outro mapa com o endereço da oficina.">
+          <input className={inputClass} value={form.mapUrl} onChange={(e) => setForm({ ...form, mapUrl: e.target.value })} placeholder="https://maps.app.goo.gl/..." />
+        </Field>
         <Field label="Seg–Sex"><input className={inputClass} value={form.weekdays} onChange={(e) => setForm({ ...form, weekdays: e.target.value })} /></Field>
         <Field label="Sábado"><input className={inputClass} value={form.saturday} onChange={(e) => setForm({ ...form, saturday: e.target.value })} /></Field>
         <Field label="Domingo"><input className={inputClass} value={form.sunday} onChange={(e) => setForm({ ...form, sunday: e.target.value })} /></Field>

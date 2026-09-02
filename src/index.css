@@ -1,5 +1,59 @@
 @import "tailwindcss";
 
+/*
+  VEBOOK Design System — tokens canônicos
+  Hierarquia: azul-marinho → branco/cinza-claro → azul-claro → mostarda
+*/
+
+@theme {
+  /* —— Cores de marca —— */
+  --color-vebook-navy: #0b1e36;
+  --color-vebook-navy-deep: #071527;
+  --color-vebook-navy-mid: #132c4d;
+  --color-vebook-navy-soft: #e8eef4;
+
+  --color-vebook-gray: #f1f5f9;
+  --color-vebook-surface: #f8fafc;
+
+  --color-vebook-blue: #6b9ec4;
+  --color-vebook-blue-soft: #e8f2f8;
+  --color-vebook-blue-muted: #8bb0cc;
+
+  --color-vebook-mustard: #c4a35a;
+  --color-vebook-mustard-soft: #f6f0e4;
+  --color-vebook-mustard-deep: #a8863f;
+
+  /* —— Neutros —— */
+  --color-vebook-white: #ffffff;
+  --color-vebook-ink: #0f172a;
+  --color-vebook-text: #1e293b;
+  --color-vebook-muted: #64748b;
+  --color-vebook-subtle: #94a3b8;
+  --color-vebook-border: #e2e8f0;
+  --color-vebook-border-strong: #cbd5e1;
+
+  /* —— Funcionais (não fazem parte da identidade) —— */
+  --color-vebook-error: #b42318;
+  --color-vebook-error-soft: #fef3f2;
+
+  /* —— Tipografia —— */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* —— Radius (sólido, sem cápsula) —— */
+  --radius-vebook-sm: 0.375rem;
+  --radius-vebook: 0.625rem;
+  --radius-vebook-md: 0.75rem;
+  --radius-vebook-lg: 1rem;
+
+  /* —— Sombras —— */
+  --shadow-vebook: 0 1px 2px rgb(15 23 42 / 0.04);
+  --shadow-vebook-md: 0 1px 3px rgb(15 23 42 / 0.06);
+
+  /* —— Espaçamento de seção —— */
+  --spacing-section: 5rem;
+  --spacing-section-lg: 7rem;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -18,3 +72,406 @@ html.vebook-cookie-banner-open {
   overflow-y: auto;
 }
 
+body {
+  font-family: var(--font-sans);
+  color: var(--color-vebook-text);
+  background-color: var(--color-vebook-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--color-vebook-navy);
+  color: var(--color-vebook-white);
+}
+
+/* Utilitários semânticos reutilizáveis */
+@layer components {
+  .vebook-container {
+    @apply mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .vebook-section {
+    @apply pt-16 sm:pt-24 lg:pt-28;
+  }
+
+  .vebook-section-title {
+    @apply text-2xl sm:text-3xl font-bold tracking-tight text-vebook-navy;
+  }
+
+  .vebook-section-lead {
+    @apply text-sm sm:text-base text-vebook-muted leading-relaxed;
+  }
+
+  .vebook-card {
+    @apply bg-vebook-white border border-vebook-mustard/70 rounded-vebook-md shadow-vebook;
+    @apply transition-[transform,box-shadow,border-color] duration-200 ease-out;
+  }
+
+  .vebook-card:hover {
+    @apply border-vebook-mustard;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgb(196 163 90 / 0.18);
+  }
+
+  .vebook-card-pad {
+    @apply p-6 sm:p-8;
+  }
+
+  .vebook-label {
+    @apply block text-sm font-medium text-vebook-text;
+  }
+
+  .vebook-hint {
+    @apply text-xs text-vebook-muted leading-relaxed;
+  }
+
+  .vebook-error-text {
+    @apply text-xs text-vebook-error leading-relaxed;
+  }
+
+  .vebook-card-lift {
+    @apply border border-vebook-mustard/70 transition-[transform,box-shadow,border-color] duration-200 ease-out;
+  }
+
+  .vebook-card-lift:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-vebook-mustard);
+    box-shadow: 0 8px 24px rgb(196 163 90 / 0.18);
+  }
+
+  .vebook-reveal {
+    animation: vebook-fade-up 0.65s ease-out both;
+  }
+
+  .vebook-reveal-delay-1 {
+    animation-delay: 0.08s;
+  }
+
+  .vebook-reveal-delay-2 {
+    animation-delay: 0.16s;
+  }
+
+  .vebook-reveal-delay-3 {
+    animation-delay: 0.24s;
+  }
+
+  .vebook-star-pulse {
+    animation: vebook-star-pulse 4.5s ease-in-out infinite;
+  }
+}
+
+@keyframes vebook-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes vebook-star-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vebook-reveal,
+  .vebook-star-pulse,
+  .vebook-card-lift {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .vebook-card-lift:hover {
+    transform: none;
+  }
+}
+
+/* —— Certidão VEBOOK: folha A4 (210 × 297 mm) —— */
+.cert-document {
+  --cert-page-w: 210mm;
+  --cert-page-h: 297mm;
+  --cert-margin-x: 12mm;
+  --cert-margin-y: 6mm;
+  --cert-block-gap: 4mm;
+}
+
+.cert-a4-page {
+  box-sizing: border-box;
+  width: var(--cert-page-w);
+  height: var(--cert-page-h);
+  min-width: var(--cert-page-w);
+  min-height: var(--cert-page-h);
+  max-width: var(--cert-page-w);
+  max-height: var(--cert-page-h);
+  padding: 0;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: visible;
+  display: block;
+  position: relative;
+}
+
+.cert-a4-page > .cert-page-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.cert-page-header,
+.cert-page-footer {
+  box-sizing: border-box;
+  padding-left: var(--cert-margin-x);
+  padding-right: var(--cert-margin-x);
+  flex-shrink: 0;
+  min-height: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 30;
+}
+
+.cert-page-header {
+  padding-top: 5mm;
+  padding-bottom: 5mm;
+}
+
+.cert-page-footer {
+  padding-top: 4mm;
+  padding-bottom: 4mm;
+}
+
+.cert-page-body {
+  box-sizing: border-box;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  gap: var(--cert-block-gap);
+  padding: var(--cert-margin-y) var(--cert-margin-x);
+}
+
+.cert-attendance {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Barra sutil após o conteúdo de cada campo — preenche o espaço restante */
+.cert-field-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.cert-field-content {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  line-height: 1.35;
+}
+
+.cert-field-leader {
+  flex: 1 1 0;
+  min-width: 6mm;
+  height: 1px;
+  align-self: center;
+  margin-top: 0.35em;
+  background: rgba(11, 30, 54, 0.1);
+  border: 0;
+  pointer-events: none;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.cert-page-watermark {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+@media screen and (max-width: 900px) {
+  .cert-document {
+    overflow-x: auto;
+  }
+}
+
+@media print {
+  @page {
+    size: 210mm 297mm;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.vebook-print-certidao {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body.vebook-print-certidao .vebook-no-print {
+    display: none !important;
+  }
+
+  /* Janela dedicada de impressão — só o documento */
+  body.cert-print-window {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  body.cert-print-window .cert-document {
+    display: block !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Remove chrome da SPA — só o documento entra na folha */
+  body.vebook-print-certidao #root,
+  body.vebook-print-certidao #root > div,
+  body.vebook-print-certidao main {
+    display: block !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    flex: none !important;
+  }
+
+  body.vebook-print-certidao .cert-print-root,
+  body.vebook-print-certidao .cert-print-inner,
+  body.vebook-print-certidao .cert-print-area {
+    display: block !important;
+    position: static !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  body.vebook-print-certidao .cert-document {
+    display: block !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  /*
+   * Folha A4 fixa; grid garante que só o corpo encolhe — cabeçalho/rodapé íntegros.
+   * Margem interna extra protege título e QR da zona não imprimível do navegador.
+   */
+  body.vebook-print-certidao .cert-a4-page {
+    position: relative !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 210mm !important;
+    min-width: 210mm !important;
+    max-width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  body.vebook-print-certidao .cert-a4-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  body.vebook-print-certidao .cert-a4-page > .cert-page-shell {
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  body.vebook-print-certidao .cert-page-header {
+    padding-top: 8mm !important;
+    padding-bottom: 5mm !important;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.vebook-print-certidao .cert-page-footer {
+    padding-top: 5mm !important;
+    padding-bottom: 8mm !important;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.vebook-print-certidao .cert-page-body {
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body.vebook-print-certidao .cert-page-header,
+  body.vebook-print-certidao .cert-page-footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.vebook-print-certidao .cert-attendance {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.vebook-print-certidao .cert-page-watermark {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.vebook-print-certidao .cert-field-leader {
+    background: rgba(11, 30, 54, 0.12) !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

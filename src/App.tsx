@@ -3,23 +3,31 @@ import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 
 import { HomeView } from './components/views/HomeView';
+import { ConsultaVeiculoView } from './components/views/ConsultaVeiculoView';
 import { DiarioVeicularView } from './components/views/DiarioVeicularView';
 import { ComoFuncionaView } from './components/views/ComoFuncionaView';
 import { CertidaoView } from './components/views/CertidaoView';
 import { ParaOficinasView } from './components/views/ParaOficinasView';
 import { CadastroOficinaView } from './components/views/CadastroOficinaView';
 import { ValidacaoSimuladorView } from './components/views/ValidacaoSimuladorView';
+import { ValidarCertidaoView } from './components/views/ValidarCertidaoView';
 import { WorkshopSiteView } from './components/workshop/WorkshopSiteView';
 import { TransparenciaView } from './components/views/TransparenciaView';
 import { OfficePanelView } from './components/panel/OfficePanelView';
 
 import { LegalModal } from './components/modals/LegalModal';
+import { PlanChoiceModal } from './components/modals/PlanChoiceModal';
 import { CookieBanner } from './components/cookies/CookieBanner';
 import { MinhaPrivacidadeModal } from './components/privacy/MinhaPrivacidadeModal';
 import { ContestacaoModal } from './components/contestation/ContestacaoModal';
 import { AppView, PlanModality, ServiceRecord, TransparenciaSection } from './types';
 import { applyHash, parseHash, PanelSection } from './lib/navigation';
-import { initOfficeStore } from './data/officeStore';
+import { initOfficeStore, loginDemoOffice } from './data/officeStore';
+import {
+  initOfficeReputationStore,
+  ingestContestationFact,
+} from './data/officeReputationStore';
+import { dueDateFromContestedAt } from './lib/officeRegularityIndex';
 
 export default function App() {
   const initial = parseHash();
@@ -27,13 +35,19 @@ export default function App() {
   const [transparenciaSection, setTransparenciaSection] = useState<TransparenciaSection>(
     initial.transparenciaSection || 'como-tratamos',
   );
-  const [selectedPlateForCertidao, setSelectedPlateForCertidao] = useState<string>('BRA2E19');
+  const [selectedPlateForCertidao, setSelectedPlateForCertidao] = useState<string>(
+    initial.consultaPlate || 'BRA2E19',
+  );
+  const [consultaPlate, setConsultaPlate] = useState<string | undefined>(initial.consultaPlate);
+  const [certificateCode, setCertificateCode] = useState<string | undefined>(initial.certificateCode);
+  const [certificatePage, setCertificatePage] = useState<number | undefined>(initial.certificatePage);
   const [legalModalType, setLegalModalType] = useState<'termos' | 'privacidade' | 'contato' | 'comercial' | null>(null);
   const [workshopSlug, setWorkshopSlug] = useState<string | undefined>(initial.workshopSlug);
   const [panelSection, setPanelSection] = useState<PanelSection>(initial.panelSection || 'inicio');
   const [panelTab, setPanelTab] = useState<string | undefined>(initial.panelTab);
   const [signupModality, setSignupModality] = useState<PlanModality>('monthly');
   const [signupPlanPreselected, setSignupPlanPreselected] = useState(false);
+  const [isPlanChoiceOpen, setIsPlanChoiceOpen] = useState(false);
 
   const [isCookieConfigModalOpen, setIsCookieConfigModalOpen] = useState(false);
   const [isPrivacidadeModalOpen, setIsPrivacidadeModalOpen] = useState(false);
@@ -44,6 +58,7 @@ export default function App() {
 
   useEffect(() => {
     void initOfficeStore();
+    initOfficeReputationStore();
   }, []);
 
   useEffect(() => {
@@ -54,6 +69,16 @@ export default function App() {
       if (next.panelSection) setPanelSection(next.panelSection);
       setPanelTab(next.panelTab);
       if (next.transparenciaSection) setTransparenciaSection(next.transparenciaSection);
+      if (next.certificateCode) setCertificateCode(next.certificateCode);
+      else if (next.view !== 'validar-certidao') setCertificateCode(undefined);
+      if (next.certificatePage) setCertificatePage(next.certificatePage);
+      else if (next.view !== 'validar-certidao') setCertificatePage(undefined);
+      if (next.consultaPlate) {
+        setConsultaPlate(next.consultaPlate);
+        setSelectedPlateForCertidao(next.consultaPlate);
+      } else if (next.view !== 'diario') {
+        setConsultaPlate(undefined);
+      }
     };
     window.addEventListener('hashchange', sync);
     if (!window.location.hash) {
@@ -62,7 +87,7 @@ export default function App() {
     return () => window.removeEventListener('hashchange', sync);
   }, []);
 
-  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string }) => {
+  const handleNavigate = (view: AppView, extra?: { workshopSlug?: string; panelSection?: PanelSection; panelTab?: string; certificateCode?: string; certificatePage?: number; consultaPlate?: string }) => {
     if (extra && 'workshopSlug' in extra) {
       setWorkshopSlug(extra.workshopSlug);
     }
@@ -72,14 +97,35 @@ export default function App() {
     } else if (extra?.panelSection) {
       setPanelTab(undefined);
     }
+    if (extra && 'certificateCode' in extra) {
+      setCertificateCode(extra.certificateCode);
+    }
+    if (extra && 'certificatePage' in extra) {
+      setCertificatePage(extra.certificatePage);
+    }
+    if (extra && 'consultaPlate' in extra) {
+      setConsultaPlate(extra.consultaPlate);
+      if (extra.consultaPlate) setSelectedPlateForCertidao(extra.consultaPlate);
+    }
     setCurrentView(view);
     const slug = extra && 'workshopSlug' in extra ? extra.workshopSlug : workshopSlug;
     const nextTab = extra && 'panelTab' in extra ? extra.panelTab : extra?.panelSection ? undefined : panelTab;
+    const code = extra && 'certificateCode' in extra ? extra.certificateCode : certificateCode;
+    const page = extra && 'certificatePage' in extra ? extra.certificatePage : certificatePage;
+    const plateForDiario =
+      view === 'diario'
+        ? extra && 'consultaPlate' in extra
+          ? extra.consultaPlate
+          : consultaPlate
+        : undefined;
     applyHash({
       view,
       workshopSlug: view === 'site-oficina' ? slug || 'prisma' : view === 'painel-oficina' ? slug : undefined,
       panelSection: extra?.panelSection ?? (view === 'painel-oficina' ? panelSection : undefined),
       panelTab: view === 'painel-oficina' ? nextTab : undefined,
+      certificateCode: view === 'validar-certidao' ? code : undefined,
+      certificatePage: view === 'validar-certidao' ? page : undefined,
+      consultaPlate: plateForDiario,
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -93,20 +139,8 @@ export default function App() {
 
   const handleSearchPlateFromHome = (plate: string) => {
     setSelectedPlateForCertidao(plate);
-    handleNavigate('diario');
-  };
-
-  const handleFocusConsulta = () => {
-    if (currentView !== 'diario') {
-      handleNavigate('diario');
-    }
-    setTimeout(() => {
-      const input = consultaInputRef.current;
-      if (input) {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        input.focus();
-      }
-    }, 100);
+    setConsultaPlate(plate);
+    handleNavigate('diario', { consultaPlate: plate });
   };
 
   const handleEmitirCertidaoForPlate = (plate: string) => {
@@ -124,16 +158,26 @@ export default function App() {
     setIsContestacaoModalOpen(true);
   };
 
+  /** CTAs de cadastro sem plano pré-escolhido (fora dos banners de preço). */
+  const handleRequestCadastro = () => {
+    setIsPlanChoiceOpen(true);
+  };
+
+  const handleStartCadastroWithPlan = (modality: PlanModality) => {
+    setIsPlanChoiceOpen(false);
+    setSignupModality(modality);
+    setSignupPlanPreselected(true);
+    handleNavigate('cadastro-oficina');
+  };
+
   const immersive = currentView === 'site-oficina' || currentView === 'painel-oficina' || currentView === 'cadastro-oficina';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#071A33] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#0B1E36] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-vebook-surface text-vebook-text font-sans">
       {!immersive && (
-        <Header
-          currentView={currentView}
-          onNavigate={handleNavigate}
-          onFocusConsulta={handleFocusConsulta}
-        />
+        <div className="vebook-no-print">
+          <Header onNavigate={handleNavigate} />
+        </div>
       )}
 
       <main className="flex-1">
@@ -141,20 +185,30 @@ export default function App() {
           <HomeView
             onNavigate={handleNavigate}
             onSearchPlate={handleSearchPlateFromHome}
-            onOpenCredenciamento={() => {
-              setSignupPlanPreselected(false);
-              handleNavigate('cadastro-oficina');
-            }}
+            onOpenCredenciamento={handleRequestCadastro}
             onOpenJaCredenciado={() => handleNavigate('painel-oficina', { workshopSlug: undefined })}
+            onStartCadastro={handleStartCadastroWithPlan}
+            onOpenContato={() => setLegalModalType('contato')}
+            onOpenWorkshop={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}
+            onNavigateTransparencia={handleNavigateTransparencia}
           />
+        )}
+
+        {currentView === 'consulta' && (
+          <ConsultaVeiculoView onNavigate={handleNavigate} />
         )}
 
         {currentView === 'diario' && (
           <DiarioVeicularView
+            initialPlate={selectedPlateForCertidao}
+            fromQrLink={Boolean(consultaPlate)}
             onNavigate={handleNavigate}
             onEmitirCertidaoForPlate={handleEmitirCertidaoForPlate}
-            onOpenContestacaoModalForRecord={handleOpenContestacaoForRecord}
-            onNavigateTransparencia={handleNavigateTransparencia}
+            onConsultaPlate={(plate) => {
+              setConsultaPlate(plate);
+              setSelectedPlateForCertidao(plate);
+              applyHash({ view: 'diario', consultaPlate: plate });
+            }}
             searchInputRef={consultaInputRef}
           />
         )}
@@ -169,17 +223,24 @@ export default function App() {
           <CertidaoView
             initialPlate={selectedPlateForCertidao}
             onNavigate={handleNavigate}
+            onValidateCertificate={(code) =>
+              handleNavigate('validar-certidao', { certificateCode: code })
+            }
+          />
+        )}
+
+        {currentView === 'validar-certidao' && (
+          <ValidarCertidaoView
+            initialCode={certificateCode}
+            initialPage={certificatePage}
+            onNavigate={handleNavigate}
           />
         )}
 
         {currentView === 'oficinas' && (
           <ParaOficinasView
             onNavigate={handleNavigate}
-            onStartCadastro={(modality) => {
-              setSignupModality(modality);
-              setSignupPlanPreselected(true);
-              handleNavigate('cadastro-oficina');
-            }}
+            onStartCadastro={handleStartCadastroWithPlan}
             onOpenPainel={() => handleNavigate('painel-oficina', { workshopSlug: undefined })}
             onOpenWorkshop={(slug) => handleNavigate('site-oficina', { workshopSlug: slug })}
           />
@@ -202,6 +263,7 @@ export default function App() {
             onSearchPlate={handleSearchPlateFromHome}
             workshopSlug={workshopSlug || 'prisma'}
             onOpenPanel={(slug) => handleNavigate('painel-oficina', { workshopSlug: slug })}
+            onNavigateTransparencia={handleNavigateTransparencia}
           />
         )}
 
@@ -235,45 +297,75 @@ export default function App() {
       </main>
 
       {!immersive && (
-        <Footer
-          onNavigate={handleNavigate}
-          onNavigateTransparencia={handleNavigateTransparencia}
-          onOpenCookiesConfig={() => setIsCookieConfigModalOpen(true)}
-          onOpenPrivacidadeModal={() => setIsPrivacidadeModalOpen(true)}
-          onOpenContestacaoModal={handleOpenContestacaoGeneric}
-          onOpenContato={() => setLegalModalType('contato')}
-        />
+        <div className="vebook-no-print">
+          <Footer
+            onNavigate={handleNavigate}
+            onNavigateTransparencia={handleNavigateTransparencia}
+            onOpenCookiesConfig={() => setIsCookieConfigModalOpen(true)}
+            onOpenPrivacidadeModal={() => setIsPrivacidadeModalOpen(true)}
+            onOpenContestacaoModal={handleOpenContestacaoGeneric}
+            onOpenContato={() => setLegalModalType('contato')}
+            onOpenDemoWorkshopSite={() => {
+              handleNavigate('site-oficina', { workshopSlug: 'prisma' });
+            }}
+            onOpenDemoPanel={async () => {
+              await loginDemoOffice('prisma');
+              handleNavigate('painel-oficina', { workshopSlug: 'prisma' });
+            }}
+          />
+        </div>
       )}
 
-      <CookieBanner
-        isOpenModalExternally={isCookieConfigModalOpen}
-        onCloseExternalModal={() => setIsCookieConfigModalOpen(false)}
-      />
-
-      <MinhaPrivacidadeModal
-        isOpen={isPrivacidadeModalOpen}
-        onClose={() => setIsPrivacidadeModalOpen(false)}
-        onOpenCookiesConfig={() => {
-          setIsPrivacidadeModalOpen(false);
-          setIsCookieConfigModalOpen(true);
-        }}
-      />
-
-      <ContestacaoModal
-        isOpen={isContestacaoModalOpen}
-        onClose={() => {
-          setIsContestacaoModalOpen(false);
-          setTargetContestationRecord(null);
-        }}
-        targetRecord={targetContestationRecord}
-      />
-
-      {legalModalType && (
-        <LegalModal
-          type={legalModalType}
-          onClose={() => setLegalModalType(null)}
+      <div className="vebook-no-print">
+        <CookieBanner
+          isOpenModalExternally={isCookieConfigModalOpen}
+          onCloseExternalModal={() => setIsCookieConfigModalOpen(false)}
         />
-      )}
+
+        <MinhaPrivacidadeModal
+          isOpen={isPrivacidadeModalOpen}
+          onClose={() => setIsPrivacidadeModalOpen(false)}
+          onOpenCookiesConfig={() => {
+            setIsPrivacidadeModalOpen(false);
+            setIsCookieConfigModalOpen(true);
+          }}
+        />
+
+        <ContestacaoModal
+          isOpen={isContestacaoModalOpen}
+          onClose={() => {
+            setIsContestacaoModalOpen(false);
+            setTargetContestationRecord(null);
+          }}
+          targetRecord={targetContestationRecord}
+          onSuccessContestation={(submission) => {
+            const officeId = submission.officeId || targetContestationRecord?.workshopId;
+            if (!officeId) return;
+            const contestedAt = submission.createdAt;
+            ingestContestationFact({
+              id: submission.id,
+              officeId,
+              attendanceId: submission.serviceRecordId,
+              contestedAt,
+              responseDueAt: submission.responseDueAt || dueDateFromContestedAt(contestedAt),
+              respondedAt: submission.resolvedAt,
+            });
+          }}
+        />
+
+        {legalModalType && (
+          <LegalModal
+            type={legalModalType}
+            onClose={() => setLegalModalType(null)}
+          />
+        )}
+
+        <PlanChoiceModal
+          open={isPlanChoiceOpen}
+          onClose={() => setIsPlanChoiceOpen(false)}
+          onSelect={handleStartCadastroWithPlan}
+        />
+      </div>
     </div>
   );
 }

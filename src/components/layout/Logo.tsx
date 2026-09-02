@@ -71,20 +71,20 @@ export const Logo: React.FC<LogoProps> = ({
             strokeLinejoin="round"
           />
 
-          {/* Subtle cyan/blue accent dot on the top corner */}
+          {/* Acento azul-claro da identidade VEBOOK */}
           <circle
             cx="31.5"
             cy="13"
             r="1.8"
-            fill={isLight ? '#38BDF8' : '#2563EB'}
+            fill="#6B9EC4"
           />
         </svg>
       </div>
 
       <div className="flex flex-col">
         <span
-          className={`font-black tracking-tight font-['Plus_Jakarta_Sans',sans-serif] ${textClasses[size]} ${
-            isLight ? 'text-white' : 'text-[#0B1E36]'
+          className={`font-bold tracking-tight font-sans ${textClasses[size]} ${
+            isLight ? 'text-vebook-white' : 'text-vebook-navy'
           }`}
           style={{ letterSpacing: '-0.03em' }}
         >
@@ -93,7 +93,7 @@ export const Logo: React.FC<LogoProps> = ({
         {showSubtitle && (
           <span
             className={`text-[9px] font-semibold tracking-widest uppercase -mt-1 ${
-              isLight ? 'text-slate-300' : 'text-slate-600'
+              isLight ? 'text-vebook-blue-muted' : 'text-vebook-muted'
             }`}
           >
             O Livro Digital do seu Veículo

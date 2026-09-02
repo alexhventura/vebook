@@ -13,6 +13,7 @@ import {
   statusFromWebhook,
 } from '../lib/payments/mockGateway';
 import { isValidSlugFormat, normalizeSlug, slugFromWorkshopName, workshopHost } from '../lib/slug';
+import { normalizeThemeColor } from '../lib/themeColor';
 import {
   AttendanceProductLine,
   AttendanceServiceLine,
@@ -81,6 +82,7 @@ function workshopToOffice(workshop: Workshop): Office {
   const slug = workshop.subdomain.split('.')[0] || slugFromWorkshopName(workshop.name);
   return {
     ...workshop,
+    themeColor: normalizeThemeColor(workshop.themeColor),
     officeId: workshop.id,
     legalName: workshop.name,
     tradeName: workshop.name,
@@ -123,7 +125,12 @@ function loadRaw(): StoreState {
     const parsed = JSON.parse(raw) as Partial<StoreState>;
     const base = emptyState();
     const persistedOffices = parsed.offices ?? [];
-    const signupOffices = persistedOffices.filter((office) => office.source === 'signup');
+    const signupOffices = persistedOffices
+      .filter((office) => office.source === 'signup')
+      .map((office) => ({
+        ...office,
+        themeColor: normalizeThemeColor(office.themeColor),
+      }));
     return {
       ...base,
       offices: [...base.offices, ...signupOffices],
@@ -167,8 +174,19 @@ function assertOfficeScope(officeId: string, rowOfficeId: string): void {
 async function ensureDemoOwner(): Promise<void> {
   const prisma = state.offices.find((office) => office.slug === 'prisma');
   if (!prisma) return;
+  const expectedHash = await hashPassword(DEMO_OWNER.cpf, DEMO_OWNER.password);
   const existing = state.users.find((user) => user.cpf === DEMO_OWNER.cpf);
-  if (existing) return;
+  if (existing) {
+    if (existing.passwordHash !== expectedHash || existing.status !== 'active') {
+      state.users = state.users.map((user) =>
+        user.cpf === DEMO_OWNER.cpf
+          ? { ...user, passwordHash: expectedHash, status: 'active', officeId: prisma.officeId }
+          : user,
+      );
+      persist();
+    }
+    return;
+  }
   const owner: OfficeUser = {
     id: 'user_demo_prisma',
     officeId: prisma.officeId,
@@ -176,7 +194,7 @@ async function ensureDemoOwner(): Promise<void> {
     cpf: DEMO_OWNER.cpf,
     phone: DEMO_OWNER.phone,
     email: DEMO_OWNER.email,
-    passwordHash: await hashPassword(DEMO_OWNER.cpf, DEMO_OWNER.password),
+    passwordHash: expectedHash,
     role: 'owner',
     jobRole: 'owner',
     jobTitle: 'Proprietária',
@@ -555,6 +573,7 @@ export function toPublicWorkshop(office: Office): Workshop {
   } = office;
   return {
     ...workshop,
+    themeColor: normalizeThemeColor(workshop.themeColor),
     subdomain: workshopHost(office.slug),
   };
 }
@@ -563,10 +582,17 @@ export function listWorkshopsForPublicSite(): Workshop[] {
   return listPublicOffices().map(toPublicWorkshop);
 }
 
-function composeAddress(draft: SignupDraft['office']): string {
-  const line = [draft.street, draft.streetNumber].filter(Boolean).join(', ');
-  const extra = [draft.complement, draft.neighborhood].filter(Boolean).join(' — ');
+function composeAddress(office: SignupDraft['office']): string {
+  const line = [office.street.trim(), office.streetNumber.trim()].filter(Boolean).join(', ');
+  const extra = [office.complement.trim(), office.neighborhood.trim()].filter(Boolean).join(' — ');
   return extra ? `${line} — ${extra}` : line;
+}
+
+function businessHoursSummary(hours: SignupDraft['site']['hours']): string {
+  const values = Object.values(hours).filter(Boolean);
+  if (!values.length) return 'Horário a completar no painel';
+  const unique = [...new Set(values)];
+  return unique.length === 1 ? unique[0] : 'Consulte os horários no site';
 }
 
 export async function createPendingOffice(draft: SignupDraft, consent: {
@@ -578,7 +604,7 @@ export async function createPendingOffice(draft: SignupDraft, consent: {
   if (!consent.terms || !consent.privacy || !consent.commercial || !consent.priceChange) {
     throw new Error('Aceite obrigatório incompleto.');
   }
-  const slug = normalizeSlug(draft.slug);
+  const slug = normalizeSlug(draft.site.slug);
   if (!isSlugAvailable(slug)) {
     throw new Error('Endereço digital indisponível.');
   }
@@ -593,39 +619,61 @@ export async function createPendingOffice(draft: SignupDraft, consent: {
   const paymentId = createId('pay');
   const stamp = nowIso();
   const host = workshopHost(slug);
+  const contactPhone = onlyDigits(draft.site.contactPhone || draft.office.phone);
+  const serviceNames = draft.site.services.map((item) => item.trim()).filter(Boolean);
 
   const office: Office = {
     id: officeId,
     officeId,
-    name: draft.office.tradeName.trim() || draft.office.legalName.trim(),
-    legalName: draft.office.legalName.trim(),
-    tradeName: draft.office.tradeName.trim() || undefined,
+    name: draft.site.displayName.trim() || draft.office.name.trim(),
+    legalName: draft.office.name.trim(),
+    tradeName: draft.site.displayName.trim() || undefined,
     cnpj: onlyDigits(draft.office.cnpj) || undefined,
     subdomain: host,
     slug,
-    slogan: draft.extras.shortDescription || undefined,
-    themeColor: 'blue',
-    city: draft.office.city,
-    state: draft.office.state,
+    slogan: draft.site.subtitle.trim() || undefined,
+    themeColor: normalizeThemeColor(draft.site.themeColor),
+    coverImageUrl: draft.site.photoUrl.trim() || undefined,
+    city: draft.office.city.trim() || '—',
+    state: draft.office.state.trim() || '—',
     address: composeAddress(draft.office),
-    neighborhood: draft.office.neighborhood,
-    zipCode: draft.office.zipCode,
-    street: draft.office.street,
-    streetNumber: draft.office.streetNumber,
-    complement: draft.office.complement || undefined,
-    phone: draft.office.phone,
-    whatsapp: draft.office.whatsapp || draft.office.phone,
-    email: draft.owner.email,
-    businessHours: 'Horário a completar no painel',
-    specialties: draft.extras.segments,
-    segments: draft.extras.segments,
+    neighborhood: draft.office.neighborhood.trim() || undefined,
+    zipCode: draft.office.zipCode.trim() || undefined,
+    street: draft.office.street.trim(),
+    streetNumber: draft.office.streetNumber.trim(),
+    complement: draft.office.complement.trim() || undefined,
+    mapUrl: draft.office.mapUrl.trim() || undefined,
+    phone: contactPhone,
+    whatsapp: contactPhone,
+    email: draft.site.contactEmail.trim() || draft.owner.email,
+    businessHours: businessHoursSummary(draft.site.hours),
+    businessHoursDetail: {
+      monday: draft.site.hours.monday || undefined,
+      tuesday: draft.site.hours.tuesday || undefined,
+      wednesday: draft.site.hours.wednesday || undefined,
+      thursday: draft.site.hours.thursday || undefined,
+      friday: draft.site.hours.friday || undefined,
+      saturday: draft.site.hours.saturday || undefined,
+      sunday: draft.site.hours.sunday || undefined,
+    },
+    specialties: serviceNames,
+    segments: serviceNames,
+    servicesList: serviceNames.map((title, index) => ({
+      id: `svc_signup_${index}`,
+      title,
+      category: 'Serviços',
+      shortDescription: title,
+    })),
     totalServicesRegistered: 0,
     validationRate: 0,
     certifiedSince: stamp.slice(0, 10),
-    description: draft.extras.shortDescription || `${draft.office.legalName} no VEBOOK.`,
+    description: draft.site.subtitle.trim() || `${draft.office.name.trim()} no VEBOOK.`,
     socialLinks: {
-      instagram: draft.extras.instagram || undefined,
-      website: draft.extras.website || undefined,
+      instagram: draft.site.socialLinks.instagram?.trim() || undefined,
+      facebook: draft.site.socialLinks.facebook?.trim() || undefined,
+      youtube: draft.site.socialLinks.youtube?.trim() || undefined,
+      tiktok: draft.site.socialLinks.tiktok?.trim() || undefined,
+      website: draft.site.socialLinks.website?.trim() || undefined,
     },
     status: 'pending',
     publicVisible: false,
@@ -639,7 +687,7 @@ export async function createPendingOffice(draft: SignupDraft, consent: {
     officeId,
     fullName: draft.owner.fullName.trim(),
     cpf,
-    phone: onlyDigits(draft.owner.phone),
+    phone: contactPhone || onlyDigits(draft.office.phone),
     email: draft.owner.email.trim().toLowerCase(),
     passwordHash: await hashPassword(cpf, draft.owner.password),
     role: 'owner',
@@ -760,6 +808,7 @@ export function applyPaymentWebhook(externalId: string, event: Parameters<typeof
 }
 
 export async function loginWithCpf(cpf: string, password: string): Promise<OfficeSession> {
+  await ensureDemoOwner();
   const digits = onlyDigits(cpf);
   const user = state.users.find((row) => row.cpf === digits);
   if (!user) {
@@ -768,6 +817,33 @@ export async function loginWithCpf(cpf: string, password: string): Promise<Offic
   const ok = user.passwordHash === (await hashPassword(digits, password));
   if (!ok) {
     throw new Error('CPF ou senha inválidos.');
+  }
+  const session: OfficeSession = {
+    userId: user.id,
+    officeId: user.officeId,
+    expiresAt: Date.now() + SESSION_MS,
+  };
+  state.session = session;
+  persist();
+  return session;
+}
+
+/**
+ * Entrada de demonstração no painel (sem senha) — oficina Prisma.
+ * Uso exclusivo de atalhos de teste do protótipo.
+ */
+export async function loginDemoOffice(slug = 'prisma'): Promise<OfficeSession> {
+  await ensureDemoOwner();
+  enrichDemoOperationalRecords();
+  const office = state.offices.find((row) => row.slug === slug);
+  if (!office) {
+    throw new Error('Oficina de demonstração não encontrada.');
+  }
+  const user =
+    state.users.find((row) => row.officeId === office.officeId && row.role === 'owner' && row.status === 'active') ??
+    state.users.find((row) => row.cpf === DEMO_OWNER.cpf);
+  if (!user) {
+    throw new Error('Usuário de demonstração não encontrado.');
   }
   const session: OfficeSession = {
     userId: user.id,
@@ -830,6 +906,9 @@ export function updateOfficeProfile(officeId: string, patch: Partial<Office>): O
     status: current.status,
     publicVisible: current.publicVisible,
   };
+  if (patch.themeColor) {
+    next.themeColor = normalizeThemeColor(patch.themeColor);
+  }
   if (patch.street || patch.streetNumber || patch.complement || patch.neighborhood) {
     const line = [next.street, next.streetNumber].filter(Boolean).join(', ');
     const extra = [next.complement, next.neighborhood].filter(Boolean).join(' — ');
@@ -1462,13 +1541,10 @@ export function onboardingProgress(officeId: string): { items: Array<{ id: strin
 
 export function defaultSignupDraft(modality: PlanModality = 'monthly'): SignupDraft {
   return {
-    owner: { fullName: '', cpf: '', phone: '', email: '', password: '' },
+    owner: { fullName: '', cpf: '', email: '', password: '' },
     office: {
-      legalName: '',
-      tradeName: '',
+      name: '',
       cnpj: '',
-      phone: '',
-      whatsapp: '',
       zipCode: '',
       street: '',
       streetNumber: '',
@@ -1476,9 +1552,35 @@ export function defaultSignupDraft(modality: PlanModality = 'monthly'): SignupDr
       neighborhood: '',
       city: '',
       state: '',
+      mapUrl: '',
+      phone: '',
     },
-    slug: '',
-    extras: { segments: [], instagram: '', website: '', shortDescription: '' },
+    site: {
+      slug: '',
+      displayName: '',
+      subtitle: '',
+      photoUrl: '',
+      contactPhone: '',
+      contactEmail: '',
+      hours: {
+        monday: '08:00 — 18:00',
+        tuesday: '08:00 — 18:00',
+        wednesday: '08:00 — 18:00',
+        thursday: '08:00 — 18:00',
+        friday: '08:00 — 18:00',
+        saturday: '08:00 — 13:00',
+        sunday: 'Fechado',
+      },
+      socialLinks: {
+        instagram: '',
+        facebook: '',
+        youtube: '',
+        tiktok: '',
+        website: '',
+      },
+      services: [''],
+      themeColor: '#0B1E36',
+    },
     modality,
   };
 }

@@ -5,6 +5,7 @@
 /** Visões da aplicação (navegação institucional). */
 export type AppView =
   | 'home'
+  | 'consulta'
   | 'diario'
   | 'como-funciona'
   | 'certidao'
@@ -13,6 +14,7 @@ export type AppView =
   | 'painel-oficina'
   | 'site-oficina'
   | 'validacao'
+  | 'validar-certidao'
   | 'transparencia';
 
 export type ValidationStatus = 'validado' | 'aguardando' | 'contestado' | 'sem_validacao';
@@ -46,12 +48,32 @@ export interface ContestationDetail {
   reasonLabel: string;
   comment: string;
   maskedClientIdentifier: string; // Ex: J* S*** (CPF: 35*******)
+  /** Status operacional da contestação (rastreabilidade pública na Certidão). */
+  status?: 'aberta' | 'em_analise' | 'respondida' | 'encerrada';
+  respondedAt?: string;
+}
+
+/** Retificação auditável — nunca sobrescreve o valor anterior em silêncio. */
+export interface ServiceRectification {
+  id: string;
+  rectifiedAt: string;
+  field: string;
+  fieldLabel: string;
+  previousValue: string;
+  newValue: string;
+  note?: string;
 }
 
 export interface ServiceRecord {
   id: string;
   vehiclePlate: string;
+  /** Data do serviço realizado (fato no veículo). */
   serviceDate: string;
+  /**
+   * Data/hora em que o registro entrou no VEBOOK.
+   * Distinto de serviceDate — rastreabilidade da Certidão.
+   */
+  recordedAt: string;
   mileageKm: number;
   serviceType: ServiceCategory;
   description: string;
@@ -62,11 +84,80 @@ export interface ServiceRecord {
   workshopCity: string;
   workshopState: string;
   internalOsNumber?: string;
+  /** Responsável pelo atendimento na oficina (quando informado). */
+  responsibleName?: string;
   products: ProductItem[];
   validationStatus: ValidationStatus;
   validatedAt?: string;
-  maskedValidatorName?: string; // Ex: J* S*** (CPF: 35*******)
+  maskedValidatorName?: string;
   contestation?: ContestationDetail;
+  rectifications?: ServiceRectification[];
+}
+
+/**
+ * Camada CONSULTA GRATUITA — somente o que foi feito (sem produtos, PII ou auditoria).
+ * Gerada por projeção; nunca “esconder via CSS” campos da Certidão.
+ */
+export interface PublicHistoryItem {
+  id: string;
+  serviceDate: string;
+  serviceType: string;
+  mileageKm: number;
+  workshopName: string;
+  workshopCity: string;
+  workshopState: string;
+}
+
+/** Resumo público de contestação na Certidão (sem conteúdo privado). */
+export interface CertificateContestationSummary {
+  exists: boolean;
+  statusLabel: string;
+  contestedAt?: string;
+  respondedAt?: string;
+}
+
+/**
+ * Camada CERTIDÃO — histórico completo + rastreabilidade permitida.
+ */
+export interface CertificateHistoryEntry {
+  id: string;
+  /**
+   * ID rastreável do atendimento: PLACA-OFICINA-SEQUÊNCIA
+   * (ex.: BRA2E19-ws-01-0008).
+   */
+  vehicleAttendanceId: string;
+  /** Sequência numérica no veículo (1 = mais antigo). */
+  vehicleAttendanceSeq: number;
+  serviceDate: string;
+  recordedAt: string;
+  mileageKm: number;
+  serviceType: string;
+  description: string;
+  laborDetails?: string;
+  observations?: string;
+  workshopId: string;
+  workshopName: string;
+  workshopCity: string;
+  workshopState: string;
+  responsibleName?: string;
+  products: ProductItem[];
+  validationStatus: ValidationStatus;
+  validatedAt?: string;
+  rectifications: ServiceRectification[];
+  contestation: CertificateContestationSummary;
+}
+
+export interface PublicVehicleIdentity {
+  plate: string;
+  brand: string;
+  model: string;
+  version: string;
+  yearFabrication: number;
+  yearModel: number;
+  color: string;
+  fuel: string;
+  chassisMasked?: string;
+  currentMileageKm: number;
 }
 
 export interface Vehicle {
@@ -113,11 +204,25 @@ export interface WorkshopSocialLinks {
 }
 
 export interface WorkshopHoursDetail {
-  weekdays: string;
-  saturday: string;
-  sunday: string;
+  weekdays?: string;
+  saturday?: string;
+  sunday?: string;
+  monday?: string;
+  tuesday?: string;
+  wednesday?: string;
+  thursday?: string;
+  friday?: string;
   notes?: string;
 }
+
+export type SignupWeekdayKey =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday';
 
 export interface Workshop {
   id: string;
@@ -125,13 +230,16 @@ export interface Workshop {
   subdomain: string; // Ex: prisma.vebook.com.br
   logoUrl?: string;
   slogan?: string;
-  themeColor: 'amber' | 'blue' | 'emerald' | 'rose' | 'indigo';
+  /** Cor de personalização da página pública (hex, ex.: `#F59E0B`). */
+  themeColor: string;
   coverImageUrl?: string;
   city: string;
   state: string;
   address: string;
   neighborhood?: string;
   zipCode?: string;
+  /** Link compartilhável do mapa (Google Maps, Waze, etc.). */
+  mapUrl?: string;
   phone: string;
   whatsapp: string;
   email?: string;
@@ -427,16 +535,12 @@ export interface SignupDraft {
   owner: {
     fullName: string;
     cpf: string;
-    phone: string;
     email: string;
     password: string;
   };
   office: {
-    legalName: string;
-    tradeName: string;
+    name: string;
     cnpj: string;
-    phone: string;
-    whatsapp: string;
     zipCode: string;
     street: string;
     streetNumber: string;
@@ -444,25 +548,52 @@ export interface SignupDraft {
     neighborhood: string;
     city: string;
     state: string;
+    mapUrl: string;
+    phone: string;
   };
-  slug: string;
-  extras: {
-    segments: string[];
-    instagram: string;
-    website: string;
-    shortDescription: string;
+  site: {
+    slug: string;
+    displayName: string;
+    subtitle: string;
+    photoUrl: string;
+    contactPhone: string;
+    contactEmail: string;
+    hours: Record<SignupWeekdayKey, string>;
+    socialLinks: WorkshopSocialLinks;
+    services: string[];
+    themeColor: string;
   };
   modality: PlanModality;
 }
 
 export interface Certificate {
   id: string;
+  /** Número interno sequencial (não exibido no documento). */
+  documentNumber: string;
+  /**
+   * Código único de autenticidade/rastreabilidade (ex.: VBK-2026-F05F-4F6C-21AE).
+   * Um só código para o documento; QR e validação usam este valor.
+   */
+  authenticityCode: string;
+  /** @deprecated Prefer authenticityCode — mantido por compatibilidade. */
   validationCode: string;
+  /** Igual a authenticityCode (código único rastreável). */
+  trackingCode: string;
+  /** Hash de integridade do snapshot emitido. */
+  integrityHash: string;
+  /** Histórico consultado até (ISO) — fotografia documental. */
+  historyAsOf: string;
   qrCodeUrl?: string;
   vehiclePlate: string;
+  /** Linha legível legado (marca/modelo/versão). */
   vehicleModel: string;
+  vehicleBrand: string;
+  vehicleModelName: string;
+  vehicleColor: string;
+  vehicleYearFabrication: number;
+  vehicleYearModel: number;
   requesterName: string;
-  requesterDocumentMasked: string; // Ex: CPF 123.***.***-00
+  requesterDocumentMasked: string;
   issuedAt: string;
   historyPeriodStart: string;
   historyPeriodEnd: string;
@@ -471,7 +602,23 @@ export interface Certificate {
   contestedCount: number;
   pendingCount: number;
   workshopsCount: number;
+  rectificationCount: number;
   servicesSnapshot: ServiceRecord[];
+}
+
+/** Identidade de uma página da Certidão (auto-contida). */
+export interface CertificatePageIdentity {
+  authenticityCode: string;
+  pageNumber: number;
+  totalPages: number;
+  vehiclePlate: string;
+  vehicleBrand: string;
+  vehicleModelName: string;
+  vehicleColor: string;
+  vehicleYearLabel: string;
+  issuedAt: string;
+  verifyPath: string;
+  integrityHash: string;
 }
 
 /**
@@ -538,8 +685,11 @@ export interface ContestationSubmission {
   evidenceNotes?: string;
   status: 'aberta' | 'em_analise' | 'acolhida_corrigida' | 'mantida_justificada';
   createdAt: string;
+  /** Prazo de resposta da oficina (SLA institucional). */
+  responseDueAt?: string;
   workshopResponse?: string;
   resolvedAt?: string;
+  officeId?: string;
 }
 
 export interface CookiePreferences {
@@ -562,6 +712,84 @@ export type TransparenciaSection =
   | 'certidoes'
   | 'regras-oficinas'
   | 'contestações'
+  | 'indice-vebook'
   | 'faq'
   | 'minha-privacidade';
+
+/**
+ * Índice VEBOOK de Regularidade das Oficinas (0–100).
+ * Não é avaliação técnica, satisfação nem ranking comercial.
+ */
+export type OfficeIndexClassification =
+  | 'excelente'
+  | 'muito_bom'
+  | 'regular'
+  | 'atencao'
+  | 'baixa_regularidade'
+  | 'em_formacao';
+
+export type OfficeIndexRegularityStatus = 'regular' | 'pending';
+
+export interface OfficeIndexCompletenessFlags {
+  hasVehicle: boolean;
+  hasService: boolean;
+  hasDate: boolean;
+  hasMileage: boolean;
+  hasProductsOrNotes: boolean;
+  hasResponsible: boolean;
+}
+
+/** Fato agregado de atendimento usado no cálculo oficial do índice. */
+export interface OfficeIndexAttendanceFact {
+  id: string;
+  officeId: string;
+  date: string;
+  regularityStatus: OfficeIndexRegularityStatus;
+  validationStatus: ValidationStatus;
+  completeness: OfficeIndexCompletenessFlags;
+}
+
+/** Fato de contestação para o pilar de responsabilidade (sem dados de cliente). */
+export interface OfficeIndexContestationFact {
+  id: string;
+  officeId: string;
+  attendanceId: string;
+  contestedAt: string;
+  responseDueAt: string;
+  respondedAt?: string;
+}
+
+export interface OfficeIndexInput {
+  officeId: string;
+  attendances: OfficeIndexAttendanceFact[];
+  contestations: OfficeIndexContestationFact[];
+}
+
+export interface OfficeIndexComponents {
+  regularity: number;
+  validation: number;
+  contestationResponsibility: number;
+  completeness: number;
+}
+
+/** Snapshot oficial persistido/cacheado (equivalente a office_reputation). */
+export interface OfficeReputationSnapshot {
+  officeId: string;
+  score: number;
+  classification: OfficeIndexClassification;
+  classificationLabel: string;
+  inFormation: boolean;
+  totalAttendances: number;
+  validatedAttendances: number;
+  unvalidatedAttendances: number;
+  contestedAttendances: number;
+  answeredContestations: number;
+  unansweredContestations: number;
+  averageResponseHours: number | null;
+  recordCompleteness: number;
+  components: OfficeIndexComponents;
+  calculatedAt: string;
+}
+
+export type OfficeSearchSort = 'relevance' | 'name' | 'location';
 
