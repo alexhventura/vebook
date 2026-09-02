@@ -255,7 +255,7 @@ const PanelShell: React.FC<{
             : 'conta';
 
   const nav = (
-    <nav className="bg-white rounded-2xl border border-slate-200 p-2 space-y-3">
+    <nav className="bg-[#0B1E36] rounded-2xl border border-[#132c4d] p-2 space-y-3 shadow-sm">
       {NAV_GROUPS.map((group, index) => (
         <div key={index} className="space-y-1">
           {group.items.map((item) => (
@@ -263,15 +263,17 @@ const PanelShell: React.FC<{
               key={item.id}
               type="button"
               onClick={() => go(item.id)}
-              className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold cursor-pointer ${
-                section === item.id ? 'bg-[#0B1E36] text-white' : 'text-slate-700 hover:bg-slate-50'
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-colors ${
+                section === item.id
+                  ? 'bg-[#c4a35a]/15 text-white border-l-2 border-[#c4a35a] pl-[10px]'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white border-l-2 border-transparent'
               }`}
             >
-              {item.icon}
+              <span className={section === item.id ? 'text-[#c4a35a]' : 'text-slate-400'}>{item.icon}</span>
               {item.label}
             </button>
           ))}
-          {index < NAV_GROUPS.length - 1 ? <div className="border-t border-slate-100 mx-2" /> : null}
+          {index < NAV_GROUPS.length - 1 ? <div className="border-t border-white/10 mx-2" /> : null}
         </div>
       ))}
     </nav>
