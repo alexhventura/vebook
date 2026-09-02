@@ -1,4 +1,5 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { inputClass } from '../ui/Field';
 
 export type AutocompleteOption = {
@@ -53,9 +54,12 @@ function optionMatches(option: AutocompleteOption, query: string): { match: bool
   return { match: false, rank: 2 };
 }
 
+type MenuPosition = { top: number; left: number; width: number };
+
 /**
  * Campo de autocomplete do painel: sugere registros existentes conforme a digitação.
  * Mostra as 3 primeiras coincidências e o botão "Mais" quando houver restantes.
+ * A lista usa portal (fixed) para não ser cortada pelo overflow do quadro do painel.
  */
 export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
   value,
@@ -76,9 +80,12 @@ export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
 }) => {
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [highlight, setHighlight] = useState(0);
+  const [menuPos, setMenuPos] = useState<MenuPosition | null>(null);
 
   const query = normalizeText(value);
   const ready = query.length >= minChars;
@@ -99,6 +106,38 @@ export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
   const visible = expanded ? matches : matches.slice(0, initialLimit);
   const remaining = Math.max(0, matches.length - initialLimit);
   const showList = open && ready && matches.length > 0;
+  const showEmpty = showEmptyMessage && open && ready && matches.length === 0;
+  const showMenu = showList || showEmpty;
+
+  const updateMenuPosition = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setMenuPos({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (!showMenu) {
+      setMenuPos(null);
+      return;
+    }
+    updateMenuPosition();
+  }, [showMenu, value, expanded, visible.length]);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    const onReposition = () => updateMenuPosition();
+    window.addEventListener('resize', onReposition);
+    window.addEventListener('scroll', onReposition, true);
+    return () => {
+      window.removeEventListener('resize', onReposition);
+      window.removeEventListener('scroll', onReposition, true);
+    };
+  }, [showMenu]);
 
   useEffect(() => {
     setExpanded(false);
@@ -107,10 +146,10 @@ export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-        setExpanded(false);
-      }
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
+      setExpanded(false);
     };
     document.addEventListener('mousedown', onPointerDown);
     return () => document.removeEventListener('mousedown', onPointerDown);
@@ -143,9 +182,65 @@ export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
     }
   };
 
+  const menu =
+    showMenu && menuPos
+      ? createPortal(
+          <div
+            ref={menuRef}
+            id={listId}
+            role={showList ? 'listbox' : undefined}
+            style={{
+              position: 'fixed',
+              top: menuPos.top,
+              left: menuPos.left,
+              width: menuPos.width,
+              zIndex: 80,
+            }}
+            className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+          >
+            {showList ? (
+              <>
+                <ul className="max-h-56 overflow-y-auto py-1">
+                  {visible.map((option, index) => (
+                    <li key={option.id} role="option" aria-selected={index === highlight}>
+                      <button
+                        type="button"
+                        className={`w-full px-3 py-2 text-left cursor-pointer ${
+                          index === highlight ? 'bg-sky-50' : 'hover:bg-slate-50'
+                        }`}
+                        onMouseEnter={() => setHighlight(index)}
+                        onClick={() => pick(option)}
+                      >
+                        <span className="block text-sm font-semibold text-[#0B1E36]">{option.label}</span>
+                        {option.description ? (
+                          <span className="block text-xs text-slate-500 mt-0.5">{option.description}</span>
+                        ) : null}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {!expanded && remaining > 0 ? (
+                  <button
+                    type="button"
+                    className="w-full border-t border-slate-100 px-3 py-2 text-xs font-bold text-sky-800 hover:bg-slate-50 cursor-pointer"
+                    onClick={() => setExpanded(true)}
+                  >
+                    Mais ({remaining})
+                  </button>
+                ) : null}
+              </>
+            ) : (
+              <div className="px-3 py-2 text-xs text-slate-500">{emptyHint}</div>
+            )}
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <div ref={rootRef} className={`relative ${className}`}>
       <input
+        ref={inputRef}
         id={id}
         type="text"
         role="combobox"
@@ -157,7 +252,10 @@ export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
         placeholder={placeholder}
         value={value}
         className={`${inputClass} ${inputClassName}`.trim()}
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          setOpen(true);
+          updateMenuPosition();
+        }}
         onChange={(event) => {
           const next = normalizeValue ? normalizeValue(event.target.value) : event.target.value;
           onChange(next);
@@ -165,49 +263,7 @@ export const AutocompleteField: React.FC<AutocompleteFieldProps> = ({
         }}
         onKeyDown={onKeyDown}
       />
-
-      {showList ? (
-        <div
-          id={listId}
-          role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+0.25rem)] z-30 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
-        >
-          <ul className="max-h-56 overflow-y-auto py-1">
-            {visible.map((option, index) => (
-              <li key={option.id} role="option" aria-selected={index === highlight}>
-                <button
-                  type="button"
-                  className={`w-full px-3 py-2 text-left cursor-pointer ${
-                    index === highlight ? 'bg-sky-50' : 'hover:bg-slate-50'
-                  }`}
-                  onMouseEnter={() => setHighlight(index)}
-                  onClick={() => pick(option)}
-                >
-                  <span className="block text-sm font-semibold text-[#0B1E36]">{option.label}</span>
-                  {option.description ? (
-                    <span className="block text-xs text-slate-500 mt-0.5">{option.description}</span>
-                  ) : null}
-                </button>
-              </li>
-            ))}
-          </ul>
-          {!expanded && remaining > 0 ? (
-            <button
-              type="button"
-              className="w-full border-t border-slate-100 px-3 py-2 text-xs font-bold text-sky-800 hover:bg-slate-50 cursor-pointer"
-              onClick={() => setExpanded(true)}
-            >
-              Mais ({remaining})
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {showEmptyMessage && open && ready && matches.length === 0 ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+0.25rem)] z-30 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500 shadow-lg">
-          {emptyHint}
-        </div>
-      ) : null}
+      {menu}
     </div>
   );
 };
